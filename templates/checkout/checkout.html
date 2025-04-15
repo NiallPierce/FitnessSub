@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col-md-8">
             <h2 class="mb-4">Checkout</h2>
-            <form method="POST" action="{% url 'checkout' %}">
+            <form method="POST" action="{% url 'checkout' %}" id="payment-form">
                 {% csrf_token %}
                 <div class="row">
                     <div class="col-md-6">
@@ -30,7 +30,21 @@
                 </div>
                 {{ form.country|as_crispy_field }}
                 {{ form.order_note|as_crispy_field }}
-                <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+
+                <div class="mt-4">
+                    <h4>Payment Details</h4>
+                    <div id="card-element" class="form-control">
+                        <!-- Stripe Card Element will be inserted here -->
+                    </div>
+                    <div id="card-errors" class="text-danger mt-2" role="alert"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg mt-4" id="submit-button">
+                    <span id="button-text">Pay Now</span>
+                    <div id="spinner" class="spinner-border spinner-border-sm d-none" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </button>
             </form>
         </div>
         <div class="col-md-4">
@@ -60,4 +74,59 @@
         </div>
     </div>
 </div>
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    var stripe = Stripe('{{ stripe_public_key }}');
+    var elements = stripe.elements();
+    var card = elements.create('card');
+    card.mount('#card-element');
+
+    var form = document.getElementById('payment-form');
+    var submitButton = document.getElementById('submit-button');
+    var spinner = document.getElementById('spinner');
+    var buttonText = document.getElementById('button-text');
+
+    card.addEventListener('change', function(event) {
+        var displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        submitButton.disabled = true;
+        spinner.classList.remove('d-none');
+        buttonText.textContent = 'Processing...';
+
+        stripe.createPaymentMethod({
+            type: 'card',
+            card: card,
+        }).then(function(result) {
+            if (result.error) {
+                var errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+                submitButton.disabled = false;
+                spinner.classList.add('d-none');
+                buttonText.textContent = 'Pay Now';
+            } else {
+                // Add the payment method ID to the form
+                var hiddenInput = document.createElement('input');
+                hiddenInput.setAttribute('type', 'hidden');
+                hiddenInput.setAttribute('name', 'payment_method_id');
+                hiddenInput.setAttribute('value', result.paymentMethod.id);
+                form.appendChild(hiddenInput);
+
+                // Submit the form
+                form.submit();
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

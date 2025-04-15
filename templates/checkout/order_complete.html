@@ -31,6 +31,30 @@
             </table>
         </div>
         <div class="col-md-6">
+            <h4>Payment Details</h4>
+            <table class="table">
+                <tr>
+                    <th>Payment ID:</th>
+                    <td>{{ payment.payment_id }}</td>
+                </tr>
+                <tr>
+                    <th>Payment Method:</th>
+                    <td>{{ payment.payment_method }}</td>
+                </tr>
+                <tr>
+                    <th>Amount Paid:</th>
+                    <td>${{ payment.amount_paid }}</td>
+                </tr>
+                <tr>
+                    <th>Payment Status:</th>
+                    <td>{{ payment.get_status_display }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
             <h4>Shipping Details</h4>
             <table class="table">
                 <tr>
@@ -98,4 +122,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock %} 

@@ -1,12 +1,16 @@
 import datetime
 import json
+import stripe
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from cart.contexts import cart_contents
 from .forms import OrderForm
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Payment
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @login_required
 def checkout(request):
@@ -59,11 +63,37 @@ def checkout(request):
                 order_item.ordered = True
                 order_item.save()
 
-            # Clear the cart
-            cart_items.delete()
+            # Process payment with Stripe
+            try:
+                # Create a PaymentIntent with the order amount and currency
+                intent = stripe.PaymentIntent.create(
+                    amount=int(total * 100),  # Convert to cents
+                    currency='usd',
+                    metadata={
+                        'order_number': order_number
+                    }
+                )
 
-            messages.success(request, 'Your order has been placed successfully!')
-            return redirect('order_complete', order_number=order_number)
+                # Create payment record
+                payment = Payment.objects.create(
+                    order=data,
+                    payment_id=intent.id,
+                    payment_method='Stripe',
+                    amount_paid=total,
+                    status='pending'
+                )
+
+                # Clear the cart
+                cart_items.delete()
+
+                messages.success(request, 'Your order has been placed successfully!')
+                return redirect('order_complete', order_number=order_number)
+            except stripe.error.CardError as e:
+                messages.error(request, f'Payment failed: {e.error.message}')
+                return redirect('checkout')
+            except Exception as e:
+                messages.error(request, 'Sorry, your payment cannot be processed at this time.')
+                return redirect('checkout')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -74,6 +104,7 @@ def checkout(request):
         'cart_items': cart_items,
         'total': total,
         'quantity': quantity,
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
     }
     return render(request, 'checkout/checkout.html', context)
 
@@ -81,11 +112,13 @@ def order_complete(request, order_number):
     try:
         order = Order.objects.get(order_number=order_number)
         order_items = OrderItem.objects.filter(order=order)
+        payment = Payment.objects.get(order=order)
         context = {
             'order': order,
             'order_items': order_items,
+            'payment': payment,
         }
         return render(request, 'checkout/order_complete.html', context)
     except Order.DoesNotExist:
         messages.error(request, 'Order not found')
-        return redirect('home')
+        return redirect('home') 
