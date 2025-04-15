@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">My Profile</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Personal Information</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'profile' %}">
+                        {% csrf_token %}
+                        {{ user_form|crispy }}
+                        <button type="submit" class="btn btn-primary">Update Information</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Shipping Information</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'profile' %}">
+                        {% csrf_token %}
+                        {{ profile_form|crispy }}
+                        <button type="submit" class="btn btn-primary">Update Shipping Details</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Order History</h4>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Order Number</th>
+                                        <th>Date</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                        <tr>
+                                            <td>{{ order.order_number }}</td>
+                                            <td>{{ order.created_at }}</td>
+                                            <td>{{ order.orderitem_set.count }}</td>
+                                            <td>${{ order.order_total }}</td>
+                                            <td>{{ order.get_status_display }}</td>
+                                            <td>
+                                                <a href="{% url 'order_history' order.order_number %}" class="btn btn-sm btn-info">
+                                                    View Details
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>You haven't placed any orders yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
