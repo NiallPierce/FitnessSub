@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2 class="mb-4">Checkout</h2>
+            <form method="POST" action="{% url 'checkout' %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.first_name|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.last_name|as_crispy_field }}
+                    </div>
+                </div>
+                {{ form.email|as_crispy_field }}
+                {{ form.phone|as_crispy_field }}
+                {{ form.address_line_1|as_crispy_field }}
+                {{ form.address_line_2|as_crispy_field }}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.city|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.state|as_crispy_field }}
+                    </div>
+                </div>
+                {{ form.country|as_crispy_field }}
+                {{ form.order_note|as_crispy_field }}
+                <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Order Summary</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tbody>
+                            {% for item in cart_items %}
+                                <tr>
+                                    <td>{{ item.product.name }} x {{ item.quantity }}</td>
+                                    <td>${{ item.sub_total }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Total</th>
+                                <th>${{ total }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
