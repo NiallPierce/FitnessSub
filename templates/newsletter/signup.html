@@ -10,7 +10,7 @@
                     <h2 class="card-title text-center mb-4">Subscribe to Our Newsletter</h2>
                     <p class="text-center mb-4">Stay updated with our latest products and offers!</p>
                     
-                    <form method="POST" action="{% url 'newsletter_signup' %}">
+                    <form method="POST" action="{% url 'newsletter:newsletter_signup' %}">
                         {% csrf_token %}
                         {{ form|crispy }}
                         <div class="text-center mt-4">

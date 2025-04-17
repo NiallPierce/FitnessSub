@@ -18,7 +18,7 @@ class CartTests(TestCase):
             category=self.category
         )
         self.cart_url = reverse('cart:view_cart')
-        self.add_cart_url = reverse('cart:add_cart', args=[self.product.id])
+        self.add_cart_url = reverse('cart:cart_add', args=[self.product.id])
         self.remove_cart_url = reverse('cart:remove_cart', args=[self.product.id])
         self.remove_item_url = reverse('cart:remove_cart_item', args=[self.product.id])
 

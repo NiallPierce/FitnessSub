@@ -33,7 +33,7 @@
                                                          style="width: 50px; height: 50px; object-fit: cover;">
                                                 {% endif %}
                                                 <div class="ms-3">
-                                                    <a href="{% url 'products:product_detail' cart_item.product.id %}" 
+                                                    <a href="{% url 'products:product_detail' product_id=cart_item.product.id %}" 
                                                        class="text-decoration-none">
                                                         {{ cart_item.product.name }}
                                                     </a>
@@ -41,7 +41,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <form action="{% url 'cart:add_cart' cart_item.product.id %}" method="post" class="d-inline">
+                                            <form action="{% url 'cart:cart_add' product_id=cart_item.product.id %}" method="post" class="d-inline">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="override" value="True">
                                                 <input type="number" name="quantity" value="{{ cart_item.quantity }}" 
@@ -52,11 +52,11 @@
                                         <td>${{ cart_item.product.price }}</td>
                                         <td>${{ cart_item.sub_total }}</td>
                                         <td>
-                                            <a href="{% url 'cart:remove_cart' cart_item.product.id %}" 
+                                            <a href="{% url 'cart:remove_cart' product_id=cart_item.product.id %}" 
                                                class="btn btn-sm btn-outline-secondary">
                                                 <i class="fas fa-minus"></i>
                                             </a>
-                                            <a href="{% url 'cart:remove_cart_item' cart_item.product.id %}" 
+                                            <a href="{% url 'cart:remove_cart_item' product_id=cart_item.product.id %}" 
                                                class="btn btn-sm btn-outline-danger">
                                                 <i class="fas fa-trash"></i>
                                             </a>

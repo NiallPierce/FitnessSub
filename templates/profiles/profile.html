@@ -28,7 +28,7 @@
                              class="img-fluid rounded-circle mb-3"
                              style="width: 200px; height: 200px; object-fit: cover;">
                     {% endif %}
-                    <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data">
+                    <form method="POST" action="{% url 'profiles:profile' %}" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="form-group">
                             <input type="file" 
@@ -49,7 +49,7 @@
                     <h4>Personal Information</h4>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{% url 'profile' %}">
+                    <form method="POST" action="{% url 'profiles:profile' %}">
                         {% csrf_token %}
                         {{ user_form|crispy }}
                         <button type="submit" class="btn btn-primary">Update Information</button>
@@ -62,7 +62,7 @@
                     <h4>Shipping Information</h4>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{% url 'profile' %}">
+                    <form method="POST" action="{% url 'profiles:profile' %}">
                         {% csrf_token %}
                         {{ profile_form|crispy }}
                         <button type="submit" class="btn btn-primary">Update Shipping Details</button>
@@ -101,7 +101,7 @@
                                             <td>${{ order.order_total }}</td>
                                             <td>{{ order.get_status_display }}</td>
                                             <td>
-                                                <a href="{% url 'order_history' order.order_number %}" class="btn btn-sm btn-info">
+                                                <a href="{% url 'profiles:order_history' order.order_number %}" class="btn btn-sm btn-info">
                                                     View Details
                                                 </a>
                                             </td>

@@ -68,12 +68,11 @@ def products(request):
     }
     return render(request, 'products/products.html', context)
 
-def product_detail(request, category_slug, product_slug):
+def product_detail(request, product_id):
     """Display individual product details with reviews and related products"""
     product = get_object_or_404(
         Product,
-        category__slug=category_slug,
-        slug=product_slug,
+        id=product_id,
         is_available=True
     )
     
@@ -99,7 +98,7 @@ def product_detail(request, category_slug, product_slug):
             new_review.user = request.user
             new_review.save()
             messages.success(request, 'Your review has been submitted.')
-            return redirect('product_detail', category_slug=category_slug, product_slug=product_slug)
+            return redirect('products:product_detail', product_id=product.id)
     else:
         review_form = ReviewForm()
     
@@ -156,7 +155,7 @@ def add_product(request):
         if form.is_valid():
             product = form.save()
             messages.success(request, 'Successfully added product!')
-            return redirect('product_detail', product_id=product.id)
+            return redirect('products:product_detail', product_id=product.id)
         else:
             messages.error(request, 'Failed to add product. Please ensure the form is valid.')
     else:
@@ -181,7 +180,7 @@ def edit_product(request, product_id):
         if form.is_valid():
             form.save()
             messages.success(request, 'Successfully updated product!')
-            return redirect('product_detail', product_id=product.id)
+            return redirect('products:product_detail', product_id=product.id)
         else:
             messages.error(request, 'Failed to update product. Please ensure the form is valid.')
     else:

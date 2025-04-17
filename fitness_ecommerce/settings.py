@@ -196,4 +196,16 @@ LOGGING = {
             'propagate': False,
         },
     },
-} 
+}
+
+# Handler for 404 errors
+handler404 = 'home.views.custom_404'
+
+# Static files configuration
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Media files configuration
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
