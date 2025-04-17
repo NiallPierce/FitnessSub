@@ -2,54 +2,144 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
+{% block meta %}
+    <meta name="description" content="Complete your purchase with secure checkout. Enter your shipping details and payment information.">
+    <meta name="keywords" content="checkout, payment, shipping, fitness products">
+    <meta property="og:title" content="Checkout - Fitness E-commerce">
+    <meta property="og:description" content="Complete your purchase with our secure checkout process.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_head %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "CheckoutPage",
+        "name": "Checkout",
+        "description": "Complete your purchase with secure checkout",
+        "url": "{{ request.build_absolute_uri }}",
+        "potentialAction": {
+            "@type": "OrderAction",
+            "target": "{{ request.build_absolute_uri }}"
+        }
+    }
+    </script>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-8">
-            <h2 class="mb-4">Checkout</h2>
-            <form method="POST" action="{% url 'checkout:checkout' %}" id="payment-form">
+            <h1 class="mb-4">Checkout</h1>
+            <form method="POST" action="{% url 'checkout:checkout' %}" id="payment-form" class="needs-validation" novalidate>
                 {% csrf_token %}
-                <div class="row">
-                    <div class="col-md-6">
-                        {{ form.first_name|as_crispy_field }}
+                
+                <!-- Progress Steps -->
+                <div class="progress-steps mb-4">
+                    <div class="step active" data-step="shipping">
+                        <span class="step-number">1</span>
+                        <span class="step-text">Shipping</span>
                     </div>
-                    <div class="col-md-6">
-                        {{ form.last_name|as_crispy_field }}
+                    <div class="step" data-step="payment">
+                        <span class="step-number">2</span>
+                        <span class="step-text">Payment</span>
                     </div>
-                </div>
-                {{ form.email|as_crispy_field }}
-                {{ form.address|as_crispy_field }}
-                <div class="row">
-                    <div class="col-md-6">
-                        {{ form.postal_code|as_crispy_field }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form.city|as_crispy_field }}
+                    <div class="step" data-step="review">
+                        <span class="step-number">3</span>
+                        <span class="step-text">Review</span>
                     </div>
                 </div>
-                {{ form.country|as_crispy_field }}
 
-                <div class="mt-4">
-                    <h4>Payment Details</h4>
+                <!-- Shipping Information -->
+                <div class="checkout-section active" id="shipping-section">
+                    <h2 class="h4 mb-3">Shipping Information</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.last_name|as_crispy_field }}
+                        </div>
+                    </div>
+                    {{ form.email|as_crispy_field }}
+                    {{ form.address|as_crispy_field }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.postal_code|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.city|as_crispy_field }}
+                        </div>
+                    </div>
+                    {{ form.country|as_crispy_field }}
+
+                    <!-- Shipping Options -->
+                    <div class="mt-4">
+                        <h3 class="h4 mb-3">Shipping Method</h3>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="shipping_method" id="standard" value="standard" checked>
+                            <label class="form-check-label" for="standard">
+                                Standard Shipping (3-5 business days) - Free
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="shipping_method" id="express" value="express">
+                            <label class="form-check-label" for="express">
+                                Express Shipping (1-2 business days) - $9.99
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary mt-4" id="next-to-payment">Continue to Payment</button>
+                </div>
+
+                <!-- Payment Information -->
+                <div class="checkout-section" id="payment-section">
+                    <h2 class="h4 mb-3">Payment Details</h2>
                     <div id="payment-element">
                         <!-- Stripe Payment Element will be inserted here -->
                     </div>
                     <div id="payment-message" class="text-danger mt-2" role="alert"></div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary" id="back-to-shipping">Back to Shipping</button>
+                        <button type="button" class="btn btn-primary" id="next-to-review">Continue to Review</button>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg mt-4" id="submit-button">
-                    <span id="button-text">Pay Now</span>
-                    <div id="spinner" class="spinner-border spinner-border-sm d-none" role="status">
-                        <span class="visually-hidden">Loading...</span>
+                <!-- Order Review -->
+                <div class="checkout-section" id="review-section">
+                    <h2 class="h4 mb-3">Order Review</h2>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="h5">Shipping Information</h3>
+                            <div id="review-shipping-info"></div>
+                            
+                            <h3 class="h5 mt-3">Payment Method</h3>
+                            <div id="review-payment-info"></div>
+                        </div>
                     </div>
-                </button>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" id="back-to-payment">Back to Payment</button>
+                        <button type="submit" class="btn btn-primary" id="submit-button">
+                            <span id="button-text">Place Order</span>
+                            <div id="spinner" class="spinner-border spinner-border-sm d-none" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </form>
         </div>
         
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h4>Order Summary</h4>
+                    <h2 class="h5 mb-0">Order Summary</h2>
                 </div>
                 <div class="card-body">
                     <table class="table">
@@ -63,8 +153,16 @@
                         </tbody>
                         <tfoot>
                             <tr>
+                                <td>Subtotal</td>
+                                <td>$<span id="order-subtotal">{{ total }}</span></td>
+                            </tr>
+                            <tr>
+                                <td>Shipping</td>
+                                <td>$<span id="shipping-cost">0.00</span></td>
+                            </tr>
+                            <tr>
                                 <th>Total</th>
-                                <th>${{ total }}</th>
+                                <th>$<span id="order-total">{{ total }}</span></th>
                             </tr>
                         </tfoot>
                     </table>
@@ -99,15 +197,77 @@
     });
     paymentElement.mount('#payment-element');
 
+    // Form validation
     const form = document.getElementById('payment-form');
     const submitButton = document.getElementById('submit-button');
     const spinner = document.getElementById('spinner');
     const buttonText = document.getElementById('button-text');
     const paymentMessage = document.getElementById('payment-message');
 
+    // Shipping cost calculation
+    const shippingCosts = {
+        standard: 0,
+        express: 9.99
+    };
+
+    function updateOrderTotal() {
+        const shippingMethod = document.querySelector('input[name="shipping_method"]:checked').value;
+        const shippingCost = shippingCosts[shippingMethod];
+        const subtotal = parseFloat(document.getElementById('order-subtotal').textContent);
+        
+        document.getElementById('shipping-cost').textContent = shippingCost.toFixed(2);
+        document.getElementById('order-total').textContent = (subtotal + shippingCost).toFixed(2);
+    }
+
+    // Shipping method change handler
+    document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
+        radio.addEventListener('change', updateOrderTotal);
+    });
+
+    // Step navigation
+    const sections = document.querySelectorAll('.checkout-section');
+    const steps = document.querySelectorAll('.step');
+    let currentStep = 0;
+
+    function showSection(index) {
+        sections.forEach(section => section.classList.remove('active'));
+        steps.forEach(step => step.classList.remove('active'));
+        
+        sections[index].classList.add('active');
+        steps[index].classList.add('active');
+        currentStep = index;
+    }
+
+    document.getElementById('next-to-payment').addEventListener('click', () => {
+        if (form.checkValidity()) {
+            showSection(1);
+            // Update review section with shipping info
+            const shippingInfo = document.getElementById('review-shipping-info');
+            shippingInfo.innerHTML = `
+                <p>${form.first_name.value} ${form.last_name.value}</p>
+                <p>${form.address.value}</p>
+                <p>${form.city.value}, ${form.postal_code.value}</p>
+                <p>${form.country.value}</p>
+            `;
+        } else {
+            form.reportValidity();
+        }
+    });
+
+    document.getElementById('back-to-shipping').addEventListener('click', () => showSection(0));
+    document.getElementById('next-to-review').addEventListener('click', () => showSection(2));
+    document.getElementById('back-to-payment').addEventListener('click', () => showSection(1));
+
+    // Form submission
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         
+        if (!form.checkValidity()) {
+            event.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
+
         // Disable the submit button to prevent double submission
         submitButton.disabled = true;
         spinner.classList.remove('d-none');
@@ -125,14 +285,78 @@
                 paymentMessage.textContent = error.message;
                 submitButton.disabled = false;
                 spinner.classList.add('d-none');
-                buttonText.textContent = 'Pay Now';
+                buttonText.textContent = 'Place Order';
             }
         } catch (error) {
             paymentMessage.textContent = 'An unexpected error occurred.';
             submitButton.disabled = false;
             spinner.classList.add('d-none');
-            buttonText.textContent = 'Pay Now';
+            buttonText.textContent = 'Place Order';
         }
     });
 </script>
+
+<style>
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 1;
+}
+
+.step {
+    position: relative;
+    z-index: 2;
+    background: white;
+    padding: 0.5rem 1rem;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.step.active .step-number {
+    background: #0d6efd;
+    color: white;
+}
+
+.checkout-section {
+    display: none;
+}
+
+.checkout-section.active {
+    display: block;
+}
+
+.form-check {
+    margin-bottom: 1rem;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+</style>
 {% endblock %}

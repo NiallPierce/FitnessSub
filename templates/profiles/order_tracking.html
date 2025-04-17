@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta %}
+    <meta name="description" content="Track your order status and delivery information. View detailed order history and tracking updates.">
+    <meta name="keywords" content="order tracking, delivery status, order history, fitness products">
+    <meta property="og:title" content="Order Tracking - Fitness E-commerce">
+    <meta property="og:description" content="Track your order status and delivery information.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_head %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Order",
+        "orderNumber": "{{ order.order_number }}",
+        "orderStatus": "{{ order.get_status_display }}",
+        "orderDate": "{{ order.created|date:'c' }}",
+        "customer": {
+            "@type": "Person",
+            "name": "{{ order.first_name }} {{ order.last_name }}"
+        },
+        "merchant": {
+            "@type": "Organization",
+            "name": "Fitness E-commerce"
+        },
+        "orderDelivery": {
+            "@type": "ParcelDelivery",
+            "deliveryStatus": "{{ order.get_delivery_status_display }}",
+            "expectedArrivalUntil": "{{ order.estimated_delivery|date:'c' }}"
+        }
+    }
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'profiles:profile' %}">My Account</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'profiles:order_history' order.order_number %}">Order History</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Order Tracking</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h1 class="h4 mb-0">Order #{{ order.order_number }}</h1>
+                </div>
+                <div class="card-body">
+                    <!-- Order Status Timeline -->
+                    <div class="order-timeline mb-4">
+                        <div class="timeline-item {% if order.paid %}completed{% endif %}">
+                            <div class="timeline-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h3 class="h6">Payment Received</h3>
+                                <p class="mb-0">{{ order.created|date:"F j, Y" }}</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}completed{% endif %}">
+                            <div class="timeline-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h3 class="h6">Processing</h3>
+                                <p class="mb-0">Preparing your order</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item {% if order.status == 'shipped' or order.status == 'delivered' %}completed{% endif %}">
+                            <div class="timeline-icon">
+                                <i class="fas fa-shipping-fast"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h3 class="h6">Shipped</h3>
+                                {% if order.shipping_date %}
+                                    <p class="mb-0">{{ order.shipping_date|date:"F j, Y" }}</p>
+                                {% else %}
+                                    <p class="mb-0">Not yet shipped</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="timeline-item {% if order.status == 'delivered' %}completed{% endif %}">
+                            <div class="timeline-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h3 class="h6">Delivered</h3>
+                                {% if order.delivery_date %}
+                                    <p class="mb-0">{{ order.delivery_date|date:"F j, Y" }}</p>
+                                {% else %}
+                                    <p class="mb-0">Estimated delivery: {{ order.estimated_delivery|date:"F j, Y" }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <h2 class="h5 mb-3">Order Items</h2>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" 
+                                                     alt="{{ item.product.name }}" 
+                                                     class="img-thumbnail me-2" 
+                                                     style="width: 50px; height: 50px; object-fit: cover;"
+                                                     loading="lazy">
+                                            {% endif %}
+                                            <div>
+                                                <a href="{% url 'products:product_detail' product_id=item.product.id %}" 
+                                                   class="text-decoration-none">
+                                                    {{ item.product.name }}
+                                                </a>
+                                                <div class="text-muted small">SKU: {{ item.product.sku }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ item.price }}</td>
+                                    <td>${{ item.get_cost }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Order Summary</h2>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6">Order Date</dt>
+                        <dd class="col-sm-6">{{ order.created|date:"F j, Y" }}</dd>
+
+                        <dt class="col-sm-6">Order Status</dt>
+                        <dd class="col-sm-6">
+                            <span class="badge bg-{{ order.status_color }}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-6">Payment Method</dt>
+                        <dd class="col-sm-6">{{ order.payment_method }}</dd>
+
+                        <dt class="col-sm-6">Subtotal</dt>
+                        <dd class="col-sm-6">${{ order.get_total_cost }}</dd>
+
+                        <dt class="col-sm-6">Shipping</dt>
+                        <dd class="col-sm-6">${{ order.shipping_cost }}</dd>
+
+                        <dt class="col-sm-6">Total</dt>
+                        <dd class="col-sm-6">${{ order.get_total_cost_with_shipping }}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Shipping Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Shipping Information</h2>
+                </div>
+                <div class="card-body">
+                    <address class="mb-0">
+                        {{ order.first_name }} {{ order.last_name }}<br>
+                        {{ order.address }}<br>
+                        {{ order.city }}, {{ order.postal_code }}<br>
+                        {{ order.country }}
+                    </address>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.order-timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.order-timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 30px;
+    height: 100%;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 60px;
+    margin-bottom: 30px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.timeline-item.completed .timeline-icon {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+.timeline-icon i {
+    font-size: 1.25rem;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.timeline-item.completed .timeline-content {
+    background: #e7f1ff;
+}
+
+.timeline-content h3 {
+    margin-bottom: 5px;
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+}
+
+.bg-processing {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.bg-shipped {
+    background-color: #0dcaf0;
+    color: #000;
+}
+
+.bg-delivered {
+    background-color: #198754;
+}
+</style>
+{% endblock %} 

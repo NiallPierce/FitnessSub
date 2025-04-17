@@ -2,6 +2,45 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
+{% block meta %}
+    <meta name="description" content="View and manage your shopping cart. Update quantities, remove items, and proceed to checkout.">
+    <meta name="keywords" content="shopping cart, checkout, fitness products, supplements">
+    <meta property="og:title" content="Shopping Cart - Fitness E-commerce">
+    <meta property="og:description" content="Manage your shopping cart and proceed to checkout.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_head %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ShoppingCart",
+        "itemListElement": [
+            {% for cart_item in cart_items %}
+            {
+                "@type": "ShoppingCartItem",
+                "position": {{ forloop.counter }},
+                "item": {
+                    "@type": "Product",
+                    "name": "{{ cart_item.product.name }}",
+                    "image": "{% if cart_item.product.image %}{{ request.scheme }}://{{ request.get_host }}{{ cart_item.product.image.url }}{% endif %}",
+                    "offers": {
+                        "@type": "Offer",
+                        "priceCurrency": "USD",
+                        "price": "{{ cart_item.product.price }}"
+                    }
+                },
+                "quantity": {{ cart_item.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+    </script>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <h1 class="mb-4">Shopping Cart</h1>
@@ -11,60 +50,91 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-body">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
-                                    <th>Price</th>
-                                    <th>Subtotal</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cart_item in cart_items %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                {% if cart_item.product.image %}
-                                                    <img src="{{ cart_item.product.image.url }}" 
-                                                         alt="{{ cart_item.product.name }}" 
-                                                         class="img-thumbnail" 
-                                                         style="width: 50px; height: 50px; object-fit: cover;">
-                                                {% endif %}
-                                                <div class="ms-3">
-                                                    <a href="{% url 'products:product_detail' product_id=cart_item.product.id %}" 
-                                                       class="text-decoration-none">
-                                                        {{ cart_item.product.name }}
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Quantity</th>
+                                        <th scope="col">Price</th>
+                                        <th scope="col">Subtotal</th>
+                                        <th scope="col">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cart_item in cart_items %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if cart_item.product.image %}
+                                                        <img src="{{ cart_item.product.image.url }}" 
+                                                             srcset="{{ cart_item.product.image.url }} 1x, {{ cart_item.product.image.url }} 2x"
+                                                             alt="{{ cart_item.product.name }}" 
+                                                             class="img-thumbnail" 
+                                                             style="width: 50px; height: 50px; object-fit: cover;"
+                                                             loading="lazy">
+                                                    {% endif %}
+                                                    <div class="ms-3">
+                                                        <a href="{% url 'products:product_detail' product_id=cart_item.product.id %}" 
+                                                           class="text-decoration-none">
+                                                            {{ cart_item.product.name }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <form action="{% url 'cart:cart_add' product_id=cart_item.product.id %}" 
+                                                      method="post" 
+                                                      class="d-inline update-quantity-form"
+                                                      data-product-id="{{ cart_item.product.id }}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="override" value="True">
+                                                    <div class="input-group input-group-sm" style="width: 120px;">
+                                                        <button type="button" 
+                                                                class="btn btn-outline-secondary decrease-quantity"
+                                                                aria-label="Decrease quantity">
+                                                            <i class="fas fa-minus" aria-hidden="true"></i>
+                                                        </button>
+                                                        <input type="number" 
+                                                               name="quantity" 
+                                                               value="{{ cart_item.quantity }}" 
+                                                               min="1" 
+                                                               max="20" 
+                                                               class="form-control text-center quantity-input"
+                                                               aria-label="Quantity">
+                                                        <button type="button" 
+                                                                class="btn btn-outline-secondary increase-quantity"
+                                                                aria-label="Increase quantity">
+                                                            <i class="fas fa-plus" aria-hidden="true"></i>
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </td>
+                                            <td>$<span class="product-price" data-price="{{ cart_item.product.price }}">
+                                                {{ cart_item.product.price }}</span>
+                                            </td>
+                                            <td>$<span class="subtotal" data-product-id="{{ cart_item.product.id }}">
+                                                {{ cart_item.sub_total }}</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group" aria-label="Product actions">
+                                                    <a href="{% url 'cart:remove_cart' product_id=cart_item.product.id %}" 
+                                                       class="btn btn-sm btn-outline-secondary"
+                                                       aria-label="Remove one item">
+                                                        <i class="fas fa-minus" aria-hidden="true"></i>
+                                                    </a>
+                                                    <a href="{% url 'cart:remove_cart_item' product_id=cart_item.product.id %}" 
+                                                       class="btn btn-sm btn-outline-danger"
+                                                       aria-label="Remove all items">
+                                                        <i class="fas fa-trash" aria-hidden="true"></i>
                                                     </a>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <form action="{% url 'cart:cart_add' product_id=cart_item.product.id %}" method="post" class="d-inline">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="override" value="True">
-                                                <input type="number" name="quantity" value="{{ cart_item.quantity }}" 
-                                                       min="1" max="20" class="form-control form-control-sm" 
-                                                       style="width: 60px;">
-                                            </form>
-                                        </td>
-                                        <td>${{ cart_item.product.price }}</td>
-                                        <td>${{ cart_item.sub_total }}</td>
-                                        <td>
-                                            <a href="{% url 'cart:remove_cart' product_id=cart_item.product.id %}" 
-                                               class="btn btn-sm btn-outline-secondary">
-                                                <i class="fas fa-minus"></i>
-                                            </a>
-                                            <a href="{% url 'cart:remove_cart_item' product_id=cart_item.product.id %}" 
-                                               class="btn btn-sm btn-outline-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,11 +142,11 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Order Summary</h5>
+                        <h2 class="h5 card-title">Order Summary</h2>
                         <table class="table">
                             <tr>
                                 <td>Subtotal</td>
-                                <td>${{ total }}</td>
+                                <td>$<span id="cart-subtotal">{{ total }}</span></td>
                             </tr>
                             <tr>
                                 <td>Shipping</td>
@@ -84,20 +154,82 @@
                             </tr>
                             <tr>
                                 <th>Total</th>
-                                <th>${{ total }}</th>
+                                <th>$<span id="cart-total">{{ total }}</span></th>
                             </tr>
                         </table>
-                        <a href="{% url 'checkout:checkout' %}" class="btn btn-primary w-100">Proceed to Checkout</a>
-                        <a href="{% url 'products:products' %}" class="btn btn-outline-secondary w-100 mt-2">Continue Shopping</a>
+                        <a href="{% url 'checkout:checkout' %}" 
+                           class="btn btn-primary w-100"
+                           aria-label="Proceed to checkout">Proceed to Checkout</a>
+                        <a href="{% url 'products:products' %}" 
+                           class="btn btn-outline-secondary w-100 mt-2"
+                           aria-label="Continue shopping">Continue Shopping</a>
                     </div>
                 </div>
             </div>
         </div>
     {% else %}
         <div class="alert alert-info">
-            Your cart is empty.
+            <p class="mb-0">Your cart is empty.</p>
             <a href="{% url 'products:products' %}" class="alert-link">Continue shopping</a>
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quantity update buttons
+    document.querySelectorAll('.increase-quantity, .decrease-quantity').forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('.update-quantity-form');
+            const input = form.querySelector('.quantity-input');
+            const currentValue = parseInt(input.value);
+            
+            if (this.classList.contains('increase-quantity')) {
+                input.value = Math.min(currentValue + 1, parseInt(input.max));
+            } else {
+                input.value = Math.max(currentValue - 1, parseInt(input.min));
+            }
+            
+            updateCart(form);
+        });
+    });
+
+    // Quantity input change
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const form = this.closest('.update-quantity-form');
+            updateCart(form);
+        });
+    });
+
+    // Update cart function
+    function updateCart(form) {
+        const formData = new FormData(form);
+        const productId = form.dataset.productId;
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update subtotal for this product
+                const subtotalElement = document.querySelector(`.subtotal[data-product-id="${productId}"]`);
+                subtotalElement.textContent = data.subtotal;
+                
+                // Update cart totals
+                document.getElementById('cart-subtotal').textContent = data.total;
+                document.getElementById('cart-total').textContent = data.total;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+});
+</script>
 {% endblock %} 

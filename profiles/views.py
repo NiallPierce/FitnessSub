@@ -47,3 +47,21 @@ def order_history(request, order_number):
     }
 
     return render(request, template, context)
+
+@login_required
+def order_tracking(request, order_number):
+    """ Display order tracking information. """
+    template = 'profiles/order_tracking.html'
+    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+
+    # Calculate estimated delivery if not set
+    if not order.estimated_delivery and order.shipping_date:
+        from datetime import timedelta
+        order.estimated_delivery = order.shipping_date + timedelta(days=3)
+        order.save()
+
+    context = {
+        'order': order,
+    }
+
+    return render(request, template, context)
