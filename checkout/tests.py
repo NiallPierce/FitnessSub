@@ -8,6 +8,9 @@ from django.http import HttpRequest
 from cart.models import Cart, CartItem
 from .models import Order, OrderItem, Payment
 from decimal import Decimal
+from unittest.mock import patch
+import json
+import stripe
 
 class CheckoutTests(TestCase):
     def setUp(self):
@@ -216,3 +219,220 @@ class CheckoutTests(TestCase):
         
         response = self.client.get(reverse('checkout:order_complete', args=[str(self.order.id)]))
         self.assertEqual(response.status_code, 404)  # Should not be able to access other user's order
+
+    @patch('checkout.views.stripe.PaymentIntent.create')
+    def test_stripe_payment_intent_creation(self, mock_payment_intent):
+        """Test that a Stripe PaymentIntent is created correctly"""
+        # Mock the Stripe API response
+        mock_payment_intent.return_value = stripe.PaymentIntent.construct_from({
+            'id': 'test_payment_intent',
+            'client_secret': 'test_client_secret',
+            'status': 'requires_payment_method',
+            'amount': 4000,  # $40.00
+            'currency': 'usd',
+            'customer': None,
+            'metadata': {}
+        }, 'test_key')
+
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Create a cart and add items
+        cart = Cart.objects.create(cart_id=self.client.session.session_key)
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product1,
+            quantity=2
+        )
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product2,
+            quantity=1
+        )
+        
+        # Save the session
+        session = self.client.session
+        session.save()
+        
+        # First GET request to load the form
+        response = self.client.get(reverse('checkout:checkout'))
+        self.assertEqual(response.status_code, 200)
+        
+        # Then POST request to create the order and payment intent
+        response = self.client.post(reverse('checkout:checkout'), {
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'test@example.com',
+            'address': '123 Test St',
+            'postal_code': '12345',
+            'city': 'Test City',
+            'country': 'Test Country'
+        })
+        
+        # The view should render the checkout template with the payment intent
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify that the payment intent was created
+        mock_payment_intent.assert_called_once()
+        
+        # Verify that an order was created
+        self.assertTrue(Order.objects.filter(email='test@example.com').exists())
+        order = Order.objects.get(email='test@example.com')
+        self.assertEqual(order.stripe_id, 'test_payment_intent')
+
+    @patch('checkout.views.stripe.PaymentIntent.retrieve')
+    def test_payment_success_flow(self, mock_payment_retrieve):
+        """Test the complete payment success flow"""
+        # Mock the Stripe API response
+        mock_payment_retrieve.return_value = stripe.PaymentIntent.construct_from({
+            'id': 'test_payment_intent',
+            'status': 'succeeded',
+            'payment_method_types': ['card'],
+            'amount': 4000,  # $40.00
+            'currency': 'usd',
+            'customer': None,
+            'metadata': {}
+        }, 'test_key')
+
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Create a cart and add items
+        cart = Cart.objects.create(cart_id=self.client.session.session_key)
+        CartItem.objects.create(
+            cart=cart,
+            product=self.product1,
+            quantity=2
+        )
+        
+        # Save the session
+        session = self.client.session
+        session.save()
+        
+        # Create a test order with stripe_id
+        order = Order.objects.create(
+            user=self.user,
+            first_name='Test',
+            last_name='User',
+            email='test@example.com',
+            address='123 Test St',
+            postal_code='12345',
+            city='Test City',
+            country='Test Country',
+            stripe_id='test_payment_intent'
+        )
+        
+        # Add items to the order
+        OrderItem.objects.create(
+            order=order,
+            product=self.product1,
+            price=self.product1.price,
+            quantity=2
+        )
+        
+        # Simulate successful payment
+        response = self.client.get(reverse('checkout:payment_success', args=[order.id]))
+        self.assertEqual(response.status_code, 302)  # Should redirect to order complete
+        
+        # Check that order is marked as paid
+        order.refresh_from_db()
+        self.assertTrue(order.paid)
+        
+        # Check that payment record was created
+        payment = Payment.objects.get(order=order)
+        self.assertEqual(payment.status, 'completed')
+        
+        # Check that cart was cleared
+        self.assertFalse(Cart.objects.filter(cart_id=session.session_key).exists())
+
+    def test_payment_cancel_flow(self):
+        """Test the payment cancellation flow"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.get(reverse('checkout:payment_cancel'))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('cart:view_cart'))
+
+    @patch('checkout.views.stripe.Webhook.construct_event')
+    def test_webhook_handling(self, mock_construct_event):
+        """Test Stripe webhook handling"""
+        # Create a test order
+        order = Order.objects.create(
+            user=self.user,
+            first_name='Test',
+            last_name='User',
+            email='test@example.com',
+            address='123 Test St',
+            postal_code='12345',
+            city='Test City',
+            country='Test Country',
+            stripe_id='test_payment_intent'
+        )
+        
+        # Create a test payment
+        payment = Payment.objects.create(
+            order=order,
+            payment_id='test_payment_id',
+            payment_method='card',
+            amount_paid=order.get_total_cost(),
+            status='pending'
+        )
+        
+        # Mock the Stripe webhook event
+        mock_construct_event.return_value = {
+            'type': 'checkout.session.completed',
+            'data': {
+                'object': {
+                    'payment_intent': 'test_payment_intent',
+                    'metadata': {
+                        'order_id': str(order.id)
+                    }
+                }
+            }
+        }
+        
+        # Simulate webhook payload
+        webhook_payload = {
+            'type': 'checkout.session.completed',
+            'data': {
+                'object': {
+                    'payment_intent': 'test_payment_intent',
+                    'metadata': {
+                        'order_id': str(order.id)
+                    }
+                }
+            }
+        }
+        
+        response = self.client.post(
+            reverse('checkout:stripe_webhook'),
+            data=json.dumps(webhook_payload),
+            content_type='application/json',
+            HTTP_STRIPE_SIGNATURE='test_signature'
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that payment status was updated
+        payment.refresh_from_db()
+        self.assertEqual(payment.status, 'completed')
+        
+        # Check that order was marked as paid
+        order.refresh_from_db()
+        self.assertTrue(order.paid)
+
+    def test_payment_error_handling(self):
+        """Test payment error handling"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Test with invalid payment data
+        response = self.client.post(reverse('checkout:checkout'), {
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'invalid-email',
+            'address': '123 Test St',
+            'postal_code': '12345',
+            'city': 'Test City',
+            'country': 'Test Country'
+        })
+        
+        self.assertEqual(response.status_code, 302)  # Should redirect to payment page
+        self.assertFalse(Order.objects.filter(email='invalid-email').exists())
