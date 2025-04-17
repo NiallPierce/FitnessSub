@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
-from django.contrib.sites.models import Site
 
 # Load environment variables from .env file
 load_dotenv()
@@ -15,19 +14,6 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-secret-key')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['fitness-ecommerce-np92-62c36695dba8.herokuapp.com', 'localhost', '127.0.0.1']
-
-# Ensure default site exists
-try:
-    Site.objects.get_or_create(
-        id=1,
-        defaults={
-            'domain': 'fitness-ecommerce-np92-62c36695dba8.herokuapp.com',
-            'name': 'Fitness Ecommerce'
-        }
-    )
-except Exception:
-    # This will fail during initial migration, which is fine
-    pass
 
 # Application definition
 INSTALLED_APPS = [
