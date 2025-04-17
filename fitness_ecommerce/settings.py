@@ -169,4 +169,36 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = True
 ACCOUNT_USERNAME_MIN_LENGTH = 4
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/' 
+LOGIN_REDIRECT_URL = '/'
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
+}
+
+# Ensure the site exists
+try:
+    from django.contrib.sites.models import Site
+    site = Site.objects.get(id=1)
+    site.domain = 'fitness-ecommerce-np92-62c36695dba8.herokuapp.com'
+    site.name = 'Fitness Ecommerce'
+    site.save()
+except Exception as e:
+    print(f"Error setting up site: {str(e)}") 
