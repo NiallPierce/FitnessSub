@@ -66,7 +66,7 @@ def products(request):
         'max_price': max_price,
         'sort_by': sort_by,
     }
-    return render(request, 'products/products.html', context)
+    return render(request, 'product/products.html', context)
 
 def product_detail(request, product_id):
     """Display individual product details with reviews and related products"""
@@ -112,7 +112,7 @@ def product_detail(request, product_id):
         'review_form': review_form,
         'cart_product_form': cart_product_form,
     }
-    return render(request, 'products/product_detail.html', context)
+    return render(request, 'product/product_detail.html', context)
 
 def category_list(request):
     """Display all categories"""
@@ -120,35 +120,25 @@ def category_list(request):
     context = {
         'categories': categories,
     }
-    return render(request, 'products/category_list.html', context)
+    return render(request, 'product/category_list.html', context)
 
 def category_detail(request, category_slug):
     """Display products in a specific category"""
     category = get_object_or_404(Category, slug=category_slug)
-    products = Product.objects.filter(category=category, is_available=True)
-    
-    # Pagination
-    paginator = Paginator(products, 12)
-    page = request.GET.get('page')
-    try:
-        products = paginator.page(page)
-    except PageNotAnInteger:
-        products = paginator.page(1)
-    except EmptyPage:
-        products = paginator.page(paginator.num_pages)
+    products = Product.objects.filter(category=category)
     
     context = {
         'category': category,
         'products': products,
     }
-    return render(request, 'products/category_detail.html', context)
+    return render(request, 'product/category_detail.html', context)
 
 @login_required
 def add_product(request):
     """Add a new product"""
     if not request.user.is_superuser:
         messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect('products:list')
+        return redirect('products:products')
         
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
@@ -172,7 +162,7 @@ def edit_product(request, product_id):
     """Edit a product"""
     if not request.user.is_superuser:
         messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect('products:list')
+        return redirect('products:products')
         
     product = get_object_or_404(Product, pk=product_id)
     if request.method == 'POST':
@@ -199,9 +189,9 @@ def delete_product(request, product_id):
     """Delete a product"""
     if not request.user.is_superuser:
         messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect('products:list')
+        return redirect('products:products')
         
     product = get_object_or_404(Product, pk=product_id)
     product.delete()
     messages.success(request, 'Product deleted!')
-    return redirect('products:list')
+    return redirect('products:products')
