@@ -1,3 +1,4 @@
+ALLOWED_HOSTS = ['fitness-ecommerce-np92-62c36695dba8.herokuapp.com', 'localhost', '127.0.0.1']
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -13,7 +14,6 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-secret-key')
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['fitness-ecommerce.herokuapp.com', 'localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
