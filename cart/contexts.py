@@ -1,5 +1,12 @@
 from .models import Cart, CartItem
 
+def _cart_id(request):
+    """ Helper function to get or create cart_id """
+    cart = request.session.session_key
+    if not cart:
+        cart = request.session.create()
+    return cart
+
 def cart_contents(request):
     """ Context processor to make cart contents available across all templates """
     try:
@@ -22,10 +29,3 @@ def cart_contents(request):
     }
 
     return context
-
-def _cart_id(request):
-    """ Helper function to get or create cart_id """
-    cart = request.session.session_key
-    if not cart:
-        cart = request.session.create()
-    return cart

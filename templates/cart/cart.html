@@ -33,7 +33,7 @@
                                                          style="width: 50px; height: 50px; object-fit: cover;">
                                                 {% endif %}
                                                 <div class="ms-3">
-                                                    <a href="{% url 'product_detail' cart_item.product.category.slug cart_item.product.slug %}" 
+                                                    <a href="{% url 'products:product_detail' cart_item.product.id %}" 
                                                        class="text-decoration-none">
                                                         {{ cart_item.product.name }}
                                                     </a>
@@ -87,8 +87,8 @@
                                 <th>${{ total }}</th>
                             </tr>
                         </table>
-                        <a href="{% url 'checkout' %}" class="btn btn-primary w-100">Proceed to Checkout</a>
-                        <a href="{% url 'products' %}" class="btn btn-outline-secondary w-100 mt-2">Continue Shopping</a>
+                        <a href="{% url 'checkout:checkout' %}" class="btn btn-primary w-100">Proceed to Checkout</a>
+                        <a href="{% url 'products:products' %}" class="btn btn-outline-secondary w-100 mt-2">Continue Shopping</a>
                     </div>
                 </div>
             </div>
@@ -96,7 +96,7 @@
     {% else %}
         <div class="alert alert-info">
             Your cart is empty.
-            <a href="{% url 'products' %}" class="alert-link">Continue shopping</a>
+            <a href="{% url 'products:products' %}" class="alert-link">Continue shopping</a>
         </div>
     {% endif %}
 </div>

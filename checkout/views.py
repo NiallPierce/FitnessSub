@@ -43,26 +43,30 @@ def checkout(request):
                 )
             
             try:
-                checkout_session = stripe.checkout.Session.create(
-                    payment_method_types=['card'],
-                    line_items=[{
-                        'price_data': {
-                            'currency': 'usd',
-                            'product_data': {
-                                'name': f'Order #{order.id}',
-                            },
-                            'unit_amount': int(order.get_total_cost() * 100),
-                        },
-                        'quantity': 1,
-                    }],
-                    mode='payment',
-                    success_url=request.build_absolute_uri(f'/checkout/success/{order.id}/'),
-                    cancel_url=request.build_absolute_uri('/checkout/cancel/'),
+                # Create a PaymentIntent with the order amount and currency
+                intent = stripe.PaymentIntent.create(
+                    amount=int(order.get_total_cost() * 100),
+                    currency='usd',
+                    automatic_payment_methods={
+                        'enabled': True,
+                    },
                     metadata={
                         'order_id': order.id
                     }
                 )
-                return redirect(checkout_session.url, code=303)
+                
+                # Update the order with the payment intent ID
+                order.stripe_id = intent.id
+                order.save()
+                
+                return render(request, 'checkout/checkout.html', {
+                    'client_secret': intent.client_secret,
+                    'order': order,
+                    'cart': cart,
+                    'form': form,
+                    'stripe_public_key': settings.STRIPE_PUBLIC_KEY
+                })
+                
             except stripe.error.CardError as e:
                 messages.error(request, f'Card error: {str(e)}')
                 return redirect('checkout:checkout')
@@ -96,45 +100,56 @@ def checkout(request):
 def payment_success(request, order_id):
     try:
         order = Order.objects.get(id=order_id)
-        order.paid = True
-        order.save()
         
-        # Create payment record
-        payment = Payment.objects.create(
-            order=order,
-            payment_id=f"stripe_{order_id}",
-            payment_method='stripe',
-            amount_paid=order.get_total_cost(),
-            status='completed'
-        )
+        # Retrieve the PaymentIntent to confirm the payment status
+        intent = stripe.PaymentIntent.retrieve(order.stripe_id)
         
-        # Send confirmation email
-        subject = f'Order Confirmation - #{order.id}'
-        html_message = render_to_string('checkout/email/order_confirmation.html', {
-            'order': order,
-            'payment': payment
-        })
-        plain_message = strip_tags(html_message)
-        send_mail(
-            subject,
-            plain_message,
-            settings.DEFAULT_FROM_EMAIL,
-            [order.email],
-            html_message=html_message
-        )
-        
-        # Clear the cart
-        cart = Cart(request)
-        cart.clear()
-        
-        messages.success(request, 'Payment successful! A confirmation email has been sent.')
-        return render(request, 'checkout/success.html', {'order': order})
+        if intent.status == 'succeeded':
+            order.paid = True
+            order.save()
+            
+            # Create a Payment record
+            Payment.objects.create(
+                order=order,
+                payment_id=intent.id,
+                payment_method=intent.payment_method_types[0] if intent.payment_method_types else 'card',
+                amount_paid=order.get_total_cost(),
+                status='completed'
+            )
+            
+            # Clear the cart
+            cart = Cart(request)
+            cart.clear()
+            
+            # Send confirmation email
+            subject = f'Order Confirmation - #{order.id}'
+            html_message = render_to_string('checkout/email/order_confirmation.html', {
+                'order': order,
+                'site': get_current_site(request)
+            })
+            plain_message = strip_tags(html_message)
+            send_mail(
+                subject,
+                plain_message,
+                settings.DEFAULT_FROM_EMAIL,
+                [order.email],
+                html_message=html_message
+            )
+            
+            messages.success(request, f'Payment successful! Your order number is #{order.id}.')
+            return redirect('checkout:order_complete', order_number=order.id)
+        else:
+            messages.error(request, 'Payment not completed. Please try again.')
+            return redirect('checkout:checkout')
     except Order.DoesNotExist:
-        messages.error(request, 'Order not found')
-        return redirect('home')
+        messages.error(request, 'Order not found.')
+        return redirect('checkout:checkout')
+    except stripe.error.StripeError as e:
+        messages.error(request, f'Error verifying payment: {str(e)}')
+        return redirect('checkout:checkout')
     except Exception as e:
-        messages.error(request, f'Error processing order: {str(e)}')
-        return redirect('home')
+        messages.error(request, f'An unexpected error occurred: {str(e)}')
+        return redirect('checkout:checkout')
 
 def payment_cancel(request):
     messages.info(request, 'Payment was cancelled. You can try again if you wish.')

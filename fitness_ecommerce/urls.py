@@ -8,8 +8,8 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('auth/', include('accounts.urls')),
     path('', include('home.urls')),
-    path('products/', include('products.urls')),
-    path('cart/', include('cart.urls')),
+    path('products/', include('products.urls', namespace='products')),
+    path('cart/', include('cart.urls', namespace='cart')),
     path('checkout/', include('checkout.urls')),
     path('newsletter/', include('newsletter.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
