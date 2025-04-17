@@ -3,7 +3,7 @@ from .models import Order, OrderItem, Payment
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    readonly_fields = ('product', 'quantity', 'product_price', 'ordered')
+    readonly_fields = ('product', 'price', 'quantity')
     extra = 0
 
 class PaymentInline(admin.TabularInline):
@@ -12,22 +12,19 @@ class PaymentInline(admin.TabularInline):
     extra = 0
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number', 'user', 'first_name', 'last_name', 'order_total', 
-                   'status', 'is_ordered', 'created_at')
-    list_filter = ('status', 'is_ordered', 'created_at')
-    search_fields = ('order_number', 'first_name', 'last_name', 'email')
-    list_editable = ('status', 'is_ordered')
+    list_display = ('id', 'user', 'first_name', 'last_name', 'email', 'paid', 'created')
+    list_filter = ('paid', 'created')
+    search_fields = ('first_name', 'last_name', 'email')
     inlines = [OrderItemInline, PaymentInline]
-    readonly_fields = ('order_number', 'user', 'first_name', 'last_name', 'email', 
-                      'phone', 'address_line_1', 'address_line_2', 'city', 'state', 
-                      'country', 'order_note', 'order_total', 'tax', 'ip')
-    ordering = ('-created_at',)
+    readonly_fields = ('user', 'first_name', 'last_name', 'email', 'address', 
+                      'postal_code', 'city', 'country', 'created', 'updated', 'paid')
+    ordering = ('-created',)
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('payment_id', 'order', 'payment_method', 'amount_paid', 
                    'status', 'created_at')
     list_filter = ('status', 'payment_method', 'created_at')
-    search_fields = ('payment_id', 'order__order_number')
+    search_fields = ('payment_id', 'order__id')
     readonly_fields = ('payment_id', 'order', 'payment_method', 'amount_paid', 
                       'status', 'created_at')
     ordering = ('-created_at',)
