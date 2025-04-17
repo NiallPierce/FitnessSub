@@ -58,6 +58,61 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+## Deployment to Heroku
+
+1. Create a Heroku account and install the Heroku CLI
+
+2. Login to Heroku:
+```bash
+heroku login
+```
+
+3. Create a new Heroku app:
+```bash
+heroku create fitness-ecommerce
+```
+
+4. Add the Heroku remote:
+```bash
+heroku git:remote -a fitness-ecommerce
+```
+
+5. Set up environment variables in Heroku:
+```bash
+heroku config:set SECRET_KEY=your_secret_key
+heroku config:set DEBUG=False
+heroku config:set STRIPE_PUBLIC_KEY=your_stripe_public_key
+heroku config:set STRIPE_SECRET_KEY=your_stripe_secret_key
+heroku config:set STRIPE_WH_SECRET=your_stripe_webhook_secret
+heroku config:set EMAIL_HOST_USER=your_email
+heroku config:set EMAIL_HOST_PASS=your_email_password
+```
+
+6. Add PostgreSQL database:
+```bash
+heroku addons:create heroku-postgresql:hobby-dev
+```
+
+7. Push to Heroku:
+```bash
+git push heroku main
+```
+
+8. Run migrations on Heroku:
+```bash
+heroku run python manage.py migrate
+```
+
+9. Create superuser on Heroku:
+```bash
+heroku run python manage.py createsuperuser
+```
+
+10. Collect static files:
+```bash
+heroku run python manage.py collectstatic --noinput
+```
+
 ## Project Structure
 
 ```
