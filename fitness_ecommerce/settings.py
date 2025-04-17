@@ -108,8 +108,13 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Ensure the static directory exists
+os.makedirs(os.path.join(BASE_DIR, 'static'), exist_ok=True)
 
 # Media files
 MEDIA_URL = '/media/'
@@ -191,14 +196,4 @@ LOGGING = {
             'propagate': False,
         },
     },
-}
-
-# Ensure the site exists
-try:
-    from django.contrib.sites.models import Site
-    site = Site.objects.get(id=1)
-    site.domain = 'fitness-ecommerce-np92-62c36695dba8.herokuapp.com'
-    site.name = 'Fitness Ecommerce'
-    site.save()
-except Exception as e:
-    print(f"Error setting up site: {str(e)}") 
+} 
