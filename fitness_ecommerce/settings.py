@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-secret-key')
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['fitness-ecommerce-np92-62c36695dba8.herokuapp.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['fitness-ecommerce-np92-62c36695dba8.herokuapp.com', 'localhost', '127.0.0.1', '8000-niallpierce-fitnesssub-4iulkchlm00.ws-us118.gitpod.io']
 
 # Application definition
 INSTALLED_APPS = [
@@ -108,13 +108,14 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
 
-# Ensure the static directory exists
-os.makedirs(os.path.join(BASE_DIR, 'static'), exist_ok=True)
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_ALLOW_ALL_ORIGINS = True
 
 # Media files
 MEDIA_URL = '/media/'
