@@ -109,9 +109,13 @@ def checkout(request):
         'order_id': None
     })
 
-def payment_success(request, order_id):
+def payment_success(request, order_number):
     try:
-        order = Order.objects.get(id=order_id)
+        order = Order.objects.get(order_number=order_number)
+        
+        # Check if the user is authorized to view this order
+        if not request.user.is_authenticated or (order.user and order.user != request.user):
+            return HttpResponse(status=404)
         
         # If the order already has a stripe_id, verify the payment
         if order.stripe_id:
@@ -154,7 +158,7 @@ def payment_success(request, order_id):
             pass
         
         # Send confirmation email
-        subject = f'Order Confirmation - #{order.id}'
+        subject = f'Order Confirmation - #{order.order_number}'
         html_message = render_to_string('checkout/email/order_confirmation.html', {
             'order': order,
             'site': get_current_site(request)
@@ -168,8 +172,10 @@ def payment_success(request, order_id):
             html_message=html_message
         )
         
-        messages.success(request, f'Payment successful! Your order number is #{order.id}.')
-        return redirect('checkout:order_complete', order_id=order.id)
+        messages.success(request, f'Payment successful! Your order number is #{order.order_number}.')
+        
+        # Redirect to order history
+        return redirect('profiles:order_history', order_number=order.order_number)
         
     except Order.DoesNotExist:
         messages.error(request, 'Order not found.')
@@ -184,25 +190,6 @@ def payment_success(request, order_id):
 def payment_cancel(request):
     messages.info(request, 'Payment was cancelled. You can try again if you wish.')
     return redirect('cart:view_cart')
-
-def order_complete(request, order_id):
-    try:
-        order = Order.objects.get(id=order_id)
-        # Check if the user is authorized to view this order
-        if not request.user.is_authenticated or (order.user and order.user != request.user):
-            return HttpResponse(status=404)
-            
-        order_items = OrderItem.objects.filter(order=order)
-        payment = Payment.objects.filter(order=order).first()
-        context = {
-            'order': order,
-            'order_items': order_items,
-            'payment': payment,
-        }
-        return render(request, 'checkout/order_complete.html', context)
-    except Order.DoesNotExist:
-        messages.error(request, 'Order not found')
-        return redirect('home:index')
 
 @csrf_exempt
 def stripe_webhook(request):

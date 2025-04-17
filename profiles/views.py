@@ -1,53 +1,49 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from checkout.models import Order, Payment
 from cart.models import Cart, CartItem
 from .forms import UserForm, UserProfileForm
+from .models import UserProfile
 
 @login_required
 def profile(request):
-    """ Display the user's profile """
-    user = request.user
-    profile = user.userprofile
-    orders = Order.objects.filter(user=user).order_by('-created_at')
+    """ Display the user's profile. """
+    template = 'profiles/profile.html'
+    profile = get_object_or_404(UserProfile, user=request.user)
+    orders = Order.objects.filter(user=request.user).order_by('-created')
 
     if request.method == 'POST':
-        user_form = UserForm(request.POST, instance=user)
-        profile_form = UserProfileForm(request.POST, instance=profile)
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
+        form = UserProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
             messages.success(request, 'Profile updated successfully')
-            return redirect('profiles:profile')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            messages.error(request, 'Update failed. Please ensure the form is valid.')
     else:
-        user_form = UserForm(instance=user)
-        profile_form = UserProfileForm(instance=profile)
+        form = UserProfileForm(instance=profile)
 
     context = {
-        'user_form': user_form,
-        'profile_form': profile_form,
+        'profile': profile,
         'orders': orders,
     }
-    return render(request, 'profiles/profile.html', context)
+
+    return render(request, template, context)
 
 @login_required
-def order_history(request, order_id):
-    """ Display the user's order history """
-    try:
-        order = Order.objects.get(id=order_id, user=request.user)
-        order_items = order.items.all()
-        payment = Payment.objects.filter(order=order).first()
+def order_history(request, order_number):
+    """ Display a past order. """
+    template = 'checkout/checkout_success.html'
+    order = get_object_or_404(Order, order_number=order_number, user=request.user)
 
-        context = {
-            'order': order,
-            'order_items': order_items,
-            'payment': payment,
-            'from_profile': True,
-        }
-        return render(request, 'checkout/order_complete.html', context)
-    except Order.DoesNotExist:
-        messages.error(request, 'Order not found')
-        return redirect('profiles:profile')
+    messages.info(request, (
+        f'This is a past confirmation for order number {order_number}. '
+        'A confirmation email was sent on the order date.'
+    ))
+
+    context = {
+        'order': order,
+        'from_profile': True,
+    }
+
+    return render(request, template, context)

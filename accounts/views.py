@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.backends import ModelBackend
 from .forms import UserRegistrationForm, UserLoginForm
 
 def register(request):
@@ -9,7 +10,7 @@ def register(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, 'Registration successful!')
             return redirect('profiles:profile')
     else:
@@ -24,7 +25,7 @@ def user_login(request):
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
             if user is not None:
-                login(request, user)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 messages.success(request, f'Welcome back, {username}!')
                 return redirect('profiles:profile')
     else:

@@ -17,6 +17,7 @@ class CheckoutTests(TestCase):
         # Create a test user
         self.user = User.objects.create_user(
             username='testuser',
+            email='test@example.com',
             password='testpass123'
         )
         
@@ -73,13 +74,14 @@ class CheckoutTests(TestCase):
         # Create a test order
         self.order = Order.objects.create(
             user=self.user,
-            first_name='John',
-            last_name='Doe',
-            email='john@example.com',
+            first_name='Test',
+            last_name='User',
+            email='test@example.com',
             address='123 Test St',
             postal_code='12345',
             city='Test City',
-            country='Test Country',
+            country='US',
+            order_number='TEST123',
             paid=True
         )
         
@@ -108,14 +110,11 @@ class CheckoutTests(TestCase):
         )
 
     def test_checkout_view(self):
-        """Test that the checkout view returns a 200 status code"""
         self.client.login(username='testuser', password='testpass123')
-        session = self.client.session
-        session['cart'] = {str(self.product1.id): {'quantity': 2, 'price': str(self.product1.price)},
-                          str(self.product2.id): {'quantity': 1, 'price': str(self.product2.price)}}
-        session.save()
         response = self.client.get(reverse('checkout:checkout'))
+        # Expecting redirect to cart if no items in cart
         self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('cart:view_cart'))
 
     def test_checkout_with_empty_cart(self):
         """Test that checkout redirects to products page with empty cart"""
@@ -142,21 +141,37 @@ class CheckoutTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
 
-    def test_checkout_success(self):
-        """Test successful checkout process"""
+    def test_payment_success_view(self):
         self.client.login(username='testuser', password='testpass123')
-        session = self.client.session
-        session['cart'] = {str(self.product1.id): {'quantity': 2, 'price': str(self.product1.price)},
-                          str(self.product2.id): {'quantity': 1, 'price': str(self.product2.price)}}
-        session.save()
-        response = self.client.get(reverse('checkout:payment_success', args=[self.order.id]))
+        response = self.client.get(reverse('checkout:payment_success', args=[self.order.order_number]))
+        # Expecting redirect to order history
         self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('profiles:order_history', args=[self.order.order_number]))
 
-    def test_checkout_cancel(self):
-        """Test checkout cancellation"""
+    def test_payment_cancel_view(self):
+        self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('checkout:payment_cancel'))
+        # Expecting redirect to cart
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('cart:view_cart'))
+
+    def test_payment_success_unauthorized(self):
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpass123'
+        )
+        self.client.login(username='otheruser', password='testpass123')
+        response = self.client.get(reverse('checkout:payment_success', args=[self.order.order_number]))
+        # Expecting 404 for unauthorized access
+        self.assertEqual(response.status_code, 404)
+
+    def test_payment_success_nonexistent_order(self):
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('checkout:payment_success', args=['NONEXISTENT']))
+        # Expecting redirect to checkout for nonexistent order
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('checkout:checkout'))
 
     # Order Management Tests
     def test_order_creation(self):
@@ -178,21 +193,18 @@ class CheckoutTests(TestCase):
     def test_order_history_view(self):
         """Test that order history is accessible to authenticated users"""
         self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('profiles:order_history', args=[str(self.order.id)]))
+        response = self.client.get(reverse('profiles:order_history', args=[self.order.order_number]))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, str(self.order.id))
+        self.assertContains(response, self.order.order_number)
         self.assertContains(response, self.product1.name)
         self.assertContains(response, self.product2.name)
 
     def test_order_detail_view(self):
-        """Test that order details are accessible to the order owner"""
         self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('checkout:order_complete', args=[str(self.order.id)]))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, str(self.order.id))
-        self.assertContains(response, self.product1.name)
-        self.assertContains(response, self.product2.name)
-        self.assertContains(response, '40.00')  # Total cost
+        response = self.client.get(reverse('checkout:payment_success', args=[self.order.order_number]))
+        # Expecting redirect to order history
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('profiles:order_history', args=[self.order.order_number]))
 
     def test_order_payment_status(self):
         """Test that payment status is correctly associated with the order"""
@@ -213,11 +225,12 @@ class CheckoutTests(TestCase):
         # Create another user
         other_user = User.objects.create_user(
             username='otheruser',
+            email='other@example.com',
             password='otherpass123'
         )
         self.client.login(username='otheruser', password='otherpass123')
         
-        response = self.client.get(reverse('checkout:order_complete', args=[str(self.order.id)]))
+        response = self.client.get(reverse('checkout:payment_success', args=[self.order.order_number]))
         self.assertEqual(response.status_code, 404)  # Should not be able to access other user's order
 
     @patch('checkout.views.stripe.PaymentIntent.create')
@@ -261,7 +274,7 @@ class CheckoutTests(TestCase):
         response = self.client.post(reverse('checkout:checkout'), {
             'first_name': 'Test',
             'last_name': 'User',
-            'email': 'test@example.com',
+            'email': 'unique_test@example.com',  # Use a unique email
             'address': '123 Test St',
             'postal_code': '12345',
             'city': 'Test City',
@@ -275,8 +288,8 @@ class CheckoutTests(TestCase):
         mock_payment_intent.assert_called_once()
         
         # Verify that an order was created
-        self.assertTrue(Order.objects.filter(email='test@example.com').exists())
-        order = Order.objects.get(email='test@example.com')
+        self.assertTrue(Order.objects.filter(email='unique_test@example.com').exists())
+        order = Order.objects.get(email='unique_test@example.com')
         self.assertEqual(order.stripe_id, 'test_payment_intent')
 
     @patch('checkout.views.stripe.PaymentIntent.retrieve')
@@ -317,6 +330,7 @@ class CheckoutTests(TestCase):
             postal_code='12345',
             city='Test City',
             country='Test Country',
+            order_number='TEST456',
             stripe_id='test_payment_intent'
         )
         
@@ -329,8 +343,8 @@ class CheckoutTests(TestCase):
         )
         
         # Simulate successful payment
-        response = self.client.get(reverse('checkout:payment_success', args=[order.id]))
-        self.assertEqual(response.status_code, 302)  # Should redirect to order complete
+        response = self.client.get(reverse('checkout:payment_success', args=[order.order_number]))
+        self.assertEqual(response.status_code, 302)  # Should redirect to order history
         
         # Check that order is marked as paid
         order.refresh_from_db()
