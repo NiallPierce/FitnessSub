@@ -9,104 +9,77 @@ from django.http import JsonResponse
 from cart.contexts import cart_contents
 from .forms import OrderForm
 from .models import Order, OrderItem, Payment
+from cart.cart import Cart
+from .forms import OrderCreateForm
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @login_required
 def checkout(request):
-    current_cart = cart_contents(request)
-    cart_items = current_cart['cart_items']
-    total = current_cart['total']
-    quantity = current_cart['quantity']
-
-    if quantity <= 0:
-        messages.error(request, "Your cart is empty")
-        return redirect('products')
-
+    cart = Cart(request)
     if request.method == 'POST':
-        form = OrderForm(request.POST)
+        form = OrderCreateForm(request.POST)
         if form.is_valid():
-            data = Order()
-            data.user = request.user
-            data.first_name = form.cleaned_data['first_name']
-            data.last_name = form.cleaned_data['last_name']
-            data.email = form.cleaned_data['email']
-            data.phone = form.cleaned_data['phone']
-            data.address_line_1 = form.cleaned_data['address_line_1']
-            data.address_line_2 = form.cleaned_data['address_line_2']
-            data.city = form.cleaned_data['city']
-            data.state = form.cleaned_data['state']
-            data.country = form.cleaned_data['country']
-            data.order_note = form.cleaned_data['order_note']
-            data.order_total = total
-            data.tax = total * 0.1  # 10% tax
-            data.ip = request.META.get('REMOTE_ADDR')
-            data.save()
-
-            # Generate order number
-            yr = int(datetime.date.today().strftime('%Y'))
-            dt = int(datetime.date.today().strftime('%d'))
-            mt = int(datetime.date.today().strftime('%m'))
-            d = datetime.date(yr, mt, dt)
-            current_date = d.strftime("%Y%m%d")
-            order_number = current_date + str(data.id)
-            data.order_number = order_number
-            data.save()
-
-            # Create order items
-            for item in cart_items:
-                order_item = OrderItem()
-                order_item.order = data
-                order_item.product = item.product
-                order_item.quantity = item.quantity
-                order_item.product_price = item.product.price
-                order_item.ordered = True
-                order_item.save()
-
-            # Process payment with Stripe
+            order = form.save(commit=False)
+            if request.user.is_authenticated:
+                order.user = request.user
+            order.save()
+            
+            for item in cart:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item['product'],
+                    price=item['price'],
+                    quantity=item['quantity']
+                )
+            
+            # Create Stripe checkout session
             try:
-                # Create a PaymentIntent with the order amount and currency
-                intent = stripe.PaymentIntent.create(
-                    amount=int(total * 100),  # Convert to cents
-                    currency='usd',
+                checkout_session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
+                    line_items=[{
+                        'price_data': {
+                            'currency': 'usd',
+                            'product_data': {
+                                'name': f'Order #{order.id}',
+                            },
+                            'unit_amount': int(order.get_total_cost() * 100),
+                        },
+                        'quantity': 1,
+                    }],
+                    mode='payment',
+                    success_url=request.build_absolute_uri(f'/checkout/success/{order.id}/'),
+                    cancel_url=request.build_absolute_uri('/checkout/cancel/'),
                     metadata={
-                        'order_number': order_number
+                        'order_id': order.id
                     }
                 )
-
-                # Create payment record
-                payment = Payment.objects.create(
-                    order=data,
-                    payment_id=intent.id,
-                    payment_method='Stripe',
-                    amount_paid=total,
-                    status='pending'
-                )
-
-                # Clear the cart
-                cart_items.delete()
-
-                messages.success(request, 'Your order has been placed successfully!')
-                return redirect('order_complete', order_number=order_number)
-            except stripe.error.CardError as e:
-                messages.error(request, f'Payment failed: {e.error.message}')
-                return redirect('checkout')
+                return redirect(checkout_session.url, code=303)
             except Exception as e:
-                messages.error(request, 'Sorry, your payment cannot be processed at this time.')
-                return redirect('checkout')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+                messages.error(request, f'Error processing payment: {str(e)}')
+                return redirect('checkout:checkout')
     else:
-        form = OrderForm()
-
-    context = {
+        form = OrderCreateForm()
+    
+    return render(request, 'checkout/checkout.html', {
+        'cart': cart,
         'form': form,
-        'cart_items': cart_items,
-        'total': total,
-        'quantity': quantity,
-        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
-    }
-    return render(request, 'checkout/checkout.html', context)
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY
+    })
+
+def payment_success(request, order_id):
+    order = Order.objects.get(id=order_id)
+    order.paid = True
+    order.save()
+    
+    # Clear the cart
+    cart = Cart(request)
+    cart.clear()
+    
+    return render(request, 'checkout/success.html', {'order': order})
+
+def payment_cancel(request):
+    return render(request, 'checkout/cancel.html')
 
 def order_complete(request, order_number):
     try:

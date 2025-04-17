@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="text-success mb-4">
+                        <i class="fas fa-check-circle"></i>
+                        Order Successful!
+                    </h1>
+                    <p class="lead">Thank you for your order!</p>
+                    <p>Your order number is <strong>#{{ order.id }}</strong>.</p>
+                    <p>We've sent a confirmation email to <strong>{{ order.email }}</strong>.</p>
+                    
+                    <div class="mt-4">
+                        <h4>Order Details</h4>
+                        <table class="table">
+                            <tr>
+                                <td>Order Date:</td>
+                                <td>{{ order.created|date:"F d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Amount:</td>
+                                <td>${{ order.get_total_cost }}</td>
+                            </tr>
+                            <tr>
+                                <td>Shipping Address:</td>
+                                <td>
+                                    {{ order.address }}<br>
+                                    {{ order.postal_code }} {{ order.city }}<br>
+                                    {{ order.country }}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'products' %}" class="btn btn-primary">
+                            Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
