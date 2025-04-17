@@ -1,5 +1,6 @@
 from django.db import models
 from products.models import Product
+import uuid
 
 class Cart(models.Model):
     cart_id = models.CharField(max_length=250, blank=True)
@@ -18,4 +19,4 @@ class CartItem(models.Model):
         return self.product.price * self.quantity
 
     def __str__(self):
-        return self.product.name
+        return self.product.name 
