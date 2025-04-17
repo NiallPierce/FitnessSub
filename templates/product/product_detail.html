@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'products' %}">Products</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'category_detail' product.category.slug %}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                {% else %}
+                    <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No image available">
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h1 class="card-title">{{ product.name }}</h1>
+                    <p class="text-muted">Category: {{ product.category.name }}</p>
+                    <h3 class="text-primary">${{ product.price }}</h3>
+                    
+                    <div class="mb-3">
+                        {% if product.stock > 0 %}
+                            <span class="badge bg-success">In Stock ({{ product.stock }} available)</span>
+                        {% else %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="card-text">{{ product.description }}</p>
+
+                    {% if product.stock > 0 %}
+                        <form action="{% url 'cart:add_cart' product.id %}" method="post" class="mb-4">
+                            {% csrf_token %}
+                            {{ cart_product_form|crispy }}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                            </button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-secondary" disabled>Out of Stock</button>
+                    {% endif %}
+
+                    <!-- Product Meta -->
+                    <div class="mt-4">
+                        <p class="text-muted">
+                            <small>
+                                <i class="fas fa-tag"></i> SKU: {{ product.sku }}<br>
+                                <i class="fas fa-calendar"></i> Added: {{ product.created_at|date:"F d, Y" }}
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Customer Reviews</h3>
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="review mb-4">
+                                <div class="d-flex justify-content-between">
+                                    <h5>{{ review.user.username }}</h5>
+                                    <div class="text-warning">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="text-muted">{{ review.created_at|date:"F d, Y" }}</p>
+                                <p>{{ review.content }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No reviews yet. Be the first to review this product!</p>
+                    {% endif %}
+
+                    <!-- Review Form -->
+                    {% if user.is_authenticated %}
+                        <div class="mt-4">
+                            <h4>Write a Review</h4>
+                            <form method="post" action="{% url 'product_detail' product.category.slug product.slug %}">
+                                {% csrf_token %}
+                                {{ review_form|crispy }}
+                                <button type="submit" class="btn btn-primary mt-3">Submit Review</button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Please <a href="{% url 'login' %}">login</a> to write a review.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3>Related Products</h3>
+                <div class="row">
+                    {% for related_product in related_products %}
+                        <div class="col-md-3 mb-4">
+                            <div class="card h-100">
+                                {% if related_product.image %}
+                                    <img src="{{ related_product.image.url }}" class="card-img-top" alt="{{ related_product.name }}">
+                                {% else %}
+                                    <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No image available">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ related_product.name }}</h5>
+                                    <p class="card-text">${{ related_product.price }}</p>
+                                    <a href="{% url 'product_detail' related_product.category.slug related_product.slug %}" 
+                                       class="btn btn-outline-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

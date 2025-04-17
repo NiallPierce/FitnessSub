@@ -1,129 +1,144 @@
-from django.shortcuts import render, redirect, reverse, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from .models import Product, Category
-from .forms import ProductForm
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .models import Product, Category, Review
+from .forms import ReviewForm
+from cart.forms import CartAddProductForm
 
-def all_products(request):
-    """ A view to show all products, including sorting and search queries """
-    products = Product.objects.all()
-    query = None
-    categories = None
-    sort = None
-    direction = None
-
-    if request.GET:
-        if 'sort' in request.GET:
-            sortkey = request.GET['sort']
-            sort = sortkey
-            if sortkey == 'name':
-                sortkey = 'lower_name'
-                products = products.annotate(lower_name=Lower('name'))
-            if sortkey == 'category':
-                sortkey = 'category__name'
-            if 'direction' in request.GET:
-                direction = request.GET['direction']
-                if direction == 'desc':
-                    sortkey = f'-{sortkey}'
-            products = products.order_by(sortkey)
-
-        if 'category' in request.GET:
-            categories = request.GET['category'].split(',')
-            products = products.filter(category__name__in=categories)
-            categories = Category.objects.filter(name__in=categories)
-
-        if 'q' in request.GET:
-            query = request.GET['q']
-            if not query:
-                messages.error(request, "You didn't enter any search criteria!")
-                return redirect(reverse('products'))
-            
-            queries = Q(name__icontains=query) | Q(description__icontains=query)
-            products = products.filter(queries)
-
-    current_sorting = f'{sort}_{direction}'
-
+def products(request):
+    """Display all products with search, filter, and sort functionality"""
+    products = Product.objects.filter(is_available=True)
+    categories = Category.objects.all()
+    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    # Category filter
+    category_slug = request.GET.get('category', '')
+    if category_slug:
+        category = get_object_or_404(Category, slug=category_slug)
+        products = products.filter(category=category)
+    
+    # Price range filter
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    if min_price:
+        products = products.filter(price__gte=float(min_price))
+    if max_price:
+        products = products.filter(price__lte=float(max_price))
+    
+    # Sorting
+    sort_by = request.GET.get('sort_by', 'newest')
+    if sort_by == 'price_asc':
+        products = products.order_by('price')
+    elif sort_by == 'price_desc':
+        products = products.order_by('-price')
+    elif sort_by == 'name_asc':
+        products = products.order_by('name')
+    elif sort_by == 'name_desc':
+        products = products.order_by('-name')
+    else:  # newest
+        products = products.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(products, 12)  # Show 12 products per page
+    page = request.GET.get('page')
+    try:
+        products = paginator.page(page)
+    except PageNotAnInteger:
+        products = paginator.page(1)
+    except EmptyPage:
+        products = paginator.page(paginator.num_pages)
+    
     context = {
         'products': products,
-        'search_term': query,
-        'current_categories': categories,
-        'current_sorting': current_sorting,
+        'categories': categories,
+        'search_query': search_query,
+        'selected_category': category_slug,
+        'min_price': min_price,
+        'max_price': max_price,
+        'sort_by': sort_by,
     }
-
     return render(request, 'products/products.html', context)
 
-def product_detail(request, product_id):
-    """ A view to show individual product details """
-    product = get_object_or_404(Product, pk=product_id)
-
+def product_detail(request, category_slug, product_slug):
+    """Display individual product details with reviews and related products"""
+    product = get_object_or_404(
+        Product,
+        category__slug=category_slug,
+        slug=product_slug,
+        is_available=True
+    )
+    
+    # Get related products (same category)
+    related_products = Product.objects.filter(
+        category=product.category,
+        is_available=True
+    ).exclude(id=product.id)[:4]
+    
+    # Get product reviews
+    reviews = Review.objects.filter(product=product, active=True)
+    
+    # Handle review submission
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            messages.error(request, 'Please login to leave a review.')
+            return redirect('login')
+            
+        review_form = ReviewForm(data=request.POST)
+        if review_form.is_valid():
+            new_review = review_form.save(commit=False)
+            new_review.product = product
+            new_review.user = request.user
+            new_review.save()
+            messages.success(request, 'Your review has been submitted.')
+            return redirect('product_detail', category_slug=category_slug, product_slug=product_slug)
+    else:
+        review_form = ReviewForm()
+    
+    # Cart form
+    cart_product_form = CartAddProductForm()
+    
     context = {
         'product': product,
+        'related_products': related_products,
+        'reviews': reviews,
+        'review_form': review_form,
+        'cart_product_form': cart_product_form,
     }
-
     return render(request, 'products/product_detail.html', context)
 
-@login_required
-def add_product(request):
-    """ Add a product to the store """
-    if not request.user.is_superuser:
-        messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect(reverse('home'))
+def category_list(request):
+    """Display all categories"""
+    categories = Category.objects.all()
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'products/category_list.html', context)
 
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            product = form.save()
-            messages.success(request, 'Successfully added product!')
-            return redirect(reverse('product_detail', args=[product.id]))
-        else:
-            messages.error(request, 'Failed to add product. Please ensure the form is valid.')
-    else:
-        form = ProductForm()
+def category_detail(request, category_slug):
+    """Display products in a specific category"""
+    category = get_object_or_404(Category, slug=category_slug)
+    products = Product.objects.filter(category=category, is_available=True)
     
-    template = 'products/add_product.html'
+    # Pagination
+    paginator = Paginator(products, 12)
+    page = request.GET.get('page')
+    try:
+        products = paginator.page(page)
+    except PageNotAnInteger:
+        products = paginator.page(1)
+    except EmptyPage:
+        products = paginator.page(paginator.num_pages)
+    
     context = {
-        'form': form,
+        'category': category,
+        'products': products,
     }
-
-    return render(request, template, context)
-
-@login_required
-def edit_product(request, product_id):
-    """ Edit a product in the store """
-    if not request.user.is_superuser:
-        messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect(reverse('home'))
-
-    product = get_object_or_404(Product, pk=product_id)
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Successfully updated product!')
-            return redirect(reverse('product_detail', args=[product.id]))
-        else:
-            messages.error(request, 'Failed to update product. Please ensure the form is valid.')
-    else:
-        form = ProductForm(instance=product)
-        messages.info(request, f'You are editing {product.name}')
-
-    template = 'products/edit_product.html'
-    context = {
-        'form': form,
-        'product': product,
-    }
-
-    return render(request, template, context)
-
-@login_required
-def delete_product(request, product_id):
-    """ Delete a product from the store """
-    if not request.user.is_superuser:
-        messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect(reverse('home'))
-
-    product = get_object_or_404(Product, pk=product_id)
-    product.delete()
-    messages.success(request, 'Product deleted!')
-    return redirect(reverse('products'))
+    return render(request, 'products/category_detail.html', context)
