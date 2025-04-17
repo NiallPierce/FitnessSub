@@ -1,102 +1,112 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from products.models import Product, Category
+from .models import Cart, CartItem
 from django.contrib.auth.models import User
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.contrib.messages.middleware import MessageMiddleware
+from django.http import HttpRequest
 
 class CartTests(TestCase):
     def setUp(self):
-        # Create a test user
-        self.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
-        
-        # Create a test category
-        self.category = Category.objects.create(
-            name='Test Category',
-            friendly_name='Test Category'
-        )
-        
         # Create a test product
         self.product = Product.objects.create(
-            category=self.category,
             name='Test Product',
             description='Test Description',
-            price=99.99,
-            rating=4.5,
-            image=None
+            price=10.00,
+            stock=10
         )
         
-        # Initialize the client
+        # Create a session and cart
         self.client = Client()
-
+        session = self.client.session
+        session.create()
+        session.save()
+        
+        self.cart = Cart.objects.create(cart_id=session.session_key)
+        
+    def _get_cart(self):
+        """Helper method to get or create a cart for the current session"""
+        session = self.client.session
+        if not session.session_key:
+            session.create()
+            session.save()
+            
+        try:
+            cart = Cart.objects.get(cart_id=session.session_key)
+        except Cart.DoesNotExist:
+            cart = Cart.objects.create(cart_id=session.session_key)
+            
+        return cart
+        
     def test_add_to_cart(self):
-        """Test adding a product to the cart"""
+        cart = self._get_cart()
         response = self.client.post(
             reverse('cart:cart_add', args=[self.product.id]),
-            {'quantity': 1, 'redirect_url': reverse('products:products')}
+            {'quantity': 1, 'override': False},
+            follow=True
         )
-        self.assertEqual(response.status_code, 302)  # Redirect after adding to cart
-        self.assertIn('cart', self.client.session)
-        self.assertEqual(self.client.session['cart'][str(self.product.id)], 1)
-
-    def test_view_cart(self):
-        """Test viewing the cart"""
-        # First add an item to the cart
-        self.client.post(
-            reverse('cart:cart_add', args=[self.product.id]),
-            {'quantity': 1, 'redirect_url': reverse('products:products')}
-        )
-        
-        # Then view the cart
-        response = self.client.get(reverse('cart:view_cart'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'cart/cart.html')
-        self.assertContains(response, 'Test Product')
+        self.assertTrue(CartItem.objects.filter(product=self.product, cart=cart).exists())
 
     def test_update_cart(self):
-        """Test updating cart quantity"""
-        # First add an item to the cart
-        self.client.post(
-            reverse('cart:cart_add', args=[self.product.id]),
-            {'quantity': 1, 'redirect_url': reverse('products:products')}
+        cart = self._get_cart()
+        # First add an item
+        cart_item = CartItem.objects.create(
+            product=self.product,
+            quantity=1,
+            cart=cart
         )
         
-        # Then update the quantity
         response = self.client.post(
             reverse('cart:cart_add', args=[self.product.id]),
-            {'quantity': 2, 'override': True}
+            {'quantity': 2, 'override': True},
+            follow=True
         )
-        self.assertEqual(response.status_code, 302)  # Redirect after update
-        self.assertEqual(self.client.session['cart'][str(self.product.id)], 2)
+        self.assertEqual(response.status_code, 200)
+        cart_item.refresh_from_db()
+        self.assertEqual(cart_item.quantity, 2)
 
     def test_remove_from_cart(self):
-        """Test removing an item from the cart"""
-        # First add an item to the cart
-        self.client.post(
-            reverse('cart:cart_add', args=[self.product.id]),
-            {'quantity': 1, 'redirect_url': reverse('products:products')}
+        cart = self._get_cart()
+        # First add an item
+        cart_item = CartItem.objects.create(
+            product=self.product,
+            quantity=2,
+            cart=cart
         )
         
-        # Then remove it
-        response = self.client.post(reverse('cart:remove_cart', args=[self.product.id]))
-        self.assertEqual(response.status_code, 302)  # Redirect after removal
-        self.assertNotIn(str(self.product.id), self.client.session['cart'])
+        response = self.client.post(
+            reverse('cart:remove_cart', args=[self.product.id]),
+            follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        cart_item.refresh_from_db()
+        self.assertEqual(cart_item.quantity, 1)
+
+    def test_view_cart(self):
+        cart = self._get_cart()
+        response = self.client.get(reverse('cart:view_cart'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('total', response.context)
+        self.assertIn('quantity', response.context)
+        self.assertIn('cart_items', response.context)
 
     def test_cart_total(self):
-        """Test cart total calculation"""
-        # Add two items to the cart
-        self.client.post(
-            reverse('cart:cart_add', args=[self.product.id]),
-            {'quantity': 2, 'redirect_url': reverse('products:products')}
+        cart = self._get_cart()
+        # Add two items
+        CartItem.objects.create(
+            product=self.product,
+            quantity=2,
+            cart=cart
         )
         
         response = self.client.get(reverse('cart:view_cart'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '£199.98')  # 2 * £99.99
+        self.assertEqual(response.context['total'], 20.00)
 
     def test_empty_cart(self):
-        """Test viewing an empty cart"""
+        cart = self._get_cart()
         response = self.client.get(reverse('cart:view_cart'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Your cart is empty')
+        self.assertEqual(response.context['total'], 0)

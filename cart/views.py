@@ -6,10 +6,9 @@ from .forms import CartAddProductForm
 from django.contrib import messages
 
 def _cart_id(request):
-    cart = request.session.session_key
-    if not cart:
-        cart = request.session.create()
-    return cart
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
+    return request.session.session_key
 
 @require_POST
 def add_cart(request, product_id):
@@ -40,7 +39,7 @@ def add_cart(request, product_id):
             cart_item.save()
             
         messages.success(request, f'{product.name} added to your cart!')
-    return redirect('cart:detail')
+    return redirect('cart:view_cart')
 
 def remove_cart(request, product_id):
     cart = Cart.objects.get(cart_id=_cart_id(request))
@@ -53,7 +52,7 @@ def remove_cart(request, product_id):
     else:
         cart_item.delete()
     messages.success(request, f'{product.name} quantity updated!')
-    return redirect('cart:detail')
+    return redirect('cart:view_cart')
 
 def remove_cart_item(request, product_id):
     cart = Cart.objects.get(cart_id=_cart_id(request))
@@ -61,7 +60,7 @@ def remove_cart_item(request, product_id):
     cart_item = CartItem.objects.get(product=product, cart=cart)
     cart_item.delete()
     messages.success(request, f'{product.name} removed from your cart!')
-    return redirect('cart:detail')
+    return redirect('cart:view_cart')
 
 def view_cart(request):
     try:

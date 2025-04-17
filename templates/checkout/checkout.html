@@ -54,17 +54,17 @@
                 <div class="card-body">
                     <table class="table">
                         <tbody>
-                            {% for item in cart %}
+                            {% for item in cart_items %}
                                 <tr>
                                     <td>{{ item.product.name }} x {{ item.quantity }}</td>
-                                    <td>${{ item.total_price }}</td>
+                                    <td>${{ item.sub_total }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                         <tfoot>
                             <tr>
                                 <th>Total</th>
-                                <th>${{ cart.get_total_price }}</th>
+                                <th>${{ total }}</th>
                             </tr>
                         </tfoot>
                     </table>

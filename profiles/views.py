@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from checkout.models import Order
+from checkout.models import Order, Payment
+from cart.models import Cart, CartItem
 from .forms import UserForm, UserProfileForm
 
 @login_required
@@ -33,12 +34,12 @@ def profile(request):
     return render(request, 'profiles/profile.html', context)
 
 @login_required
-def order_history(request, order_number):
+def order_history(request, order_id):
     """ Display the user's order history """
     try:
-        order = Order.objects.get(order_number=order_number, user=request.user)
-        order_items = order.orderitem_set.all()
-        payment = order.payment_set.first()
+        order = Order.objects.get(id=order_id, user=request.user)
+        order_items = order.items.all()
+        payment = Payment.objects.filter(order=order).first()
 
         context = {
             'order': order,

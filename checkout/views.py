@@ -14,10 +14,11 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import default_token_generator
-from cart.contexts import cart_contents
+
 from .forms import OrderForm
 from .models import Order, OrderItem, Payment
-from cart.cart import Cart
+from cart.models import Cart, CartItem
+from cart.contexts import cart_contents
 from .forms import OrderCreateForm
 from products.models import Product
 
@@ -25,7 +26,16 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @login_required
 def checkout(request):
-    cart = Cart(request)
+    try:
+        cart = Cart.objects.get(cart_id=request.session.session_key)
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        if not cart_items:
+            messages.warning(request, 'Your cart is empty')
+            return redirect('cart:view_cart')
+    except Cart.DoesNotExist:
+        messages.warning(request, 'Your cart is empty')
+        return redirect('cart:view_cart')
+
     if request.method == 'POST':
         form = OrderCreateForm(request.POST)
         if form.is_valid():
@@ -34,12 +44,12 @@ def checkout(request):
                 order.user = request.user
             order.save()
             
-            for item in cart:
+            for cart_item in cart_items:
                 OrderItem.objects.create(
                     order=order,
-                    product=item['product'],
-                    price=item['price'],
-                    quantity=item['quantity']
+                    product=cart_item.product,
+                    price=cart_item.product.price,
+                    quantity=cart_item.quantity
                 )
             
             try:
@@ -62,7 +72,7 @@ def checkout(request):
                 return render(request, 'checkout/checkout.html', {
                     'client_secret': intent.client_secret,
                     'order': order,
-                    'cart': cart,
+                    'cart_items': cart_items,
                     'form': form,
                     'stripe_public_key': settings.STRIPE_PUBLIC_KEY
                 })
@@ -92,7 +102,7 @@ def checkout(request):
         form = OrderCreateForm()
     
     return render(request, 'checkout/checkout.html', {
-        'cart': cart,
+        'cart_items': cart_items,
         'form': form,
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY
     })
@@ -118,8 +128,13 @@ def payment_success(request, order_id):
             )
             
             # Clear the cart
-            cart = Cart(request)
-            cart.clear()
+            try:
+                cart = Cart.objects.get(cart_id=request.session.session_key)
+                cart_items = CartItem.objects.filter(cart=cart)
+                cart_items.delete()
+                cart.delete()
+            except Cart.DoesNotExist:
+                pass
             
             # Send confirmation email
             subject = f'Order Confirmation - #{order.id}'
@@ -137,7 +152,7 @@ def payment_success(request, order_id):
             )
             
             messages.success(request, f'Payment successful! Your order number is #{order.id}.')
-            return redirect('checkout:success', order_number=order.id)
+            return redirect('checkout:order_complete', order_id=order.id)
         else:
             messages.error(request, 'Payment not completed. Please try again.')
             return redirect('checkout:checkout')
@@ -153,13 +168,17 @@ def payment_success(request, order_id):
 
 def payment_cancel(request):
     messages.info(request, 'Payment was cancelled. You can try again if you wish.')
-    return redirect('checkout:cancel')
+    return redirect('cart:view_cart')
 
-def order_complete(request, order_number):
+def order_complete(request, order_id):
     try:
-        order = Order.objects.get(order_number=order_number)
+        order = Order.objects.get(id=order_id)
+        # Check if the user is authorized to view this order
+        if not request.user.is_authenticated or (order.user and order.user != request.user):
+            return HttpResponse(status=404)
+            
         order_items = OrderItem.objects.filter(order=order)
-        payment = Payment.objects.get(order=order)
+        payment = Payment.objects.filter(order=order).first()
         context = {
             'order': order,
             'order_items': order_items,
