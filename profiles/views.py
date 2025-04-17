@@ -18,7 +18,7 @@ def profile(request):
             user_form.save()
             profile_form.save()
             messages.success(request, 'Profile updated successfully')
-            return redirect('profile')
+            return redirect('profiles:profile')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -49,4 +49,4 @@ def order_history(request, order_number):
         return render(request, 'checkout/order_complete.html', context)
     except Order.DoesNotExist:
         messages.error(request, 'Order not found')
-        return redirect('profile')
+        return redirect('profiles:profile')

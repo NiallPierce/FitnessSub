@@ -137,7 +137,7 @@ def payment_success(request, order_id):
             )
             
             messages.success(request, f'Payment successful! Your order number is #{order.id}.')
-            return redirect('checkout:order_complete', order_number=order.id)
+            return redirect('checkout:success', order_number=order.id)
         else:
             messages.error(request, 'Payment not completed. Please try again.')
             return redirect('checkout:checkout')
@@ -153,7 +153,7 @@ def payment_success(request, order_id):
 
 def payment_cancel(request):
     messages.info(request, 'Payment was cancelled. You can try again if you wish.')
-    return render(request, 'checkout/cancel.html')
+    return redirect('checkout:cancel')
 
 def order_complete(request, order_number):
     try:
@@ -168,7 +168,7 @@ def order_complete(request, order_number):
         return render(request, 'checkout/order_complete.html', context)
     except Order.DoesNotExist:
         messages.error(request, 'Order not found')
-        return redirect('home')
+        return redirect('home:index')
 
 @csrf_exempt
 def stripe_webhook(request):

@@ -11,7 +11,7 @@ def newsletter_signup(request):
             try:
                 form.save()
                 messages.success(request, 'Thank you for subscribing to our newsletter!')
-                return redirect('home:index')
+                return redirect('home:home')
             except:
                 messages.error(request, 'This email is already subscribed to our newsletter.')
         else:

@@ -40,7 +40,7 @@ def add_cart(request, product_id):
             cart_item.save()
             
         messages.success(request, f'{product.name} added to your cart!')
-    return redirect('cart:view_cart')
+    return redirect('cart:detail')
 
 def remove_cart(request, product_id):
     cart = Cart.objects.get(cart_id=_cart_id(request))
@@ -53,7 +53,7 @@ def remove_cart(request, product_id):
     else:
         cart_item.delete()
     messages.success(request, f'{product.name} quantity updated!')
-    return redirect('cart:view_cart')
+    return redirect('cart:detail')
 
 def remove_cart_item(request, product_id):
     cart = Cart.objects.get(cart_id=_cart_id(request))
@@ -61,7 +61,7 @@ def remove_cart_item(request, product_id):
     cart_item = CartItem.objects.get(product=product, cart=cart)
     cart_item.delete()
     messages.success(request, f'{product.name} removed from your cart!')
-    return redirect('cart:view_cart')
+    return redirect('cart:detail')
 
 def view_cart(request):
     try:

@@ -89,7 +89,7 @@ def product_detail(request, product_id):
     if request.method == 'POST':
         if not request.user.is_authenticated:
             messages.error(request, 'Please login to leave a review.')
-            return redirect('login')
+            return redirect('account_login')
             
         review_form = ReviewForm(data=request.POST)
         if review_form.is_valid():
@@ -148,7 +148,7 @@ def add_product(request):
     """Add a new product"""
     if not request.user.is_superuser:
         messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect('products')
+        return redirect('products:list')
         
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
@@ -172,7 +172,7 @@ def edit_product(request, product_id):
     """Edit a product"""
     if not request.user.is_superuser:
         messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect('products')
+        return redirect('products:list')
         
     product = get_object_or_404(Product, pk=product_id)
     if request.method == 'POST':
@@ -199,9 +199,9 @@ def delete_product(request, product_id):
     """Delete a product"""
     if not request.user.is_superuser:
         messages.error(request, 'Sorry, only store owners can do that.')
-        return redirect('products')
+        return redirect('products:list')
         
     product = get_object_or_404(Product, pk=product_id)
     product.delete()
     messages.success(request, 'Product deleted!')
-    return redirect('products')
+    return redirect('products:list')

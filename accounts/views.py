@@ -4,10 +4,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegistrationForm, UserLoginForm
 
-def index(request):
-    """ A view to return the index page """
-    return render(request, 'home/index.html')
-
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -15,7 +11,7 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'Registration successful!')
-            return redirect('profile')
+            return redirect('profiles:profile')
     else:
         form = UserRegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -30,7 +26,7 @@ def user_login(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Welcome back, {username}!')
-                return redirect('profile')
+                return redirect('profiles:profile')
     else:
         form = UserLoginForm()
     return render(request, 'accounts/login.html', {'form': form})
@@ -39,4 +35,4 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
-    return redirect('home')
+    return redirect('home:index')
