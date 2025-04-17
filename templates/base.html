@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block meta %}{% endblock %}
     <meta name="description" content="{% block meta_description %}Fitness E-commerce - Your one-stop shop for fitness products and supplements{% endblock %}">
     <meta name="keywords" content="fitness, supplements, workout, health, nutrition">
     <meta name="author" content="Fitness E-commerce">
@@ -21,6 +22,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
+    {% block extra_head %}{% endblock %}
     {% block extra_css %}{% endblock %}
 </head>
 <body>

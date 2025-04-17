@@ -2,6 +2,97 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
+{% block meta %}
+    <meta name="description" content="{{ product.description|truncatewords:30 }}">
+    <meta name="keywords" content="{{ product.name }}, {{ product.category.name }}, fitness, supplements">
+    <meta property="og:title" content="{{ product.name }} - Fitness Supplements">
+    <meta property="og:description" content="{{ product.description|truncatewords:30 }}">
+    <meta property="og:type" content="product">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    {% if product.image %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}">
+    {% endif %}
+    <meta property="product:price:amount" content="{{ product.price }}">
+    <meta property="product:price:currency" content="USD">
+    <meta property="product:availability" content="{% if product.stock > 0 %}in stock{% else %}out of stock{% endif %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_head %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": "{{ product.name }}",
+        "description": "{{ product.description }}",
+        "image": "{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endif %}",
+        "brand": {
+            "@type": "Brand",
+            "name": "Fitness Supplements"
+        },
+        "offers": {
+            "@type": "Offer",
+            "url": "{{ request.build_absolute_uri }}",
+            "priceCurrency": "USD",
+            "price": "{{ product.price }}",
+            "availability": "{% if product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+            "seller": {
+                "@type": "Organization",
+                "name": "Fitness Supplements"
+            }
+        },
+        "category": "{{ product.category.name }}",
+        "sku": "{{ product.sku }}",
+        "review": [
+            {% for review in reviews %}
+            {
+                "@type": "Review",
+                "reviewRating": {
+                    "@type": "Rating",
+                    "ratingValue": "{{ review.rating }}",
+                    "bestRating": "5"
+                },
+                "author": {
+                    "@type": "Person",
+                    "name": "{{ review.user.username }}"
+                },
+                "datePublished": "{{ review.created_at|date:'Y-m-d' }}",
+                "reviewBody": "{{ review.content }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [{
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'home:index' %}"
+        },{
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Products",
+            "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'products:products' %}"
+        },{
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ product.category.name }}",
+            "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'products:category_detail' category_slug=product.category.slug %}"
+        },{
+            "@type": "ListItem",
+            "position": 4,
+            "name": "{{ product.name }}",
+            "item": "{{ request.build_absolute_uri }}"
+        }]
+    }
+    </script>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <nav aria-label="breadcrumb">
@@ -18,9 +109,16 @@
         <div class="col-md-6">
             <div class="card mb-4">
                 {% if product.image %}
-                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    <img src="{{ product.image.url }}" 
+                         srcset="{{ product.image.url }} 1x, {{ product.image.url }} 2x"
+                         class="card-img-top" 
+                         alt="{{ product.name }}"
+                         loading="lazy">
                 {% else %}
-                    <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No image available">
+                    <img src="{% static 'images/no-image.png' %}" 
+                         class="card-img-top" 
+                         alt="No image available"
+                         loading="lazy">
                 {% endif %}
             </div>
         </div>
@@ -29,38 +127,45 @@
         <div class="col-md-6">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h1 class="card-title">{{ product.name }}</h1>
+                    <h1 class="card-title" itemprop="name">{{ product.name }}</h1>
                     <p class="text-muted">Category: {{ product.category.name }}</p>
-                    <h3 class="text-primary">${{ product.price }}</h3>
+                    <h3 class="text-primary" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                        <span itemprop="priceCurrency" content="USD">$</span>
+                        <span itemprop="price" content="{{ product.price }}">{{ product.price }}</span>
+                    </h3>
                     
                     <div class="mb-3">
                         {% if product.stock > 0 %}
-                            <span class="badge bg-success">In Stock ({{ product.stock }} available)</span>
+                            <span class="badge bg-success" itemprop="availability" content="https://schema.org/InStock">
+                                In Stock ({{ product.stock }} available)
+                            </span>
                         {% else %}
-                            <span class="badge bg-danger">Out of Stock</span>
+                            <span class="badge bg-danger" itemprop="availability" content="https://schema.org/OutOfStock">
+                                Out of Stock
+                            </span>
                         {% endif %}
                     </div>
 
-                    <p class="card-text">{{ product.description }}</p>
+                    <p class="card-text" itemprop="description">{{ product.description }}</p>
 
                     {% if product.stock > 0 %}
                         <form action="{% url 'cart:cart_add' product_id=product.id %}" method="post" class="mb-4">
                             {% csrf_token %}
                             {{ cart_product_form|crispy }}
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                            <button type="submit" class="btn btn-primary" aria-label="Add to cart">
+                                <i class="fas fa-shopping-cart" aria-hidden="true"></i> Add to Cart
                             </button>
                         </form>
                     {% else %}
-                        <button class="btn btn-secondary" disabled>Out of Stock</button>
+                        <button class="btn btn-secondary" disabled aria-label="Out of stock">Out of Stock</button>
                     {% endif %}
 
                     <!-- Product Meta -->
                     <div class="mt-4">
                         <p class="text-muted">
                             <small>
-                                <i class="fas fa-tag"></i> SKU: {{ product.sku }}<br>
-                                <i class="fas fa-calendar"></i> Added: {{ product.created_at|date:"F d, Y" }}
+                                <i class="fas fa-tag" aria-hidden="true"></i> SKU: {{ product.sku }}<br>
+                                <i class="fas fa-calendar" aria-hidden="true"></i> Added: {{ product.created_at|date:"F d, Y" }}
                             </small>
                         </p>
                     </div>
@@ -74,26 +179,31 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3>Customer Reviews</h3>
+                    <h2>Customer Reviews</h2>
                 </div>
                 <div class="card-body">
                     {% if reviews %}
                         {% for review in reviews %}
-                            <div class="review mb-4">
+                            <div class="review mb-4" itemprop="review" itemscope itemtype="https://schema.org/Review">
                                 <div class="d-flex justify-content-between">
-                                    <h5>{{ review.user.username }}</h5>
-                                    <div class="text-warning">
+                                    <h3 class="h5" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                                        <span itemprop="name">{{ review.user.username }}</span>
+                                    </h3>
+                                    <div class="text-warning" itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+                                        <meta itemprop="ratingValue" content="{{ review.rating }}">
+                                        <meta itemprop="bestRating" content="5">
                                         {% for i in "12345"|make_list %}
                                             {% if forloop.counter <= review.rating %}
-                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star" aria-hidden="true"></i>
                                             {% else %}
-                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star" aria-hidden="true"></i>
                                             {% endif %}
                                         {% endfor %}
+                                        <span class="visually-hidden">Rating: {{ review.rating }} out of 5 stars</span>
                                     </div>
                                 </div>
-                                <p class="text-muted">{{ review.created_at|date:"F d, Y" }}</p>
-                                <p>{{ review.content }}</p>
+                                <p class="text-muted" itemprop="datePublished">{{ review.created_at|date:"F d, Y" }}</p>
+                                <p itemprop="reviewBody">{{ review.content }}</p>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -103,11 +213,11 @@
                     <!-- Review Form -->
                     {% if user.is_authenticated %}
                         <div class="mt-4">
-                            <h4>Write a Review</h4>
+                            <h3>Write a Review</h3>
                             <form method="post" action="{% url 'products:product_detail' product_id=product.id %}">
                                 {% csrf_token %}
                                 {{ review_form|crispy }}
-                                <button type="submit" class="btn btn-primary mt-3">Submit Review</button>
+                                <button type="submit" class="btn btn-primary mt-3" aria-label="Submit review">Submit Review</button>
                             </form>
                         </div>
                     {% else %}
@@ -124,21 +234,29 @@
     {% if related_products %}
         <div class="row mt-5">
             <div class="col-12">
-                <h3>Related Products</h3>
+                <h2>Related Products</h2>
                 <div class="row">
                     {% for related_product in related_products %}
                         <div class="col-md-3 mb-4">
                             <div class="card h-100">
                                 {% if related_product.image %}
-                                    <img src="{{ related_product.image.url }}" class="card-img-top" alt="{{ related_product.name }}">
+                                    <img src="{{ related_product.image.url }}" 
+                                         srcset="{{ related_product.image.url }} 1x, {{ related_product.image.url }} 2x"
+                                         class="card-img-top" 
+                                         alt="{{ related_product.name }}"
+                                         loading="lazy">
                                 {% else %}
-                                    <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No image available">
+                                    <img src="{% static 'images/no-image.png' %}" 
+                                         class="card-img-top" 
+                                         alt="No image available"
+                                         loading="lazy">
                                 {% endif %}
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ related_product.name }}</h5>
+                                    <h3 class="h5 card-title">{{ related_product.name }}</h3>
                                     <p class="card-text">${{ related_product.price }}</p>
                                     <a href="{% url 'products:product_detail' product_id=related_product.id %}" 
-                                       class="btn btn-outline-primary">View Details</a>
+                                       class="btn btn-outline-primary"
+                                       aria-label="View details for {{ related_product.name }}">View Details</a>
                                 </div>
                             </div>
                         </div>
