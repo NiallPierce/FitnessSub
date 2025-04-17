@@ -78,7 +78,7 @@ class OrderManagementTests(TestCase):
             postal_code='12345',
             city='Test City',
             country='US',
-            order_number='TEST123'
+            order_number='TEST456'
         )
         
         # Add items to the order
