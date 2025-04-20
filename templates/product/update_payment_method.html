@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="custom-card">
+                <div class="card-body">
+                    <h1 class="h2 text-gradient mb-4">Update Payment Method</h1>
+                    
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form id="payment-form" method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="card-element" class="form-label">Credit or debit card</label>
+                            <div id="card-element" class="form-control">
+                                <!-- Stripe Elements will be inserted here -->
+                            </div>
+                            <div id="card-errors" class="text-danger mt-2" role="alert"></div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="custom-btn custom-btn-primary" id="submit-button">
+                                Update Payment Method
+                            </button>
+                            <a href="{% url 'products:subscription_management' %}" class="custom-btn custom-btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    #card-element {
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .StripeElement--focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    .StripeElement--invalid {
+        border-color: #dc3545;
+    }
+    .StripeElement--webkit-autofill {
+        background-color: #fefde5 !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    var stripe = Stripe('{{ stripe_public_key }}');
+    var elements = stripe.elements();
+    
+    var style = {
+        base: {
+            color: '#fff',
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': {
+                color: '#aab7c4'
+            }
+        },
+        invalid: {
+            color: '#dc3545',
+            iconColor: '#dc3545'
+        }
+    };
+    
+    var card = elements.create('card', {style: style});
+    card.mount('#card-element');
+    
+    card.addEventListener('change', function(event) {
+        var displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+    
+    var form = document.getElementById('payment-form');
+    var submitButton = document.getElementById('submit-button');
+    
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        submitButton.disabled = true;
+        
+        stripe.createPaymentMethod({
+            type: 'card',
+            card: card,
+        }).then(function(result) {
+            if (result.error) {
+                var errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+                submitButton.disabled = false;
+            } else {
+                // Add the payment method ID to the form
+                var hiddenInput = document.createElement('input');
+                hiddenInput.setAttribute('type', 'hidden');
+                hiddenInput.setAttribute('name', 'payment_method_id');
+                hiddenInput.setAttribute('value', result.paymentMethod.id);
+                form.appendChild(hiddenInput);
+                
+                // Submit the form
+                form.submit();
+            }
+        });
+    });
+</script>
+{% endblock %} 

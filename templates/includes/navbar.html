@@ -13,7 +13,17 @@
                     <a class="nav-link" href="{% url 'products:products' %}">Products</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{% url 'products:subscription_plans' %}">
+                        <i class="fas fa-crown"></i> Subscriptions
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{% url 'newsletter:newsletter_signup' %}">Newsletter</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'community:home' %}">
+                        <i class="fas fa-users"></i> Community
+                    </a>
                 </li>
             </ul>
             <ul class="navbar-nav">
@@ -31,15 +41,39 @@
                             <i class="fas fa-user"></i> {{ user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'account_logout' %}">Logout</a></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profiles:profile' %}">
+                                    <i class="fas fa-user-circle"></i> Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'products:subscription_plans' %}">
+                                    <i class="fas fa-crown"></i> Subscriptions
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'products:subscription_history' %}">
+                                    <i class="fas fa-history"></i> Subscription History
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'account_logout' %}">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_login' %}">Login</a>
+                        <a class="nav-link" href="{% url 'account_login' %}">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_signup' %}">Register</a>
+                        <a class="nav-link" href="{% url 'account_signup' %}">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
                     </li>
                 {% endif %}
             </ul>

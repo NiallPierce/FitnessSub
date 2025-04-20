@@ -84,7 +84,8 @@ class SubscriptionPlan(models.Model):
     plan_type = models.CharField(max_length=20, choices=PLAN_TYPES)
     features = models.TextField(help_text="List of features separated by newlines")
     is_active = models.BooleanField(default=True)
-    stripe_price_id = models.CharField(max_length=100, blank=True)
+    stripe_product_id = models.CharField(max_length=100, blank=True, help_text="Stripe Product ID for this plan")
+    stripe_price_id = models.CharField(max_length=100, blank=True, help_text="Stripe Price ID for this plan")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

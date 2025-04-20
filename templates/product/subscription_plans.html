@@ -12,8 +12,121 @@
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .feature-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        padding: 20px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    .feature-card.active {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+    .feature-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text-color);
+    }
+    .feature-description {
+        margin-bottom: 1.5rem;
+        color: var(--text-muted);
+    }
+    .feature-details {
+        display: none;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    .feature-details.active {
+        display: block;
+    }
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+    .feature-list li {
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    .feature-list i {
+        margin-right: 0.5rem;
+        color: var(--success-color);
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .test-mode-banner {
+        background-color: #ffc107;
+        color: #000;
+        padding: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    .plan-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .plan-card .card-body {
+        flex: 1;
+    }
+    .plan-card .card-footer {
+        margin-top: auto;
+        padding: 1rem;
+    }
+    .plan-features {
+        min-height: 200px;
+    }
+    .why-choose-us {
+        margin-top: 4rem;
+        padding: 2rem 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+    }
+    .section-title {
+        margin-bottom: 2rem;
+        position: relative;
+        display: inline-block;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 3px;
+        background: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
+    <div class="test-mode-banner">
+        <i class="fas fa-info-circle"></i> 
+        <strong>Test Mode:</strong> Use card number 4242 4242 4242 4242 for successful payments
+    </div>
+
     <div class="row">
         <div class="col-12 text-center mb-5">
             <h1 class="h2 text-gradient">Choose Your Plan</h1>
@@ -24,55 +137,157 @@
     <div class="row">
         {% for plan in plans %}
         <div class="col-md-4 mb-4">
-            <div class="custom-card h-100">
+            <div class="custom-card plan-card h-100">
                 <div class="card-body">
                     <h3 class="h4 card-title text-center text-gradient">{{ plan.name }}</h3>
                     <div class="text-center mb-4">
                         <span class="display-4 text-gradient">${{ plan.price }}</span>
                         <span class="text-muted">/{{ plan.plan_type }}</span>
                     </div>
-                    <ul class="list-unstyled">
-                        {% for feature in plan.features.splitlines %}
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            {{ feature }}
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    <div class="plan-features">
+                        <ul class="list-unstyled">
+                            {% for feature in plan.features.splitlines %}
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                {{ feature }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 text-center">
-                    <a href="{% url 'products:subscribe' plan.id %}" 
-                       class="custom-btn custom-btn-primary w-100"
-                       aria-label="Subscribe to {{ plan.name }} plan">
-                        Get Started
-                    </a>
+                    {% if user.is_authenticated %}
+                        {% if user_subscription and user_subscription.plan == plan %}
+                            <button class="custom-btn custom-btn-secondary w-100" disabled>
+                                Current Plan
+                            </button>
+                        {% else %}
+                            <a href="{% url 'products:subscribe' plan.id %}" 
+                               class="custom-btn custom-btn-primary w-100"
+                               aria-label="Subscribe to {{ plan.name }} plan">
+                                Get Started
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'account_login' %}?next={% url 'products:subscribe' plan.id %}" 
+                           class="custom-btn custom-btn-primary w-100"
+                           aria-label="Login to subscribe to {{ plan.name }} plan">
+                            Login to Subscribe
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
 
-    <div class="row mt-5">
-        <div class="col-12 text-center">
-            <h2 class="h3 text-gradient">Why Choose Us?</h2>
-            <div class="row mt-4">
-                <div class="col-md-4">
-                    <i class="fas fa-dumbbell fa-3x mb-3 text-gradient"></i>
-                    <h4>Expert Workouts</h4>
-                    <p>Access to professional workout plans and routines</p>
+    <div class="why-choose-us">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h2 class="section-title text-gradient">Why Choose Us?</h2>
+                    <p class="lead mb-5">Discover what makes our fitness community unique</p>
                 </div>
-                <div class="col-md-4">
-                    <i class="fas fa-utensils fa-3x mb-3 text-gradient"></i>
-                    <h4>Nutrition Plans</h4>
-                    <p>Customized meal plans and nutrition advice</p>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card" data-feature="workouts">
+                        <div class="feature-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <h3 class="feature-title">Expert Workouts</h3>
+                        <p class="feature-description">Access to professional workout plans and routines designed by certified trainers</p>
+                        <div class="feature-details">
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i>Customized workout plans</li>
+                                <li><i class="fas fa-check"></i>Video tutorials</li>
+                                <li><i class="fas fa-check"></i>Progress tracking</li>
+                                <li><i class="fas fa-check"></i>Form correction</li>
+                                <li><i class="fas fa-check"></i>Workout analytics</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <i class="fas fa-users fa-3x mb-3 text-gradient"></i>
-                    <h4>Community Support</h4>
-                    <p>Join a supportive community of fitness enthusiasts</p>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card" data-feature="nutrition">
+                        <div class="feature-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h3 class="feature-title">Nutrition Plans</h3>
+                        <p class="feature-description">Customized meal plans and nutrition advice tailored to your goals</p>
+                        <div class="feature-details">
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i>Personalized meal plans</li>
+                                <li><i class="fas fa-check"></i>Nutrition tracking</li>
+                                <li><i class="fas fa-check"></i>Dietary guidance</li>
+                                <li><i class="fas fa-check"></i>Recipe database</li>
+                                <li><i class="fas fa-check"></i>Macro calculator</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card" data-feature="community">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="feature-title">Community Support</h3>
+                        <p class="feature-description">Join a supportive community of fitness enthusiasts and experts</p>
+                        <div class="feature-details">
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i>Group challenges</li>
+                                <li><i class="fas fa-check"></i>Expert Q&A</li>
+                                <li><i class="fas fa-check"></i>Success stories</li>
+                                <li><i class="fas fa-check"></i>Live events</li>
+                                <li><i class="fas fa-check"></i>Progress sharing</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const featureCards = document.querySelectorAll('.feature-card');
+    
+    featureCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // If the clicked card is already active, collapse it
+            if (this.classList.contains('active')) {
+                this.classList.remove('active');
+                this.querySelector('.feature-details').classList.remove('active');
+                return;
+            }
+            
+            // Remove active class from all cards
+            featureCards.forEach(c => {
+                c.classList.remove('active');
+                c.querySelector('.feature-details').classList.remove('active');
+            });
+            
+            // Add active class to clicked card
+            this.classList.add('active');
+            this.querySelector('.feature-details').classList.add('active');
+        });
+
+        // Add hover effect
+        card.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(-5px)';
+            }
+        });
+
+        card.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(0)';
+            }
+        });
+    });
+});
+</script>
 {% endblock %} 
