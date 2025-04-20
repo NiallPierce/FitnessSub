@@ -3,6 +3,7 @@ from products.models import Product, Category
 from decimal import Decimal
 from django.core.files import File
 from pathlib import Path
+import os
 
 class Command(BaseCommand):
     help = 'Adds sample fitness products to the database'
@@ -37,7 +38,7 @@ class Command(BaseCommand):
                 'stock': 50,
                 'is_featured': True,
                 'rating': Decimal('4.8'),
-                'image_path': 'static/images/Protein.jpeg'
+                'image_name': 'Protein.jpeg'
             },
             {
                 'category': 'supplements',
@@ -47,7 +48,7 @@ class Command(BaseCommand):
                 'stock': 30,
                 'is_featured': True,
                 'rating': Decimal('4.5'),
-                'image_path': 'static/images/bcaa.jpeg'
+                'image_name': 'bcaa.jpeg'
             },
             {
                 'category': 'supplements',
@@ -57,7 +58,7 @@ class Command(BaseCommand):
                 'stock': 40,
                 'is_featured': True,
                 'rating': Decimal('4.6'),
-                'image_path': 'static/images/preworkout.jpeg'
+                'image_name': 'preworkout.jpeg'
             },
             {
                 'category': 'supplements',
@@ -78,7 +79,7 @@ class Command(BaseCommand):
                 'stock': 20,
                 'is_featured': True,
                 'rating': Decimal('4.7'),
-                'image_path': 'static/images/dumbell.jpeg'
+                'image_name': 'dumbell.jpeg'
             },
             {
                 'category': 'equipment',
@@ -126,7 +127,7 @@ class Command(BaseCommand):
                 'stock': 60,
                 'is_featured': True,
                 'rating': Decimal('4.9'),
-                'image_path': 'static/images/leggings.jpeg'
+                'image_name': 'leggings.jpeg'
             },
             {
                 'category': 'apparel',
@@ -247,9 +248,12 @@ class Command(BaseCommand):
         ]
 
         # Add products to database
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        images_dir = os.path.join(base_dir, 'static', 'images')
+
         for product_data in products:
             category = Category.objects.get(slug=product_data['category'])
-            image_path = product_data.pop('image_path', None)
+            image_name = product_data.pop('image_name', None)
             
             product, created = Product.objects.get_or_create(
                 category=category,
@@ -257,12 +261,15 @@ class Command(BaseCommand):
                 defaults=product_data
             )
 
-            if created and image_path:
+            if created and image_name:
                 try:
-                    image_file = Path(image_path)
-                    if image_file.exists():
-                        with open(image_file, 'rb') as f:
-                            product.image.save(image_file.name, File(f), save=True)
+                    image_path = os.path.join(images_dir, image_name)
+                    if os.path.exists(image_path):
+                        with open(image_path, 'rb') as f:
+                            product.image.save(image_name, File(f), save=True)
+                            self.stdout.write(self.style.SUCCESS(f'Added image for {product.name}'))
+                    else:
+                        self.stdout.write(self.style.WARNING(f'Image not found at {image_path}'))
                 except Exception as e:
                     self.stdout.write(self.style.WARNING(f'Failed to add image for {product.name}: {str(e)}'))
 
