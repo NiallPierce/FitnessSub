@@ -77,6 +77,9 @@ def main():
     max_retries = 3
     retry_delay = 30
     
+    # Temporarily disable S3 during collectstatic
+    os.environ['DISABLE_S3_DURING_COLLECTSTATIC'] = '1'
+    
     for attempt in range(max_retries):
         print(f"Attempt {attempt + 1} of {max_retries}")
         if run_command("python manage.py collectstatic --noinput --clear", timeout=600):
@@ -89,6 +92,9 @@ def main():
             else:
                 print("Failed to collect static files after all retries")
                 return 1
+    
+    # Re-enable S3 after collectstatic
+    del os.environ['DISABLE_S3_DURING_COLLECTSTATIC']
     
     print("Post-deploy script completed successfully")
     return 0
