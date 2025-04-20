@@ -51,8 +51,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -117,15 +117,18 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Only add static directory if it exists
-static_dir = BASE_DIR / 'static'
-STATICFILES_DIRS = [str(static_dir)] if static_dir.exists() else []
+# Static files configuration
+STATICFILES_DIRS = []  # Empty in production, files are collected to STATIC_ROOT
 
 # WhiteNoise configuration
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_ALLOW_ALL_ORIGINS = True
+WHITENOISE_ROOT = STATIC_ROOT
+
+# Suppress the staticfiles warning
+SILENCED_SYSTEM_CHECKS = ['staticfiles.W004']
 
 # Media files
 MEDIA_URL = '/media/'
