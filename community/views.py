@@ -1,375 +1,439 @@
-import datetime
-import json
-import stripe
-from django.conf import settings
-from django.shortcuts import render, redirect, reverse, get_object_or_404, HttpResponse
-from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.auth.tokens import default_token_generator
+from django.contrib import messages
+from django.utils import timezone
+from django.contrib.auth.models import User
+from .models import (
+    SocialPost, Comment, Challenge, GroupWorkout, 
+    UserBadge, ProgressEntry, Achievement, ChallengeParticipation,
+    ChallengeRequirement, ChallengeReward, Badge
+)
+from .forms import SocialPostForm, CommentForm, GroupWorkoutForm, ChallengeForm
 
-from .forms import OrderForm
-from .models import Order, OrderItem, Payment
-from cart.models import Cart, CartItem
-from cart.contexts import cart_contents
-from .forms import OrderCreateForm
-from products.models import Product
-from profiles.models import UserSubscription
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
+# Create your views here.
 
 @login_required
-def checkout(request):
-    try:
-        cart = Cart.objects.get(cart_id=request.session.session_key)
-        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-        if not cart_items:
-            messages.warning(request, 'Your cart is empty')
-            return redirect('cart:view_cart')
-    except Cart.DoesNotExist:
-        messages.warning(request, 'Your cart is empty')
-        return redirect('cart:view_cart')
-
-    if request.method == 'POST':
-        form = OrderCreateForm(request.POST)
-        if form.is_valid():
-            order = form.save(commit=False)
-            if request.user.is_authenticated:
-                order.user = request.user
-            order.save()
-            
-            for cart_item in cart_items:
-                OrderItem.objects.create(
-                    order=order,
-                    product=cart_item.product,
-                    price=cart_item.product.price,
-                    quantity=cart_item.quantity
-                )
-            
-            try:
-                # Create a PaymentIntent with the order amount and currency
-                intent = stripe.PaymentIntent.create(
-                    amount=int(order.get_total_cost() * 100),
-                    currency='usd',
-                    automatic_payment_methods={
-                        'enabled': True,
-                    },
-                    metadata={
-                        'order_id': order.id
-                    }
-                )
-                
-                # Update the order with the payment intent ID
-                order.stripe_id = intent.id
-                order.save()
-                
-                return render(request, 'checkout/checkout.html', {
-                    'client_secret': intent.client_secret,
-                    'order': order,
-                    'cart_items': cart_items,
-                    'form': form,
-                    'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
-                    'order_id': order.id
-                })
-                
-            except stripe.error.CardError as e:
-                messages.error(request, f'Card error: {str(e)}')
-                return redirect('checkout:checkout')
-            except stripe.error.RateLimitError as e:
-                messages.error(request, 'Rate limit error. Please try again later.')
-                return redirect('checkout:checkout')
-            except stripe.error.InvalidRequestError as e:
-                messages.error(request, f'Invalid request: {str(e)}')
-                return redirect('checkout:checkout')
-            except stripe.error.AuthenticationError as e:
-                messages.error(request, 'Authentication error. Please contact support.')
-                return redirect('checkout:checkout')
-            except stripe.error.APIConnectionError as e:
-                messages.error(request, 'Network error. Please check your connection.')
-                return redirect('checkout:checkout')
-            except stripe.error.StripeError as e:
-                messages.error(request, 'Something went wrong. Please try again later.')
-                return redirect('checkout:checkout')
-            except Exception as e:
-                messages.error(request, f'Error processing payment: {str(e)}')
-                return redirect('checkout:checkout')
-    else:
-        form = OrderCreateForm()
+def community_home(request):
+    challenges = Challenge.objects.filter(is_active=True).order_by('-start_date')
+    recent_posts = SocialPost.objects.all().order_by('-created_at')[:5]
+    upcoming_workouts = GroupWorkout.objects.filter(date_time__gte=timezone.now()).order_by('date_time')
     
-    return render(request, 'checkout/checkout.html', {
-        'cart_items': cart_items,
-        'form': form,
-        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
-        'order_id': None
+    return render(request, 'community/home.html', {
+        'challenges': challenges,
+        'recent_posts': recent_posts,
+        'upcoming_workouts': upcoming_workouts,
     })
 
-def payment_success(request, order_number):
-    try:
-        order = Order.objects.get(order_number=order_number)
+@login_required
+def challenges(request):
+    # Get all active challenges
+    active_challenges = Challenge.objects.filter(is_active=True).order_by('-start_date')
+    
+    # Get user's active challenges
+    user_challenges = Challenge.objects.filter(
+        challengeparticipation__user=request.user,
+        challengeparticipation__completed=False
+    ).order_by('-start_date')
+    
+    # Get completed challenges
+    completed_challenges = Challenge.objects.filter(
+        challengeparticipation__user=request.user,
+        challengeparticipation__completed=True
+    ).order_by('-start_date')
+    
+    # Create or update C25K challenge
+    challenge, created = Challenge.objects.get_or_create(
+        title="Couch to 5K Challenge",
+        defaults={
+            'description': """Transform your fitness journey with our 9-week Couch to 5K program!
+
+This beginner-friendly challenge is designed to take you from no running experience to completing a 5K run. Perfect for those starting their fitness journey or looking to get back into running.
+
+Program Highlights:
+• 3 structured workouts per week
+• Gradual progression from walking to running
+• Supportive community of fellow runners
+• Weekly progress tracking
+• Achievement badges for reaching milestones
+• Expert guidance and tips
+
+Whether you're a complete beginner or returning to running, this program will help you build endurance, improve your fitness, and achieve your 5K goal in just 9 weeks!""",
+            'start_date': timezone.now(),
+            'end_date': timezone.now() + timezone.timedelta(weeks=9),
+            'points': 500,
+            'is_active': True
+        }
+    )
+
+    # If challenge exists but has no requirements or rewards, add them
+    if not challenge.requirements.exists() or not challenge.rewards.exists():
+        # Clear existing requirements and rewards
+        challenge.requirements.clear()
+        challenge.rewards.clear()
+
+        # Create requirements
+        requirements = [
+            "Complete 3 workouts per week",
+            "Follow the weekly training schedule",
+            "Track your progress in the app",
+            "Share your journey in the community (optional)",
+            "Complete the final 5K run"
+        ]
         
-        # Check if the user is authorized to view this order
-        if not request.user.is_authenticated or (order.user and order.user != request.user):
-            return HttpResponse(status=404)
+        for i, req in enumerate(requirements):
+            requirement = ChallengeRequirement.objects.create(
+                description=req,
+                is_mandatory=(i != 3),  # Only the community sharing is optional
+                order=i
+            )
+            challenge.requirements.add(requirement)
+
+        # Create rewards
+        rewards = [
+            {
+                "description": "Complete Week 1",
+                "points_value": 50,
+                "badge": None
+            },
+            {
+                "description": "Complete Week 4",
+                "points_value": 100,
+                "badge": None
+            },
+            {
+                "description": "Complete the 5K Challenge",
+                "points_value": 350,
+                "badge": Badge.objects.get_or_create(
+                    name="5K Runner",
+                    defaults={
+                        'description': 'Completed the Couch to 5K Challenge',
+                        'badge_type': 'achievement',
+                        'required_points': 500
+                    }
+                )[0]
+            }
+        ]
         
-        # If the order already has a stripe_id, verify the payment
-        if order.stripe_id:
-            # Retrieve the PaymentIntent to confirm the payment status
-            intent = stripe.PaymentIntent.retrieve(order.stripe_id)
-            
-            if intent.status == 'succeeded':
-                order.paid = True
-                order.save()
-                
-                # Create a Payment record
-                Payment.objects.create(
-                    order=order,
-                    payment_id=intent.id,
-                    payment_method=intent.payment_method_types[0] if intent.payment_method_types else 'card',
-                    amount_paid=order.get_total_cost(),
-                    status='completed'
-                )
+        for reward_data in rewards:
+            reward = ChallengeReward.objects.create(
+                description=reward_data["description"],
+                points_value=reward_data["points_value"],
+                badge=reward_data["badge"]
+            )
+            challenge.rewards.add(reward)
+    
+    return render(request, 'community/challenges.html', {
+        'active_challenges': active_challenges,
+        'user_challenges': user_challenges,
+        'completed_challenges': completed_challenges,
+    })
+
+@login_required
+def challenge_detail(request, challenge_id):
+    challenge = get_object_or_404(Challenge, id=challenge_id)
+    participation = ChallengeParticipation.objects.filter(
+        user=request.user,
+        challenge=challenge
+    ).first()
+    
+    return render(request, 'community/challenge_detail.html', {
+        'challenge': challenge,
+        'participation': participation,
+    })
+
+@login_required
+def social_feed(request):
+    posts = SocialPost.objects.all().order_by('-created_at')
+    return render(request, 'community/social_feed.html', {
+        'posts': posts,
+    })
+
+@login_required
+def create_post(request):
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        image = request.FILES.get('image')
+        if content:
+            SocialPost.objects.create(
+                content=content,
+                image=image,
+                user=request.user
+            )
+            messages.success(request, 'Post created successfully!')
+            return redirect('community:social_feed')
         else:
-            # If no stripe_id, mark as paid anyway (for testing purposes)
-            order.paid = True
-            order.save()
+            messages.error(request, 'Please enter some content.')
+    return render(request, 'community/create_post.html')
+
+@login_required
+def post_detail(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            Comment.objects.create(
+                content=content,
+                post=post,
+                user=request.user
+            )
+            messages.success(request, 'Comment added successfully!')
+            return redirect('community:post_detail', post_id=post.id)
+        else:
+            messages.error(request, 'Please enter a comment.')
+    
+    comments = post.comments.all().order_by('-created_at')
+    return render(request, 'community/post_detail.html', {
+        'post': post,
+        'comments': comments,
+    })
+
+@login_required
+def group_workouts(request):
+    upcoming_workouts = GroupWorkout.objects.filter(
+        date_time__gte=timezone.now()
+    ).order_by('date_time')
+    past_workouts = GroupWorkout.objects.filter(
+        date_time__lt=timezone.now()
+    ).order_by('-date_time')
+    
+    return render(request, 'community/group_workouts.html', {
+        'upcoming_workouts': upcoming_workouts,
+        'past_workouts': past_workouts,
+    })
+
+@login_required
+def workout_detail(request, workout_id):
+    workout = get_object_or_404(GroupWorkout, id=workout_id)
+    is_participant = workout.participants.filter(id=request.user.id).exists()
+    
+    return render(request, 'community/workout_detail.html', {
+        'workout': workout,
+        'is_participant': is_participant,
+    })
+
+@login_required
+def create_workout(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        workout_type = request.POST.get('workout_type')
+        date_time = request.POST.get('date_time')
+        duration = request.POST.get('duration')
+        max_participants = request.POST.get('max_participants')
+        location = request.POST.get('location')
+        meeting_link = request.POST.get('meeting_link')
+
+        if all([title, description, workout_type, date_time, duration, max_participants]):
+            workout = GroupWorkout.objects.create(
+                title=title,
+                description=description,
+                workout_type=workout_type,
+                date_time=date_time,
+                duration=duration,
+                max_participants=max_participants,
+                location=location,
+                meeting_link=meeting_link,
+                created_by=request.user
+            )
+            messages.success(request, 'Group workout created successfully!')
+            return redirect('community:workout_detail', workout_id=workout.id)
+        else:
+            messages.error(request, 'Please fill in all required fields.')
+    
+    return render(request, 'community/create_workout.html')
+
+@login_required
+def user_profile(request, username):
+    user = get_object_or_404(User, username=username)
+    posts = SocialPost.objects.filter(user=user).order_by('-created_at')
+    achievements = Achievement.objects.filter(user=user).order_by('-date_achieved')
+    badges = UserBadge.objects.filter(user=user).order_by('-date_earned')
+    progress_entries = ProgressEntry.objects.filter(user=user).order_by('-date')
+    
+    return render(request, 'community/user_profile.html', {
+        'profile_user': user,
+        'posts': posts,
+        'achievements': achievements,
+        'badges': badges,
+        'progress_entries': progress_entries,
+    })
+
+@login_required
+def create_c25k_challenge(request):
+    if request.method == 'POST':
+        # Create the main challenge
+        challenge = Challenge.objects.create(
+            title="Couch to 5K Challenge",
+            description="""Join our 9-week Couch to 5K program! This beginner-friendly challenge will help you go from no running experience to completing a 5K run.
             
-            # Create a Payment record
-            Payment.objects.create(
-                order=order,
-                payment_id='test_payment_id',
-                payment_method='card',
-                amount_paid=order.get_total_cost(),
-                status='completed'
+            What to expect:
+            - 3 workouts per week
+            - Gradual progression from walking to running
+            - Supportive community
+            - Weekly progress tracking
+            - Achievement badges for milestones
+            """,
+            start_date=timezone.now(),
+            end_date=timezone.now() + timezone.timedelta(weeks=9),
+            points=500,
+            is_active=True
+        )
+        
+        # Create requirements
+        requirements = [
+            "Complete 3 workouts per week",
+            "Follow the weekly training schedule",
+            "Track your progress in the app",
+            "Share your journey in the community (optional)",
+            "Complete the final 5K run"
+        ]
+        
+        for i, req in enumerate(requirements):
+            ChallengeRequirement.objects.create(
+                description=req,
+                is_mandatory=(i != 3),  # Only the community sharing is optional
+                order=i
             )
         
-        # Clear the cart
-        try:
-            cart = Cart.objects.get(cart_id=request.session.session_key)
-            cart_items = CartItem.objects.filter(cart=cart)
-            cart_items.delete()
-            cart.delete()
-        except Cart.DoesNotExist:
-            pass
+        # Add requirements to challenge
+        challenge.requirements.add(*ChallengeRequirement.objects.all())
         
-        # Send confirmation email
-        subject = f'Order Confirmation - #{order.order_number}'
-        html_message = render_to_string('checkout/email/order_confirmation.html', {
-            'order': order,
-            'site': get_current_site(request)
-        })
-        plain_message = strip_tags(html_message)
-        send_mail(
-            subject,
-            plain_message,
-            settings.DEFAULT_FROM_EMAIL,
-            [order.email],
-            html_message=html_message
+        # Create rewards
+        rewards = [
+            {
+                "description": "Complete Week 1",
+                "points_value": 50,
+                "badge": None
+            },
+            {
+                "description": "Complete Week 4",
+                "points_value": 100,
+                "badge": None
+            },
+            {
+                "description": "Complete the 5K Challenge",
+                "points_value": 350,
+                "badge": Badge.objects.get_or_create(
+                    name="5K Runner",
+                    defaults={
+                        'description': 'Completed the Couch to 5K Challenge',
+                        'badge_type': 'achievement',
+                        'required_points': 500
+                    }
+                )[0]
+            }
+        ]
+        
+        for reward_data in rewards:
+            reward = ChallengeReward.objects.create(
+                description=reward_data["description"],
+                points_value=reward_data["points_value"],
+                badge=reward_data["badge"]
+            )
+            challenge.rewards.add(reward)
+        
+        # Create weekly progress entries for tracking
+        weeks = [
+            "Week 1: 60s run, 90s walk x 8",
+            "Week 2: 90s run, 2m walk x 8",
+            "Week 3: 3m run, 3m walk x 3",
+            "Week 4: 5m run, 3m walk x 3",
+            "Week 5: 8m run, 5m walk x 2",
+            "Week 6: 10m run, 3m walk x 2",
+            "Week 7: 15m run continuous",
+            "Week 8: 20m run continuous",
+            "Week 9: 30m run (5K) continuous"
+        ]
+        
+        for week_num, description in enumerate(weeks, 1):
+            ProgressEntry.objects.create(
+                user=request.user,
+                entry_type='goal',
+                title=f"C25K Week {week_num}",
+                description=description,
+                date=timezone.now() + timezone.timedelta(weeks=week_num-1)
+            )
+        
+        # Join the user to the challenge
+        ChallengeParticipation.objects.create(
+            user=request.user,
+            challenge=challenge,
+            completed=False
         )
         
-        messages.success(request, f'Payment successful! Your order number is #{order.order_number}.')
+        messages.success(request, 'Couch to 5K challenge created! Start your first workout today.')
+        return redirect('community:challenge_detail', challenge_id=challenge.id)
+    
+    return render(request, 'community/create_c25k.html')
+
+@login_required
+def update_c25k_progress(request, challenge_id):
+    challenge = get_object_or_404(Challenge, id=challenge_id)
+    participation = get_object_or_404(ChallengeParticipation, user=request.user, challenge=challenge)
+    
+    if request.method == 'POST':
+        week_number = int(request.POST.get('week_number'))
+        completed = request.POST.get('completed') == 'true'
         
-        # Redirect to order history
-        return redirect('profiles:order_history', order_number=order.order_number)
+        progress_entry = ProgressEntry.objects.filter(
+            user=request.user,
+            entry_type='goal',
+            title=f"C25K Week {week_number}"
+        ).first()
         
-    except Order.DoesNotExist:
-        messages.error(request, 'Order not found.')
-        return redirect('checkout:checkout')
-    except stripe.error.StripeError as e:
-        messages.error(request, f'Error verifying payment: {str(e)}')
-        return redirect('checkout:checkout')
-    except Exception as e:
-        messages.error(request, f'An unexpected error occurred: {str(e)}')
-        return redirect('checkout:checkout')
-
-def payment_cancel(request):
-    messages.info(request, 'Payment was cancelled. You can try again if you wish.')
-    return redirect('cart:view_cart')
-
-@csrf_exempt
-def stripe_webhook(request):
-    payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    event = None
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError as e:
-        print(f"Error parsing webhook payload: {str(e)}")
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
-        print(f"Invalid signature: {str(e)}")
-        return HttpResponse(status=400)
-
-    # Handle the event
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        order_id = session['metadata'].get('order_id')
-        plan_id = session['metadata'].get('plan_id')
-        user_id = session['metadata'].get('user_id')
-
-        if order_id:
-            # Handle product order
-            try:
-                order = Order.objects.get(id=order_id)
-                order.paid = True
-                order.stripe_id = session['payment_intent']
-                order.save()
+        if progress_entry:
+            progress_entry.value = 100 if completed else 0
+            progress_entry.save()
+            
+            # Check if all weeks are completed
+            all_completed = all(
+                entry.value == 100 
+                for entry in ProgressEntry.objects.filter(
+                    user=request.user,
+                    entry_type='goal',
+                    title__startswith='C25K Week'
+                )
+            )
+            
+            if all_completed:
+                participation.completed = True
+                participation.completion_date = timezone.now()
+                participation.save()
                 
-                # Update payment record
-                payment = Payment.objects.get(order=order)
-                payment.status = 'completed'
-                payment.save()
-            except Order.DoesNotExist:
-                print(f"Order not found: {order_id}")
-                return HttpResponse(status=404)
-        elif plan_id and user_id:
-            # Handle subscription
-            try:
-                subscription = UserSubscription.objects.get(
-                    user_id=user_id,
-                    plan_id=plan_id
+                # Award achievement
+                Achievement.objects.create(
+                    user=request.user,
+                    title="5K Runner",
+                    description="Completed the Couch to 5K Challenge!",
+                    points=500
                 )
-                subscription.stripe_subscription_id = session['subscription']
-                subscription.stripe_customer_id = session['customer']
-                subscription.is_active = True
-                subscription.save()
+                
+                messages.success(request, 'Congratulations! You\'ve completed the Couch to 5K challenge!')
+            else:
+                messages.success(request, f'Week {week_number} progress updated!')
+                
+    return redirect('community:challenge_detail', challenge_id=challenge.id)
 
-                # Send subscription confirmation email
-                subject = 'Subscription Confirmation'
-                html_message = render_to_string('products/email/subscription_confirmation.html', {
-                    'subscription': subscription,
-                    'site': get_current_site(request)
-                })
-                plain_message = strip_tags(html_message)
-                send_mail(
-                    subject,
-                    plain_message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [subscription.user.email],
-                    html_message=html_message
-                )
-            except UserSubscription.DoesNotExist:
-                print(f"Subscription not found for user {user_id} and plan {plan_id}")
-                return HttpResponse(status=404)
-
-    elif event['type'] == 'customer.subscription.updated':
-        subscription = event['data']['object']
-        try:
-            user_subscription = UserSubscription.objects.get(
-                stripe_subscription_id=subscription['id']
-            )
-            user_subscription.is_active = subscription['status'] == 'active'
-            user_subscription.save()
-
-            if subscription['status'] == 'canceled':
-                # Send subscription cancellation email
-                subject = 'Subscription Cancelled'
-                html_message = render_to_string('products/email/subscription_cancelled.html', {
-                    'subscription': user_subscription,
-                    'site': get_current_site(request)
-                })
-                plain_message = strip_tags(html_message)
-                send_mail(
-                    subject,
-                    plain_message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user_subscription.user.email],
-                    html_message=html_message
-                )
-
-        except UserSubscription.DoesNotExist:
-            print(f"Subscription not found: {subscription['id']}")
-            return HttpResponse(status=404)
-
-    elif event['type'] == 'customer.subscription.deleted':
-        subscription = event['data']['object']
-        try:
-            user_subscription = UserSubscription.objects.get(
-                stripe_subscription_id=subscription['id']
-            )
-            user_subscription.is_active = False
-            user_subscription.save()
-
-            # Send subscription ended email
-            subject = 'Subscription Ended'
-            html_message = render_to_string('products/email/subscription_ended.html', {
-                'subscription': user_subscription,
-                'site': get_current_site(request)
-            })
-            plain_message = strip_tags(html_message)
-            send_mail(
-                subject,
-                plain_message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user_subscription.user.email],
-                html_message=html_message
-            )
-
-        except UserSubscription.DoesNotExist:
-            print(f"Subscription not found: {subscription['id']}")
-            return HttpResponse(status=404)
-
-    elif event['type'] == 'invoice.payment_succeeded':
-        invoice = event['data']['object']
-        if invoice['billing_reason'] == 'subscription_create':
-            # This is handled by checkout.session.completed
-            return HttpResponse(status=200)
-        
-        try:
-            subscription = UserSubscription.objects.get(
-                stripe_subscription_id=invoice['subscription']
-            )
-            # Send payment confirmation email
-            subject = 'Payment Confirmation'
-            html_message = render_to_string('products/email/payment_confirmation.html', {
-                'subscription': subscription,
-                'invoice': invoice,
-                'site': get_current_site(request)
-            })
-            plain_message = strip_tags(html_message)
-            send_mail(
-                subject,
-                plain_message,
-                settings.DEFAULT_FROM_EMAIL,
-                [subscription.user.email],
-                html_message=html_message
-            )
-        except UserSubscription.DoesNotExist:
-            print(f"Subscription not found for invoice: {invoice['subscription']}")
-            return HttpResponse(status=404)
-
-    elif event['type'] == 'invoice.payment_failed':
-        invoice = event['data']['object']
-        try:
-            subscription = UserSubscription.objects.get(
-                stripe_subscription_id=invoice['subscription']
-            )
-            # Send payment failure email
-            subject = 'Payment Failed'
-            html_message = render_to_string('products/email/payment_failed.html', {
-                'subscription': subscription,
-                'invoice': invoice,
-                'site': get_current_site(request)
-            })
-            plain_message = strip_tags(html_message)
-            send_mail(
-                subject,
-                plain_message,
-                settings.DEFAULT_FROM_EMAIL,
-                [subscription.user.email],
-                html_message=html_message
-            )
-        except UserSubscription.DoesNotExist:
-            print(f"Subscription not found for invoice: {invoice['subscription']}")
-            return HttpResponse(status=404)
-
-    return HttpResponse(status=200) 
+@login_required
+def join_challenge(request, challenge_id):
+    challenge = get_object_or_404(Challenge, id=challenge_id)
+    
+    # Check if user is already participating
+    existing_participation = ChallengeParticipation.objects.filter(
+        user=request.user,
+        challenge=challenge
+    ).first()
+    
+    if existing_participation:
+        messages.info(request, 'You are already participating in this challenge!')
+        return redirect('community:challenge_detail', challenge_id=challenge.id)
+    
+    # Create new participation
+    ChallengeParticipation.objects.create(
+        user=request.user,
+        challenge=challenge,
+        completed=False
+    )
+    
+    messages.success(request, f'Successfully joined {challenge.title}!')
+    return redirect('community:challenge_detail', challenge_id=challenge.id)
