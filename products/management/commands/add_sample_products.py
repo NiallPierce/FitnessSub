@@ -79,6 +79,16 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'rating': Decimal('4.9'),
                 'image_name': 'leggings.jpeg'
+            },
+            {
+                'category': 'accessories',
+                'name': 'Fitness Smart Watch',
+                'description': 'Advanced fitness tracking watch with heart rate monitor, GPS, and workout tracking features.',
+                'price': Decimal('199.99'),
+                'stock': 25,
+                'is_featured': True,
+                'rating': Decimal('4.8'),
+                'image_name': 'watch.jpeg'
             }
         ]
 
@@ -101,7 +111,7 @@ class Command(BaseCommand):
             if image_name:
                 try:
                     # Source image path (in static directory)
-                    source_path = os.path.join(settings.BASE_DIR, 'static', 'images', image_name)
+                    source_path = os.path.join(settings.BASE_DIR, 'static', 'product_images', image_name)
                     
                     # Destination path (in media directory)
                     dest_path = os.path.join(settings.MEDIA_ROOT, 'product_images', image_name)
