@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.core.files import File
 import os
 from django.conf import settings
+from django.utils.text import slugify
 
 class Command(BaseCommand):
     help = 'Adds sample fitness products to the database'
@@ -120,18 +121,20 @@ class Command(BaseCommand):
                     # Source image path (in static directory)
                     source_path = os.path.join(settings.BASE_DIR, 'static', 'product_images', image_name)
                     
-                    # Destination path (in media directory)
-                    dest_path = os.path.join(settings.MEDIA_ROOT, 'product_images', image_name)
-                    
                     # Create product_images directory if it doesn't exist
-                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                    os.makedirs(os.path.join(settings.MEDIA_ROOT, 'images', 'product_images'), exist_ok=True)
                     
                     # Copy the image if it exists
                     if os.path.exists(source_path):
+                        # Generate a consistent filename based on the product name
+                        safe_name = slugify(product.name) + os.path.splitext(image_name)[1]
+                        # Remove any existing image
+                        if product.image:
+                            product.image.delete(save=False)
                         with open(source_path, 'rb') as source_file:
-                            # Save to the product's image field
+                            # Save to the product's image field with the consistent filename
                             product.image.save(
-                                os.path.basename(image_name),
+                                safe_name,
                                 File(source_file),
                                 save=True
                             )

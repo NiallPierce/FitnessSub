@@ -26,6 +26,12 @@
                 <div class="col-md-4 mb-4">
                     <div class="product-card custom-card h-100">
                         {% if product.image %}
+                            <!-- Debug info -->
+                            <div class="debug-info" style="display: none;">
+                                Image URL: {{ product.image.url }}<br>
+                                Image path: {{ product.image.path }}<br>
+                                Image name: {{ product.image.name }}
+                            </div>
                             <img src="{{ product.image.url }}" 
                                  srcset="{{ product.image.url }} 1x, {{ product.image.url }} 2x"
                                  class="card-img-top" 
