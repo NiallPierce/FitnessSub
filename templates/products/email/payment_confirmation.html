@@ -1,0 +1,32 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+<h2>Payment Confirmation</h2>
+
+<p>Your payment for your {{ subscription.plan.name }} subscription has been processed successfully.</p>
+
+<div class="payment-details">
+    <h3>Payment Details:</h3>
+    <ul>
+        <li><strong>Amount:</strong> ${{ amount }}</li>
+        <li><strong>Date:</strong> {{ date|date:"F j, Y" }}</li>
+        <li><strong>Next Billing Date:</strong> {{ next_billing_date|date:"F j, Y" }}</li>
+    </ul>
+</div>
+
+<div class="subscription-details">
+    <h3>Subscription Details:</h3>
+    <ul>
+        <li><strong>Plan:</strong> {{ subscription.plan.name }}</li>
+        <li><strong>Price:</strong> ${{ subscription.plan.price }}/{{ subscription.plan.plan_type }}</li>
+    </ul>
+</div>
+
+<div class="cta">
+    <a href="{{ site.domain }}{% url 'products:subscription_management' %}" class="button">View Subscription</a>
+</div>
+
+<p>If you have any questions about your subscription or payment, please don't hesitate to contact our support team.</p>
+
+<p>Best regards,<br>The Fitness Team</p>
+{% endblock %} 

@@ -1,0 +1,57 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+<h2>Subscription Expired</h2>
+
+<p>Your subscription has expired. We hope you enjoyed your time with us!</p>
+
+<div class="subscription-details">
+    <h3>Previous Subscription Details:</h3>
+    <ul>
+        <li><strong>Plan:</strong> {{ subscription.plan.name }}</li>
+        <li><strong>Price:</strong> ${{ subscription.plan.price }}/{{ subscription.plan.plan_type }}</li>
+        <li><strong>Expired On:</strong> {{ subscription.end_date|date:"F j, Y" }}</li>
+    </ul>
+</div>
+
+<div class="whats-changed">
+    <h3>What's Changed?</h3>
+    <p>Your access to premium features has ended. Here's what you can still access:</p>
+    <ul>
+        <li>Basic workout tracking</li>
+        <li>Community forums</li>
+        <li>Basic nutrition information</li>
+    </ul>
+    <p>And here's what you're missing out on:</p>
+    <ul>
+        <li>Premium workout programs</li>
+        <li>Advanced nutrition planning</li>
+        <li>Exclusive community features</li>
+        <li>Priority support</li>
+    </ul>
+</div>
+
+<div class="renewal-offer">
+    <h3>Special Renewal Offer</h3>
+    <p>We'd love to have you back! As a returning member, you're eligible for a special discount:</p>
+    <div class="offer-details">
+        <p><strong>20% off</strong> your first month when you reactivate your subscription!</p>
+        <p>Use code: <strong>WELCOMEBACK20</strong></p>
+    </div>
+    <div class="cta">
+        <a href="{{ site.domain }}{% url 'products:subscription_plans' %}" class="button">Reactivate Now</a>
+    </div>
+</div>
+
+<div class="feedback">
+    <h3>Help Us Improve</h3>
+    <p>We'd love to know why you didn't renew your subscription. Your feedback helps us improve our service.</p>
+    <div class="cta">
+        <a href="{{ site.domain }}/feedback" class="button">Share Your Feedback</a>
+    </div>
+</div>
+
+<p>If you have any questions or need assistance, our support team is here to help!</p>
+
+<p>Best regards,<br>The Fitness Team</p>
+{% endblock %} 

@@ -1,0 +1,50 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+<h2>Subscription Reactivated</h2>
+
+<p>Welcome back! Your subscription has been successfully reactivated.</p>
+
+<div class="subscription-details">
+    <h3>Subscription Details:</h3>
+    <ul>
+        <li><strong>Plan:</strong> {{ subscription.plan.name }}</li>
+        <li><strong>Price:</strong> ${{ subscription.plan.price }}/{{ subscription.plan.plan_type }}</li>
+        <li><strong>Next Billing Date:</strong> {{ subscription.next_billing_date|date:"F j, Y" }}</li>
+    </ul>
+</div>
+
+<div class="welcome-back">
+    <h3>Welcome Back!</h3>
+    <p>We're thrilled to have you back! Your premium features are now available again.</p>
+    <p>Here's what you can do now:</p>
+    <ul>
+        <li>Access all premium workouts and training programs</li>
+        <li>Use our advanced nutrition planning tools</li>
+        <li>Join exclusive community challenges</li>
+        <li>Get priority support</li>
+    </ul>
+</div>
+
+<div class="cta">
+    <a href="{{ site.domain }}{% url 'products:subscription_management' %}" class="button">Manage Subscription</a>
+</div>
+
+<div class="new-features">
+    <h3>What's New?</h3>
+    <p>While you were away, we've added some exciting new features:</p>
+    <ul>
+        <li>New workout programs and challenges</li>
+        <li>Enhanced nutrition tracking tools</li>
+        <li>Improved community features</li>
+        <li>Mobile app updates</li>
+    </ul>
+    <div class="cta">
+        <a href="{{ site.domain }}/whats-new" class="button">Explore New Features</a>
+    </div>
+</div>
+
+<p>If you have any questions or need assistance, our support team is here to help!</p>
+
+<p>Best regards,<br>The Fitness Team</p>
+{% endblock %} 

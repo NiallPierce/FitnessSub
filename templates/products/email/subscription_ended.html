@@ -1,0 +1,26 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+<h2>Subscription Ended</h2>
+
+<p>Your {{ subscription.plan.name }} subscription has ended.</p>
+
+<div class="subscription-details">
+    <h3>Subscription Details:</h3>
+    <ul>
+        <li><strong>Plan:</strong> {{ subscription.plan.name }}</li>
+        <li><strong>Price:</strong> ${{ subscription.plan.price }}/{{ subscription.plan.plan_type }}</li>
+        <li><strong>End Date:</strong> {{ subscription.end_date|date:"F j, Y" }}</li>
+    </ul>
+</div>
+
+<p>You no longer have access to the premium features of your subscription. However, you can subscribe again at any time to regain access.</p>
+
+<div class="cta">
+    <a href="{{ site.domain }}{% url 'products:subscription_plans' %}" class="button">Subscribe Again</a>
+</div>
+
+<p>We hope you enjoyed your time with us. If you have any feedback about your experience, we'd love to hear from you.</p>
+
+<p>Best regards,<br>The Fitness Team</p>
+{% endblock %} 

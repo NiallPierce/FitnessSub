@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'products.middleware.SubscriptionMiddleware',
 ]
 
 ROOT_URLCONF = 'fitness_ecommerce.urls'

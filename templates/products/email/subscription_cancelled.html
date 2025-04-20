@@ -1,0 +1,55 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+<h2>Subscription Cancelled</h2>
+
+<p>We're sorry to see you go! Your subscription has been cancelled as requested.</p>
+
+<div class="subscription-details">
+    <h3>Subscription Details:</h3>
+    <ul>
+        <li><strong>Plan:</strong> {{ subscription.plan.name }}</li>
+        <li><strong>Price:</strong> ${{ subscription.plan.price }}/{{ subscription.plan.plan_type }}</li>
+        <li><strong>End Date:</strong> {{ subscription.end_date|date:"F j, Y" }}</li>
+    </ul>
+</div>
+
+<div class="access-details">
+    <h3>Access Information:</h3>
+    <p>You'll continue to have access to all premium features until {{ subscription.end_date|date:"F j, Y" }}.</p>
+    <p>After this date, you'll still have access to:</p>
+    <ul>
+        <li>Your workout history</li>
+        <li>Basic workout tracking</li>
+        <li>Community forums</li>
+        <li>Basic nutrition information</li>
+    </ul>
+</div>
+
+<div class="renewal-offer">
+    <h3>Change Your Mind?</h3>
+    <p>If you change your mind, you can reactivate your subscription at any time before {{ subscription.end_date|date:"F j, Y" }} to maintain uninterrupted access.</p>
+    <div class="cta">
+        <a href="{{ site.domain }}{% url 'products:subscription_plans' %}" class="button">Reactivate Now</a>
+    </div>
+</div>
+
+<div class="feedback">
+    <h3>Help Us Improve</h3>
+    <p>We'd love to know why you decided to cancel. Your feedback helps us improve our service.</p>
+    <div class="cta">
+        <a href="{{ site.domain }}/feedback" class="button">Share Your Feedback</a>
+    </div>
+</div>
+
+<div class="goodbye">
+    <h3>Thank You</h3>
+    <p>Thank you for being a part of our fitness community. We hope you achieved your fitness goals during your time with us!</p>
+    <p>If you ever decide to return, we'll be here to help you on your fitness journey.</p>
+</div>
+
+<p>If you have any questions or need assistance, our support team is here to help!</p>
+
+<p>Best regards,<br>The Fitness Team</p>
+{% endblock %} 
+{% endblock %} 

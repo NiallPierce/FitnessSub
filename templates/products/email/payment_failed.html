@@ -1,0 +1,39 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+<h2>Payment Failed</h2>
+
+<p>We were unable to process your payment for your subscription.</p>
+
+<div class="subscription-details">
+    <h3>Subscription Details:</h3>
+    <ul>
+        <li><strong>Plan:</strong> {{ subscription.plan.name }}</li>
+        <li><strong>Amount:</strong> ${{ subscription.plan.price }}/{{ subscription.plan.plan_type }}</li>
+        <li><strong>Next Attempt:</strong> {{ subscription.next_billing_date|date:"F j, Y" }}</li>
+    </ul>
+</div>
+
+<div class="action-required">
+    <h3>Action Required:</h3>
+    <p>To prevent any interruption to your service, please update your payment method as soon as possible.</p>
+    
+    <div class="cta">
+        <a href="{{ site.domain }}{% url 'products:update_payment_method' %}" class="button">Update Payment Method</a>
+    </div>
+</div>
+
+<div class="support-info">
+    <h3>Need Help?</h3>
+    <p>If you're having trouble updating your payment method or have any questions, our support team is here to help.</p>
+    <p>Common reasons for payment failure include:</p>
+    <ul>
+        <li>Insufficient funds</li>
+        <li>Expired card</li>
+        <li>Incorrect card details</li>
+        <li>Bank declined the transaction</li>
+    </ul>
+</div>
+
+<p>Best regards,<br>The Fitness Team</p>
+{% endblock %} 
