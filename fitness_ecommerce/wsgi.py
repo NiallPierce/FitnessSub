@@ -23,7 +23,4 @@ application = WhiteNoise(
     root=os.path.join(BASE_DIR, 'staticfiles'),
     prefix='static/',
     max_age=31536000,  # 1 year
-    add_headers_function=lambda headers, path, url: headers.update({
-        'Cache-Control': 'public, max-age=31536000',
-    })
 )
