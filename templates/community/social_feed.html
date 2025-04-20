@@ -1,5 +1,40 @@
 {% extends "community/base.html" %}
 
+{% block meta %}
+    <meta name="description" content="Join our fitness community social feed. Share your fitness journey, connect with others, and stay motivated. View active challenges and upcoming workouts.">
+    <meta name="keywords" content="fitness community, social feed, workout posts, fitness challenges, group workouts">
+    <meta property="og:title" content="Fitness Community Social Feed">
+    <meta property="og:description" content="Connect with fellow fitness enthusiasts, share your progress, and join challenges in our active community.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_head %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SocialMediaPosting",
+        "name": "Fitness Community Social Feed",
+        "description": "A community platform for fitness enthusiasts to share their journey and connect",
+        "interactionStatistic": {
+            "@type": "InteractionCounter",
+            "interactionType": "https://schema.org/UserComments",
+            "userInteractionCount": "{{ posts.count }}"
+        },
+        "about": {
+            "@type": "Thing",
+            "name": "Fitness Community"
+        },
+        "audience": {
+            "@type": "Audience",
+            "audienceType": "Fitness Enthusiasts"
+        }
+    }
+    </script>
+{% endblock %}
+
 {% block community_content %}
 <div class="row">
     <div class="col-md-8">

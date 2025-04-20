@@ -1,5 +1,49 @@
 {% extends "community/base.html" %}
 
+{% block meta %}
+    <meta name="description" content="{{ workout.title }} - {{ workout.description|truncatewords:30 }}. Join this {{ workout.get_workout_type_display }} workout on {{ workout.date_time|date:'F j, Y' }} at {{ workout.date_time|time:'g:i A' }}. {{ workout.participants.count }}/{{ workout.max_participants }} participants.">
+    <meta name="keywords" content="fitness workout, group workout, {{ workout.get_workout_type_display }}, fitness community, workout session">
+    <meta property="og:title" content="{{ workout.title }} - Group Workout">
+    <meta property="og:description" content="{{ workout.description|truncatewords:30 }}">
+    <meta property="og:type" content="event">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_head %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ExerciseEvent",
+        "name": "{{ workout.title }}",
+        "description": "{{ workout.description }}",
+        "startDate": "{{ workout.date_time|date:'c' }}",
+        "endDate": "{{ workout.date_time|date:'c'|add:workout.duration|date:'c' }}",
+        "organizer": {
+            "@type": "Person",
+            "name": "{{ workout.created_by.username }}"
+        },
+        "performer": {
+            "@type": "Person",
+            "name": "Fitness Community Members"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+        },
+        "location": {
+            "@type": "{% if workout.workout_type == 'local' %}Place{% else %}VirtualLocation{% endif %}",
+            "name": "{% if workout.workout_type == 'local' %}{{ workout.location }}{% else %}Online Workout{% endif %}"
+        },
+        "maximumAttendeeCapacity": {{ workout.max_participants }},
+        "remainingAttendeeCapacity": {{ workout.max_participants|sub:workout.participants.count }}
+    }
+    </script>
+{% endblock %}
+
 {% block community_content %}
 <div class="row">
     <div class="col-md-8">

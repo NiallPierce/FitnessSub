@@ -1,135 +1,127 @@
 {% extends "community/base.html" %}
 
 {% block community_content %}
-<div class="row">
-    <div class="col-12">
-        <div class="community-card">
-            <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-trophy"></i> Available Challenges</h3>
-            </div>
-            <div class="card-body">
-                {% if challenges %}
-                    <div class="row">
-                        {% for challenge in challenges %}
-                            <div class="col-md-6 mb-4">
-                                <div class="community-card h-100">
-                                    <div class="card-header">
-                                        <h4 class="mb-0">{{ challenge.title }}</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <p>{{ challenge.description }}</p>
-                                        <div class="challenge-meta mb-3">
-                                            <div class="d-flex justify-content-between">
-                                                <span class="badge badge-pill">
-                                                    <i class="fas fa-calendar"></i> 
-                                                    {{ challenge.start_date|date:"M d" }} - {{ challenge.end_date|date:"M d" }}
-                                                </span>
-                                                <span class="badge badge-pill">
-                                                    <i class="fas fa-users"></i> 
-                                                    {{ challenge.participants.count }} Participants
-                                                </span>
-                                            </div>
-                                            <div class="mt-2">
-                                                <span class="badge badge-pill">
-                                                    <i class="fas fa-star"></i> 
-                                                    {{ challenge.points }} Points
-                                                </span>
-                                            </div>
-                                        </div>
-                                        {% if challenge in user_participations %}
-                                            <div class="alert alert-success">
-                                                <i class="fas fa-check-circle"></i> You are participating in this challenge!
-                                            </div>
-                                        {% endif %}
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <a href="{% url 'community:challenge_detail' challenge.id %}" 
-                                               class="btn btn-community">
-                                                View Details
-                                            </a>
-                                            {% if challenge not in user_participations %}
-                                                <a href="{% url 'community:join_challenge' challenge.id %}" 
-                                                   class="btn btn-community">
-                                                    Join Challenge
-                                                </a>
-                                            {% endif %}
-                                        </div>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Available Challenges</h2>
+            {% if active_challenges %}
+                <div class="row">
+                    {% for challenge in active_challenges %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ challenge.title }}</h5>
+                                    <p class="card-text">{{ challenge.description|truncatewords:30 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt"></i> 
+                                            {{ challenge.start_date|date:"M d, Y" }} - {{ challenge.end_date|date:"M d, Y" }}
+                                        </small>
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-star"></i> {{ challenge.points }} points
+                                        </span>
                                     </div>
                                 </div>
+                                <div class="card-footer bg-transparent">
+                                    <a href="{% url 'community:challenge_detail' challenge.id %}" class="btn btn-primary btn-sm">
+                                        View Details
+                                    </a>
+                                    {% if challenge.title == "Couch to 5K Challenge" %}
+                                        <a href="{% url 'community:create_c25k' %}" class="btn btn-success btn-sm">
+                                            Start Challenge
+                                        </a>
+                                    {% endif %}
+                                </div>
                             </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
-                        <h4>No Challenges Available</h4>
-                        <p class="text-muted">Check back later for new challenges!</p>
-                    </div>
-                {% endif %}
-            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No Challenges Available
+                    <p class="mb-0">Check back later for new challenges!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <h2>My Challenges</h2>
+            {% if user_challenges %}
+                <div class="list-group">
+                    {% for challenge in user_challenges %}
+                        <div class="list-group-item">
+                            <h5 class="mb-1">{{ challenge.title }}</h5>
+                            <p class="mb-1 small">{{ challenge.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt"></i> 
+                                    {{ challenge.start_date|date:"M d, Y" }} - {{ challenge.end_date|date:"M d, Y" }}
+                                </small>
+                                <a href="{% url 'community:challenge_detail' challenge.id %}" class="btn btn-sm btn-outline-primary">
+                                    View Progress
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No Active Challenges
+                    <p class="mb-0">Join a challenge to start tracking your progress!</p>
+                </div>
+            {% endif %}
+
+            {% if completed_challenges %}
+                <h3 class="mt-4">Completed Challenges</h3>
+                <div class="list-group">
+                    {% for challenge in completed_challenges %}
+                        <div class="list-group-item">
+                            <h5 class="mb-1">{{ challenge.title }}</h5>
+                            <p class="mb-1 small">{{ challenge.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt"></i> 
+                                    Completed on {{ challenge.challengeparticipation_set.first.completion_date|date:"M d, Y" }}
+                                </small>
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Completed
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- My Challenges -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="community-card">
-            <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-user-check"></i> My Challenges</h3>
-            </div>
-            <div class="card-body">
-                {% if user_participations %}
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Challenge</th>
-                                    <th>Progress</th>
-                                    <th>Joined Date</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for participation in user_participations %}
-                                    <tr>
-                                        <td>{{ participation.challenge.title }}</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar" role="progressbar" 
-                                                     data-width="{{ participation.completed|yesno:'100,50' }}"
-                                                     data-status="{{ participation.completed|yesno:'Completed,In Progress' }}">
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>{{ participation.joined_date|date:"M d, Y" }}</td>
-                                        <td>
-                                            {% if participation.completed %}
-                                                <span class="badge badge-success">Completed</span>
-                                            {% else %}
-                                                <span class="badge badge-warning">In Progress</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="{% url 'community:challenge_detail' participation.challenge.id %}" 
-                                               class="btn btn-community btn-sm">
-                                                View Details
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-user-check fa-3x text-muted mb-3"></i>
-                        <h4>No Active Challenges</h4>
-                        <p class="text-muted">Join a challenge to start tracking your progress!</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+.card {
+    transition: transform 0.2s;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.list-group-item {
+    transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5em 0.75em;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
 {% endblock %} 

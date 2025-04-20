@@ -57,9 +57,30 @@ class Challenge(models.Model):
     points = models.IntegerField(default=0)
     participants = models.ManyToManyField(User, through='ChallengeParticipation')
     is_active = models.BooleanField(default=True)
+    requirements = models.ManyToManyField('ChallengeRequirement', related_name='challenges')
+    rewards = models.ManyToManyField('ChallengeReward', related_name='challenges')
 
     def __str__(self):
         return self.title
+
+class ChallengeRequirement(models.Model):
+    description = models.TextField()
+    is_mandatory = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Requirement: {self.description[:50]}..."
+
+class ChallengeReward(models.Model):
+    description = models.TextField()
+    points_value = models.IntegerField(default=0)
+    badge = models.ForeignKey('Badge', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"Reward: {self.description[:50]}..."
 
 class ChallengeParticipation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

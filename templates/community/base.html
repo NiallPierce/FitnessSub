@@ -6,8 +6,8 @@
         <div class="container">
             <ul class="nav">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" 
-                       href="{% url 'community:home' %}">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'community_home' %}active{% endif %}" 
+                       href="{% url 'community:community_home' %}">
                         <i class="fas fa-home"></i> Home
                     </a>
                 </li>

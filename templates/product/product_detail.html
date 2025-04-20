@@ -72,7 +72,7 @@
             "@type": "ListItem",
             "position": 1,
             "name": "Home",
-            "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"
+            "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'home:index' %}"
         },{
             "@type": "ListItem",
             "position": 2,
@@ -97,7 +97,7 @@
 <div class="container mt-5">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-gradient">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'home:index' %}" class="text-gradient">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'products:products' %}" class="text-gradient">Products</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
         </ol>
