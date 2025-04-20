@@ -19,7 +19,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '8000-niallpierce-fitnesssub-4iulkchlm00.ws-us118.gitpod.io',
     '8000-niallpierce-fitnesssub-85xiasj1nmv.ws-us118.gitpod.io',
-    '8000-niallpierce-fitnesssub-38ou272jic6.ws-us118.gitpod.io'
+    '8000-niallpierce-fitnesssub-38ou272jic6.ws-us118.gitpod.io',
+    '8000-niallpierce-fitnesssub-oy6vtpvjned.ws-us118.gitpod.io'
 ]
 
 # Application definition
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'storages',
     
     # Local apps
+    'fitness_ecommerce',
     'accounts',
     'products',
     'cart',
@@ -244,9 +246,9 @@ if 'USE_AWS' in os.environ:
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 
     # Static and media files
-    STATICFILES_STORAGE = 'custom_storages.StaticStorage'
+    STATICFILES_STORAGE = 'fitness_ecommerce.custom_storages.StaticStorage'
     STATICFILES_LOCATION = 'static'
-    DEFAULT_FILE_STORAGE = 'custom_storages.MediaStorage'
+    DEFAULT_FILE_STORAGE = 'fitness_ecommerce.custom_storages.MediaStorage'
     MEDIAFILES_LOCATION = 'media'
 
     # Override static and media URLs in production

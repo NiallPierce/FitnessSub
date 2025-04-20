@@ -61,6 +61,7 @@ class Command(BaseCommand):
                 'rating': Decimal('4.6'),
                 'image_name': 'preworkout.jpeg'
             },
+            # Equipment
             {
                 'category_slug': 'equipment',
                 'name': 'Adjustable Dumbbell Set',
@@ -72,6 +73,27 @@ class Command(BaseCommand):
                 'image_name': 'dumbell.jpeg'
             },
             {
+                'category_slug': 'equipment',
+                'name': 'Pull-Up Bar',
+                'description': 'Wall-mounted pull-up bar for upper body strength training. Supports up to 300lbs.',
+                'price': Decimal('49.99'),
+                'stock': 15,
+                'is_featured': True,
+                'rating': Decimal('4.6'),
+                'image_name': 'pullup.jpeg'
+            },
+            {
+                'category_slug': 'equipment',
+                'name': 'Folding Workout Bench',
+                'description': 'Adjustable folding bench for versatile strength training exercises.',
+                'price': Decimal('129.99'),
+                'stock': 10,
+                'is_featured': True,
+                'rating': Decimal('4.8'),
+                'image_name': 'foldingbench.jpeg'
+            },
+            # Apparel
+            {
                 'category_slug': 'apparel',
                 'name': 'Compression Leggings',
                 'description': 'High-performance compression leggings with pocket. Perfect for running and training.',
@@ -82,6 +104,37 @@ class Command(BaseCommand):
                 'image_name': 'leggings.jpeg'
             },
             {
+                'category_slug': 'apparel',
+                'name': 'Training Shorts',
+                'description': 'Lightweight and breathable training shorts with built-in liner.',
+                'price': Decimal('29.99'),
+                'stock': 45,
+                'is_featured': True,
+                'rating': Decimal('4.7'),
+                'image_name': 'shorts.jpeg'
+            },
+            {
+                'category_slug': 'apparel',
+                'name': 'Performance Hoodie',
+                'description': 'Moisture-wicking hoodie with thumb holes and zippered pockets.',
+                'price': Decimal('49.99'),
+                'stock': 30,
+                'is_featured': True,
+                'rating': Decimal('4.8'),
+                'image_name': 'hoodie.jpeg'
+            },
+            {
+                'category_slug': 'apparel',
+                'name': 'Training T-Shirt',
+                'description': 'Quick-dry performance t-shirt with anti-odor technology.',
+                'price': Decimal('24.99'),
+                'stock': 50,
+                'is_featured': True,
+                'rating': Decimal('4.6'),
+                'image_name': 'tshirt.jpeg'
+            },
+            # Accessories
+            {
                 'category_slug': 'accessories',
                 'name': 'Fitness Smart Watch',
                 'description': 'Advanced fitness tracking watch with heart rate monitor, GPS, and workout tracking features.',
@@ -90,6 +143,119 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'rating': Decimal('4.8'),
                 'image_name': 'watch.jpeg'
+            },
+            {
+                'category_slug': 'accessories',
+                'name': 'Wireless Earbuds',
+                'description': 'Sweat-proof wireless earbuds with noise cancellation for focused workouts.',
+                'price': Decimal('79.99'),
+                'stock': 40,
+                'is_featured': True,
+                'rating': Decimal('4.7'),
+                'image_name': 'earbuds.jpeg'
+            },
+            {
+                'category_slug': 'accessories',
+                'name': 'Gym Bag',
+                'description': 'Spacious gym bag with separate compartments for shoes and wet clothes.',
+                'price': Decimal('44.99'),
+                'stock': 35,
+                'is_featured': True,
+                'rating': Decimal('4.6'),
+                'image_name': 'gymbag.jpeg'
+            },
+            {
+                'category_slug': 'accessories',
+                'name': 'Insulated Water Bottle',
+                'description': 'Double-walled insulated water bottle that keeps drinks cold for 24 hours.',
+                'price': Decimal('29.99'),
+                'stock': 50,
+                'is_featured': True,
+                'rating': Decimal('4.9'),
+                'image_name': 'waterbottle.jpeg'
+            },
+            # Nutrition
+            {
+                'category_slug': 'nutrition',
+                'name': 'Vegan Protein Powder',
+                'description': 'Plant-based protein powder with complete amino acid profile.',
+                'price': Decimal('34.99'),
+                'stock': 30,
+                'is_featured': True,
+                'rating': Decimal('4.7'),
+                'image_name': 'veganprotein.jpeg'
+            },
+            {
+                'category_slug': 'nutrition',
+                'name': 'Protein Bars',
+                'description': 'High-protein snack bars with natural ingredients and great taste.',
+                'price': Decimal('24.99'),
+                'stock': 40,
+                'is_featured': True,
+                'rating': Decimal('4.6'),
+                'image_name': 'proteinbar.jpeg'
+            },
+            {
+                'category_slug': 'nutrition',
+                'name': 'Energy Gels',
+                'description': 'Quick energy gels for endurance training and competitions.',
+                'price': Decimal('19.99'),
+                'stock': 50,
+                'is_featured': True,
+                'rating': Decimal('4.5'),
+                'image_name': 'energygel.jpeg'
+            },
+            # Recovery
+            {
+                'category_slug': 'recovery',
+                'name': 'Foam Roller',
+                'description': 'High-density foam roller for muscle recovery and myofascial release.',
+                'price': Decimal('29.99'),
+                'stock': 25,
+                'is_featured': True,
+                'rating': Decimal('4.8'),
+                'image_name': 'foamroller.jpeg'
+            },
+            {
+                'category_slug': 'recovery',
+                'name': 'Massage Gun',
+                'description': 'Deep tissue percussion massage gun for muscle recovery.',
+                'price': Decimal('149.99'),
+                'stock': 15,
+                'is_featured': True,
+                'rating': Decimal('4.9'),
+                'image_name': 'massagegun.jpeg'
+            },
+            # Home Gym
+            {
+                'category_slug': 'home-gym',
+                'name': 'Resistance Bands Set',
+                'description': 'Set of 5 resistance bands with different tension levels for full-body workouts.',
+                'price': Decimal('39.99'),
+                'stock': 30,
+                'is_featured': True,
+                'rating': Decimal('4.7'),
+                'image_name': 'resistanceband.jpeg'
+            },
+            {
+                'category_slug': 'home-gym',
+                'name': 'Skipping Rope',
+                'description': 'Adjustable speed rope with ball bearings for smooth rotation.',
+                'price': Decimal('19.99'),
+                'stock': 40,
+                'is_featured': True,
+                'rating': Decimal('4.8'),
+                'image_name': 'skippingrope.jpeg'
+            },
+            {
+                'category_slug': 'home-gym',
+                'name': 'Yoga Mat',
+                'description': 'Non-slip yoga mat with carrying strap and alignment markers.',
+                'price': Decimal('29.99'),
+                'stock': 35,
+                'is_featured': True,
+                'rating': Decimal('4.9'),
+                'image_name': 'yogamat.jpeg'
             }
         ]
 
@@ -126,13 +292,13 @@ class Command(BaseCommand):
                     
                     # Copy the image if it exists
                     if os.path.exists(source_path):
-                        # Generate a consistent filename based on the product name
-                        safe_name = slugify(product.name) + os.path.splitext(image_name)[1]
+                        # Use the original image name
+                        safe_name = image_name
                         # Remove any existing image
                         if product.image:
                             product.image.delete(save=False)
                         with open(source_path, 'rb') as source_file:
-                            # Save to the product's image field with the consistent filename
+                            # Save to the product's image field with the original filename
                             product.image.save(
                                 safe_name,
                                 File(source_file),

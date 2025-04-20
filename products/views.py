@@ -71,20 +71,22 @@ def products(request):
     paginator = Paginator(products, 12)  # Show 12 products per page
     page = request.GET.get('page')
     try:
-        products = paginator.page(page)
+        page_obj = paginator.page(page)
     except PageNotAnInteger:
-        products = paginator.page(1)
+        page_obj = paginator.page(1)
     except EmptyPage:
-        products = paginator.page(paginator.num_pages)
+        page_obj = paginator.page(paginator.num_pages)
     
     context = {
-        'products': products,
+        'products': page_obj,
+        'page_obj': page_obj,
         'categories': categories,
         'search_query': search_query,
         'selected_category': category_slug,
         'min_price': min_price,
         'max_price': max_price,
         'sort_by': sort_by,
+        'is_paginated': paginator.num_pages > 1
     }
     return render(request, 'product/products.html', context)
 
