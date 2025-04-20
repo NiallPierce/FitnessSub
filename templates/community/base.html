@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <nav class="community-nav">
+        <div class="container">
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" 
+                       href="{% url 'community:home' %}">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'challenges' %}active{% endif %}" 
+                       href="{% url 'community:challenges' %}">
+                        <i class="fas fa-trophy"></i> Challenges
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'social_feed' %}active{% endif %}" 
+                       href="{% url 'community:social_feed' %}">
+                        <i class="fas fa-comments"></i> Social Feed
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'group_workouts' %}active{% endif %}" 
+                       href="{% url 'community:group_workouts' %}">
+                        <i class="fas fa-users"></i> Group Workouts
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'community:user_profile' request.user.username %}">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    {% block community_content %}
+    {% endblock %}
+</div>
+{% endblock %} 

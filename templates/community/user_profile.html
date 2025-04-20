@@ -1,0 +1,186 @@
+{% extends "community/base.html" %}
+
+{% block community_content %}
+<div class="row">
+    <!-- Profile Header -->
+    <div class="col-12">
+        <div class="community-card">
+            <div class="card-body text-center">
+                <img src="{{ profile_user.profile.image.url }}" 
+                     alt="{{ profile_user.username }}" 
+                     class="rounded-circle mb-3" 
+                     width="150" height="150">
+                <h2 class="mb-1">{{ profile_user.username }}</h2>
+                <p class="text-muted mb-4">{{ profile_user.profile.bio|default:"No bio yet" }}</p>
+                
+                <div class="d-flex justify-content-center">
+                    <div class="mx-3">
+                        <h4 class="mb-0">{{ achievements.count }}</h4>
+                        <small class="text-muted">Achievements</small>
+                    </div>
+                    <div class="mx-3">
+                        <h4 class="mb-0">{{ badges.count }}</h4>
+                        <small class="text-muted">Badges</small>
+                    </div>
+                    <div class="mx-3">
+                        <h4 class="mb-0">{{ posts.count }}</h4>
+                        <small class="text-muted">Posts</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Achievements -->
+    <div class="col-md-6">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-trophy"></i> Achievements</h3>
+            </div>
+            <div class="card-body">
+                {% if achievements %}
+                    <div class="achievements-list">
+                        {% for achievement in achievements %}
+                            <div class="achievement-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    {% if achievement.image %}
+                                        <img src="{{ achievement.image.url }}" 
+                                             alt="{{ achievement.title }}" 
+                                             class="rounded mr-3" 
+                                             width="64" height="64">
+                                    {% endif %}
+                                    <div>
+                                        <h5 class="mb-1">{{ achievement.title }}</h5>
+                                        <p class="mb-0">{{ achievement.description }}</p>
+                                        <small class="text-muted">
+                                            Achieved on {{ achievement.date_achieved|date:"M d, Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if not forloop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No achievements yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="col-md-6">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-medal"></i> Badges</h3>
+            </div>
+            <div class="card-body">
+                {% if badges %}
+                    <div class="row">
+                        {% for user_badge in badges %}
+                            <div class="col-6 mb-4">
+                                <div class="text-center">
+                                    {% if user_badge.badge.image %}
+                                        <img src="{{ user_badge.badge.image.url }}" 
+                                             alt="{{ user_badge.badge.name }}" 
+                                             class="img-fluid mb-2" 
+                                             width="80" height="80">
+                                    {% endif %}
+                                    <h5 class="mb-1">{{ user_badge.badge.name }}</h5>
+                                    <p class="small text-muted mb-0">
+                                        Earned on {{ user_badge.date_earned|date:"M d, Y" }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No badges earned yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Progress -->
+    <div class="col-md-6">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-chart-line"></i> Progress</h3>
+            </div>
+            <div class="card-body">
+                {% if progress_entries %}
+                    <div class="progress-list">
+                        {% for entry in progress_entries %}
+                            <div class="progress-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">{{ entry.title }}</h5>
+                                    <small class="text-muted">{{ entry.date|date:"M d, Y" }}</small>
+                                </div>
+                                {% if entry.image %}
+                                    <img src="{{ entry.image.url }}" 
+                                         alt="{{ entry.title }}" 
+                                         class="img-fluid rounded mb-2">
+                                {% endif %}
+                                <p class="mb-0">{{ entry.description }}</p>
+                            </div>
+                            {% if not forloop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No progress entries yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-md-6">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-history"></i> Recent Activity</h3>
+            </div>
+            <div class="card-body">
+                {% if posts %}
+                    <div class="activity-list">
+                        {% for post in posts %}
+                            <div class="activity-item mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="{{ post.user.profile.image.url }}" 
+                                         alt="{{ post.user.username }}" 
+                                         class="rounded-circle mr-2" 
+                                         width="32" height="32">
+                                    <div>
+                                        <h6 class="mb-0">{{ post.user.username }}</h6>
+                                        <small class="text-muted">{{ post.created_at|timesince }} ago</small>
+                                    </div>
+                                </div>
+                                <p class="mb-2">{{ post.content }}</p>
+                                {% if post.image %}
+                                    <img src="{{ post.image.url }}" 
+                                         alt="Post image" 
+                                         class="img-fluid rounded mb-2">
+                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge badge-pill">
+                                        <i class="fas fa-heart"></i> {{ post.likes.count }} Likes
+                                    </span>
+                                    <span class="badge badge-pill">
+                                        <i class="fas fa-comment"></i> {{ post.comments.count }} Comments
+                                    </span>
+                                </div>
+                            </div>
+                            {% if not forloop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No recent activity.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,153 @@
+{% extends "community/base.html" %}
+
+{% block community_content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0">{{ challenge.title }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="challenge-meta mb-4">
+                    <div class="d-flex justify-content-between">
+                        <span class="badge badge-pill">
+                            <i class="fas fa-calendar"></i> 
+                            {{ challenge.start_date|date:"M d" }} - {{ challenge.end_date|date:"M d" }}
+                        </span>
+                        <span class="badge badge-pill">
+                            <i class="fas fa-users"></i> 
+                            {{ challenge.participants.count }} Participants
+                        </span>
+                        <span class="badge badge-pill">
+                            <i class="fas fa-star"></i> 
+                            {{ challenge.points }} Points
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="challenge-description mb-4">
+                    <h4>Description</h4>
+                    <p>{{ challenge.description }}</p>
+                </div>
+                
+                {% if participation %}
+                    <div class="challenge-progress mb-4">
+                        <h4>Your Progress</h4>
+                        <div class="progress mb-2">
+                            <div class="progress-bar" role="progressbar" 
+                                 data-width="{{ participation.completed|yesno:'100,50' }}"
+                                 data-status="{{ participation.completed|yesno:'Completed,In Progress' }}">
+                            </div>
+                        </div>
+                        <p class="text-muted">
+                            Joined on {{ participation.joined_date|date:"M d, Y" }}
+                            {% if participation.completed %}
+                                | Completed on {{ participation.completion_date|date:"M d, Y" }}
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0">Participants</h3>
+            </div>
+            <div class="card-body">
+                {% if participants %}
+                    <div class="participants-list">
+                        {% for participant in participants %}
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="{{ participant.profile.image.url }}" 
+                                     alt="{{ participant.username }}" 
+                                     class="rounded-circle mr-2" 
+                                     width="40" height="40">
+                                <div>
+                                    <h5 class="mb-0">{{ participant.username }}</h5>
+                                    <small class="text-muted">
+                                        {% if participant == request.user %}
+                                            You
+                                        {% else %}
+                                            Joined {{ participant.challengeparticipation_set.first.joined_date|date:"M d" }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No participants yet.</p>
+                {% endif %}
+                
+                {% if not participation %}
+                    <div class="mt-4">
+                        <a href="{% url 'community:join_challenge' challenge.id %}" 
+                           class="btn btn-community btn-block">
+                            Join Challenge
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Challenge Discussion -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0">Discussion</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'community:create_post' %}" class="mb-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="challenge_id" value="{{ challenge.id }}">
+                    <div class="form-group">
+                        <textarea class="form-control" name="content" rows="3" 
+                                  placeholder="Share your thoughts about this challenge..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-community">Post</button>
+                </form>
+                
+                {% if challenge.socialpost_set.all %}
+                    <div class="discussion-feed">
+                        {% for post in challenge.socialpost_set.all %}
+                            <div class="post-item mb-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="{{ post.user.profile.image.url }}" 
+                                         alt="{{ post.user.username }}" 
+                                         class="rounded-circle mr-2" 
+                                         width="32" height="32">
+                                    <div>
+                                        <h5 class="mb-0">{{ post.user.username }}</h5>
+                                        <small class="text-muted">{{ post.created_at|timesince }} ago</small>
+                                    </div>
+                                </div>
+                                <p>{{ post.content }}</p>
+                                {% if post.image %}
+                                    <img src="{{ post.image.url }}" alt="Post image" class="img-fluid rounded mb-2">
+                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge badge-pill">
+                                        <i class="fas fa-heart"></i> {{ post.likes.count }} Likes
+                                    </span>
+                                    <span class="badge badge-pill">
+                                        <i class="fas fa-comment"></i> {{ post.comments.count }} Comments
+                                    </span>
+                                </div>
+                            </div>
+                            {% if not forloop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No discussions yet. Start the conversation!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

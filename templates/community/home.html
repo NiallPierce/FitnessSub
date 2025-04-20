@@ -1,0 +1,123 @@
+{% extends "community/base.html" %}
+
+{% block community_content %}
+<div class="row">
+    <!-- Active Challenges -->
+    <div class="col-md-6">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-trophy"></i> Active Challenges</h3>
+            </div>
+            <div class="card-body">
+                {% if challenges %}
+                    {% for challenge in challenges %}
+                        <div class="challenge-item mb-3">
+                            <h4>{{ challenge.title }}</h4>
+                            <p>{{ challenge.description|truncatewords:30 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge badge-pill">
+                                    <i class="fas fa-users"></i> {{ challenge.participants.count }} Participants
+                                </span>
+                                <a href="{% url 'community:challenge_detail' challenge.id %}" class="btn btn-community">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No active challenges at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Posts -->
+    <div class="col-md-6">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-comments"></i> Recent Activity</h3>
+            </div>
+            <div class="card-body">
+                {% if recent_posts %}
+                    {% for post in recent_posts %}
+                        <div class="post-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="{{ post.user.profile.image.url }}" alt="{{ post.user.username }}" 
+                                     class="rounded-circle mr-2" width="32" height="32">
+                                <div>
+                                    <h5 class="mb-0">{{ post.user.username }}</h5>
+                                    <small class="text-muted">{{ post.created_at|timesince }} ago</small>
+                                </div>
+                            </div>
+                            <p>{{ post.content|truncatewords:30 }}</p>
+                            {% if post.image %}
+                                <img src="{{ post.image.url }}" alt="Post image" class="img-fluid rounded mb-2">
+                            {% endif %}
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge badge-pill">
+                                    <i class="fas fa-heart"></i> {{ post.likes.count }} Likes
+                                </span>
+                                <span class="badge badge-pill">
+                                    <i class="fas fa-comment"></i> {{ post.comments.count }} Comments
+                                </span>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent activity.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Workouts -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="community-card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-users"></i> Upcoming Group Workouts</h3>
+            </div>
+            <div class="card-body">
+                {% if upcoming_workouts %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Date & Time</th>
+                                    <th>Duration</th>
+                                    <th>Participants</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for workout in upcoming_workouts %}
+                                    <tr>
+                                        <td>{{ workout.title }}</td>
+                                        <td>{{ workout.get_workout_type_display }}</td>
+                                        <td>{{ workout.date_time|date:"F j, Y, g:i a" }}</td>
+                                        <td>{{ workout.duration }} minutes</td>
+                                        <td>{{ workout.participants.count }}/{{ workout.max_participants }}</td>
+                                        <td>
+                                            <a href="{% url 'community:workout_detail' workout.id %}" 
+                                               class="btn btn-community btn-sm">
+                                                View Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No upcoming group workouts scheduled.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
