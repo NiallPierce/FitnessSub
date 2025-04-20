@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Placeholder</title>
+    <style>
+        canvas {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="placeholder" width="200" height="200"></canvas>
+    <script>
+        const canvas = document.getElementById('placeholder');
+        const ctx = canvas.getContext('2d');
+        
+        // Fill with light gray background
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, 200, 200);
+        
+        // Add "No Image" text
+        ctx.fillStyle = '#666';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('No Image', 100, 100);
+        
+        // Convert to data URL and download
+        const link = document.createElement('a');
+        link.download = 'no-image.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    </script>
+</body>
+</html> 

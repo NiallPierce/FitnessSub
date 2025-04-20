@@ -11,8 +11,17 @@ import stripe
 from datetime import datetime, timedelta
 from django.urls import reverse
 from django.http import JsonResponse
+import re
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+def clean_search_query(query):
+    """Clean the search query by removing special characters and extra spaces"""
+    # Remove special characters and convert to lowercase
+    cleaned = re.sub(r'[^\w\s]', '', query.lower())
+    # Replace multiple spaces with single space
+    cleaned = re.sub(r'\s+', ' ', cleaned)
+    return cleaned.strip()
 
 def products(request):
     """Display all products with search, filter, and sort functionality"""
@@ -22,10 +31,14 @@ def products(request):
     # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query)
-        )
+        cleaned_query = clean_search_query(search_query)
+        # Create a list of search terms
+        search_terms = cleaned_query.split()
+        # Build a complex Q object for flexible searching
+        search_filter = Q()
+        for term in search_terms:
+            search_filter |= Q(name__icontains=term) | Q(description__icontains=term)
+        products = products.filter(search_filter)
     
     # Category filter
     category_slug = request.GET.get('category', '')
