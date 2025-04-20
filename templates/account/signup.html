@@ -5,41 +5,32 @@
 {% block head_title %}{% trans "Sign Up" %}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="text-center">{% trans "Sign Up" %}</h2>
-                </div>
-                <div class="card-body">
-                    <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-                        {% csrf_token %}
-                        {% for field in form %}
-                            <div class="form-group mb-3">
-                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                {% endif %}
-                                {% for error in field.errors %}
-                                    <div class="alert alert-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-                        {% if redirect_field_value %}
-                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-                        {% endif %}
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">{% trans "Sign Up" %}</button>
-                        </div>
-                    </form>
-                    <div class="text-center mt-3">
-                        <p>{% trans "Already have an account?" %} <a href="{{ login_url }}">{% trans "Sign In" %}</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="allauth-container">
+    <h1>{% trans "Sign Up" %}</h1>
+
+    {% if socialaccount_providers %}
+    <p>{% blocktrans with site.name as site_name %}Please sign up with one of your existing third party accounts. Or, sign up for a {{ site_name }} account below:{% endblocktrans %}</p>
+
+    <div class="socialaccount_ballot">
+        <ul class="socialaccount_providers">
+            {% include "socialaccount/snippets/provider_list.html" with process="signup" %}
+        </ul>
+        <div class="login-or">{% trans 'or' %}</div>
     </div>
+
+    {% include "socialaccount/snippets/login_extra.html" %}
+
+    {% else %}
+    <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
+    {% endif %}
+
+    <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+        <button class="btn btn-primary" type="submit">{% trans "Sign Up" %} &raquo;</button>
+    </form>
 </div>
 {% endblock %} 
