@@ -1,9 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /accounts/
-Disallow: /auth/
-Disallow: /cart/
-Disallow: /checkout/
-
-Sitemap: https://fitness-ecommerce-np92-62c36695dba8.herokuapp.com/sitemap.xml
