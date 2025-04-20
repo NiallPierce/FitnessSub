@@ -1,1 +1,1 @@
-web: python post_deploy.py && gunicorn fitness_ecommerce.wsgi:application 
+web: gunicorn fitness_ecommerce.wsgi:application --timeout 120 

@@ -20,10 +20,18 @@ if __name__ == "__main__":
     # Set environment variables
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fitness_ecommerce.settings')
     
-    # Create staticfiles directory if it doesn't exist
-    staticfiles_dir = os.path.join(os.getcwd(), 'staticfiles')
-    if not os.path.exists(staticfiles_dir):
-        os.makedirs(staticfiles_dir)
+    # Verify S3 configuration
+    required_s3_vars = [
+        'USE_AWS',
+        'AWS_ACCESS_KEY_ID',
+        'AWS_SECRET_ACCESS_KEY',
+        'AWS_STORAGE_BUCKET_NAME',
+        'AWS_S3_REGION_NAME'
+    ]
+    
+    missing_vars = [var for var in required_s3_vars if not os.environ.get(var)]
+    if missing_vars:
+        print(f"Warning: Missing required S3 configuration variables: {', '.join(missing_vars)}")
     
     # Run migrations
     run_command("python manage.py migrate")
@@ -36,6 +44,7 @@ if __name__ == "__main__":
         print("Static files collected successfully!")
         
         # Verify static files were collected
+        staticfiles_dir = os.path.join(os.getcwd(), 'staticfiles')
         if os.path.exists(staticfiles_dir):
             print(f"Static files directory exists at: {staticfiles_dir}")
             print("Contents of staticfiles directory:")
