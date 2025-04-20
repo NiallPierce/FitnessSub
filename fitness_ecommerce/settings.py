@@ -124,6 +124,12 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+# Configure static files finders
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
 # AWS Settings
 if 'USE_AWS' in os.environ:
     # Cache control
@@ -138,6 +144,11 @@ if 'USE_AWS' in os.environ:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    
+    # Additional S3 settings
+    AWS_S3_FILE_OVERWRITE = True
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_VERIFY = True
 
     # Static and media files
     STATICFILES_STORAGE = 'fitness_ecommerce.custom_storages.StaticStorage'
