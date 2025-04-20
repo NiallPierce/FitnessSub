@@ -1,19 +1,40 @@
 import os
+import sys
 import subprocess
+import time
 from pathlib import Path
+from django.core.management import execute_from_command_line
 
-def run_command(command):
+def run_command(command, timeout=300):
+    """Run a command with a timeout and return its output."""
     try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        print(f"Command '{command}' succeeded:")
-        print(result.stdout)
+        print(f"Running command: {command}")
+        process = subprocess.Popen(
+            command,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+        
+        # Wait for the process to complete with timeout
+        stdout, stderr = process.communicate(timeout=timeout)
+        
+        if process.returncode != 0:
+            print(f"Error running command: {command}")
+            print(f"STDOUT: {stdout}")
+            print(f"STDERR: {stderr}")
+            return False
         return True
-    except subprocess.CalledProcessError as e:
-        print(f"Command '{command}' failed:")
-        print(e.stderr)
+    except subprocess.TimeoutExpired:
+        print(f"Command timed out after {timeout} seconds: {command}")
+        process.kill()
+        return False
+    except Exception as e:
+        print(f"Error running command: {e}")
         return False
 
-if __name__ == "__main__":
+def main():
     # Set the working directory to the project root
     os.chdir(Path(__file__).parent)
     
@@ -33,31 +54,44 @@ if __name__ == "__main__":
     if missing_vars:
         print(f"Warning: Missing required S3 configuration variables: {', '.join(missing_vars)}")
     
+    # Debug information
+    print("Current working directory:", os.getcwd())
+    print("Environment variables:")
+    for key in ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_STORAGE_BUCKET_NAME', 'USE_AWS']:
+        print(f"{key}: {'Set' if key in os.environ else 'Not set'}")
+    
     # Run migrations
-    run_command("python manage.py migrate")
+    print("Running migrations...")
+    if not run_command("python manage.py migrate --noinput"):
+        print("Migrations failed")
+        return 1
     
-    # Setup the default site
-    run_command("python manage.py setup_site")
+    # Create superuser if it doesn't exist
+    print("Creating superuser if needed...")
+    if not run_command("python manage.py create_superuser_if_not_exists"):
+        print("Superuser creation failed")
+        return 1
     
-    # Collect static files with verbose output
-    if run_command("python manage.py collectstatic --noinput --clear"):
-        print("Static files collected successfully!")
-        
-        # Verify static files were collected
-        staticfiles_dir = os.path.join(os.getcwd(), 'staticfiles')
-        if os.path.exists(staticfiles_dir):
-            print(f"Static files directory exists at: {staticfiles_dir}")
-            print("Contents of staticfiles directory:")
-            run_command(f"ls -la {staticfiles_dir}")
-            
-            # Check if CSS files were collected
-            css_dir = os.path.join(staticfiles_dir, 'css')
-            if os.path.exists(css_dir):
-                print("\nCSS files found:")
-                run_command(f"ls -la {css_dir}")
-            else:
-                print("\nWarning: CSS directory not found in staticfiles!")
+    # Collect static files with timeout and retry
+    print("Collecting static files...")
+    max_retries = 3
+    retry_delay = 30
+    
+    for attempt in range(max_retries):
+        print(f"Attempt {attempt + 1} of {max_retries}")
+        if run_command("python manage.py collectstatic --noinput --clear", timeout=600):
+            print("Static files collected successfully")
+            break
         else:
-            print("Warning: Static files directory was not created!")
-    else:
-        print("Failed to collect static files!")
+            if attempt < max_retries - 1:
+                print(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                print("Failed to collect static files after all retries")
+                return 1
+    
+    print("Post-deploy script completed successfully")
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
