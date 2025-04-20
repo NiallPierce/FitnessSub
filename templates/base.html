@@ -12,7 +12,7 @@
     <meta property="og:description" content="{% block og_description %}Your one-stop shop for fitness products and supplements{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
-    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}?v=1">
     <title>{% block title %}Fitness E-commerce{% endblock %}</title>
     
     <!-- Google Fonts -->
@@ -23,7 +23,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1">
     
     {% block extra_head %}{% endblock %}
     {% block extra_css %}{% endblock %}

@@ -329,23 +329,63 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Allauth Templates */
 .allauth-container {
-    max-width: 500px;
-    margin: var(--spacing-xl) auto;
-    padding: var(--spacing-lg);
     background: white;
     border-radius: var(--border-radius-md);
     box-shadow: var(--shadow-md);
+    padding: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
 }
 
 .allauth-container h1 {
     color: var(--primary-color);
+    font-size: 2rem;
     margin-bottom: var(--spacing-lg);
-    text-align: center;
+}
+
+.allauth-container .btn {
+    background-color: var(--primary-color);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition-normal);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.allauth-container .btn:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .allauth-container p {
-    margin-bottom: var(--spacing-md);
     color: var(--dark-color);
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.allauth-container a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.allauth-container a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.allauth-container .alert {
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.allauth-container .alert-danger {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-color: var(--danger-color);
+    color: var(--danger-color);
 }
 
 .allauth-container .form-control {
@@ -360,45 +400,9 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
 }
 
-.allauth-container .btn {
-    width: 100%;
-    margin-top: var(--spacing-md);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--border-radius-sm);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: var(--transition-fast);
-}
-
-.allauth-container .btn-primary {
-    background-color: var(--primary-color);
-    border: none;
-}
-
-.allauth-container .btn-primary:hover {
-    background-color: var(--secondary-color);
-}
-
 .allauth-container .text-muted {
     margin-top: var(--spacing-md);
     text-align: center;
-}
-
-.allauth-container .alert {
-    margin-bottom: var(--spacing-md);
-    border-radius: var(--border-radius-sm);
-}
-
-.allauth-container .alert-danger {
-    background-color: var(--danger-color);
-    color: white;
-    border: none;
-}
-
-.allauth-container .form-text {
-    color: var(--dark-color);
-    font-size: 0.875rem;
 }
 
 .allauth-container .form-check {
@@ -459,15 +463,4 @@ h1, h2, h3, h4, h5, h6 {
 
 .allauth-container .login-or::after {
     right: 0;
-}
-
-.allauth-container a {
-    color: var(--secondary-color);
-    text-decoration: none;
-    transition: var(--transition-fast);
-}
-
-.allauth-container a:hover {
-    color: var(--primary-color);
-    text-decoration: underline;
 } 
