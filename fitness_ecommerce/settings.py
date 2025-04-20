@@ -118,14 +118,16 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Static files configuration
-STATICFILES_DIRS = []  # Empty in production, files are collected to STATIC_ROOT
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # WhiteNoise configuration
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_ALLOW_ALL_ORIGINS = True
-WHITENOISE_ROOT = STATIC_ROOT
+WHITENOISE_ROOT = None  # Let WhiteNoise use STATIC_ROOT by default
 
 # Suppress the staticfiles warning
 SILENCED_SYSTEM_CHECKS = ['staticfiles.W004']
