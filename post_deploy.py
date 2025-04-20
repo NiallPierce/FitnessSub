@@ -7,10 +7,11 @@ def run_command(command):
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
         print(f"Command '{command}' succeeded:")
         print(result.stdout)
+        return True
     except subprocess.CalledProcessError as e:
         print(f"Command '{command}' failed:")
         print(e.stderr)
-        raise
+        return False
 
 if __name__ == "__main__":
     # Set the working directory to the project root
@@ -31,12 +32,23 @@ if __name__ == "__main__":
     run_command("python manage.py setup_site")
     
     # Collect static files with verbose output
-    run_command("python manage.py collectstatic --noinput --clear --verbosity 2")
-    
-    # Verify static files were collected
-    if os.path.exists(staticfiles_dir):
-        print(f"Static files directory exists at: {staticfiles_dir}")
-        print("Contents of staticfiles directory:")
-        run_command(f"ls -la {staticfiles_dir}")
+    if run_command("python manage.py collectstatic --noinput --clear"):
+        print("Static files collected successfully!")
+        
+        # Verify static files were collected
+        if os.path.exists(staticfiles_dir):
+            print(f"Static files directory exists at: {staticfiles_dir}")
+            print("Contents of staticfiles directory:")
+            run_command(f"ls -la {staticfiles_dir}")
+            
+            # Check if CSS files were collected
+            css_dir = os.path.join(staticfiles_dir, 'css')
+            if os.path.exists(css_dir):
+                print("\nCSS files found:")
+                run_command(f"ls -la {css_dir}")
+            else:
+                print("\nWarning: CSS directory not found in staticfiles!")
+        else:
+            print("Warning: Static files directory was not created!")
     else:
-        print("Warning: Static files directory was not created!")
+        print("Failed to collect static files!")
