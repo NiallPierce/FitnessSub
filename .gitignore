@@ -31,7 +31,6 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
-static/
 
 # Virtual Environment
 venv/
@@ -51,9 +50,6 @@ Thumbs.db
 .coverage
 htmlcov/
 .pytest_cache/
-
-# Static files
-staticfiles/
 
 core.Microsoft*
 core.mongo*

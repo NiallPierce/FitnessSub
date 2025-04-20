@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta %}
+    <meta name="description" content="Choose from our range of fitness subscription plans. Get access to exclusive content, personalized training, and more.">
+    <meta name="keywords" content="fitness subscription, workout plans, training programs, fitness membership">
+    <meta property="og:title" content="Fitness Subscription Plans - Choose Your Plan">
+    <meta property="og:description" content="Select the perfect fitness subscription plan for your goals. Access exclusive content and personalized training.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h1 class="h2 text-gradient">Choose Your Plan</h1>
+            <p class="lead">Join our fitness community and get access to exclusive content</p>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for plan in plans %}
+        <div class="col-md-4 mb-4">
+            <div class="custom-card h-100">
+                <div class="card-body">
+                    <h3 class="h4 card-title text-center text-gradient">{{ plan.name }}</h3>
+                    <div class="text-center mb-4">
+                        <span class="display-4 text-gradient">${{ plan.price }}</span>
+                        <span class="text-muted">/{{ plan.plan_type }}</span>
+                    </div>
+                    <ul class="list-unstyled">
+                        {% for feature in plan.features.splitlines %}
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            {{ feature }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center">
+                    <a href="{% url 'products:subscribe' plan.id %}" 
+                       class="custom-btn custom-btn-primary w-100"
+                       aria-label="Subscribe to {{ plan.name }} plan">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <h2 class="h3 text-gradient">Why Choose Us?</h2>
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <i class="fas fa-dumbbell fa-3x mb-3 text-gradient"></i>
+                    <h4>Expert Workouts</h4>
+                    <p>Access to professional workout plans and routines</p>
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-utensils fa-3x mb-3 text-gradient"></i>
+                    <h4>Nutrition Plans</h4>
+                    <p>Customized meal plans and nutrition advice</p>
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-users fa-3x mb-3 text-gradient"></i>
+                    <h4>Community Support</h4>
+                    <p>Join a supportive community of fitness enthusiasts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

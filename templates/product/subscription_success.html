@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta %}
+    <meta name="description" content="Thank you for subscribing to our fitness service. Your subscription has been successfully processed.">
+    <meta name="keywords" content="fitness subscription success, subscription confirmation">
+    <meta property="og:title" content="Subscription Success - Fitness Service">
+    <meta property="og:description" content="Thank you for subscribing to our fitness service. Your subscription has been successfully processed.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="custom-card">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+                    <h1 class="h2 text-gradient mb-4">Subscription Successful!</h1>
+                    <p class="lead mb-4">Thank you for subscribing to our fitness service. Your subscription has been successfully processed.</p>
+                    
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You can now access all the premium features of your subscription plan.
+                    </div>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'products:subscription_history' %}" class="custom-btn custom-btn-primary">
+                            View Subscription Details
+                        </a>
+                        <a href="{% url 'home:index' %}" class="custom-btn custom-btn-secondary">
+                            Return to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

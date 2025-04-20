@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta %}
+    <meta name="description" content="Cancel your fitness subscription. Your access will continue until the end of your current billing period.">
+    <meta name="keywords" content="cancel fitness subscription, subscription management">
+    <meta property="og:title" content="Cancel Subscription - Fitness Service">
+    <meta property="og:description" content="Cancel your fitness subscription. Your access will continue until the end of your current billing period.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="custom-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-4"></i>
+                    <h1 class="h2 text-gradient mb-4">Cancel Subscription</h1>
+                    
+                    <div class="alert alert-warning mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Are you sure you want to cancel your subscription?
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p>If you cancel your subscription:</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                You will continue to have access until {{ subscription.end_date|date:"F d, Y" }}
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                You can reactivate your subscription at any time
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Your data and progress will be saved
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-3">
+                        <form method="post" action="{% url 'products:subscription_cancel' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="custom-btn custom-btn-danger w-100 mb-2">
+                                Yes, Cancel My Subscription
+                            </button>
+                        </form>
+                        <a href="{% url 'products:subscription_history' %}" class="custom-btn custom-btn-secondary">
+                            No, Keep My Subscription
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

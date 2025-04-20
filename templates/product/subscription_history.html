@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta %}
+    <meta name="description" content="View your fitness subscription history and manage your current subscription.">
+    <meta name="keywords" content="fitness subscription history, subscription management">
+    <meta property="og:title" content="Subscription History - Fitness Service">
+    <meta property="og:description" content="View your fitness subscription history and manage your current subscription.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h1 class="h2 text-gradient">Subscription History</h1>
+            <p class="lead">View and manage your fitness subscriptions</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            {% if subscriptions %}
+                {% for subscription in subscriptions %}
+                <div class="custom-card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="h4 text-gradient mb-0">{{ subscription.plan.name }}</h3>
+                            <span class="badge {% if subscription.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if subscription.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Start Date:</strong></p>
+                                <p>{{ subscription.start_date|date:"F d, Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>End Date:</strong></p>
+                                <p>{{ subscription.end_date|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Plan Type:</strong></p>
+                                <p>{{ subscription.plan.get_plan_type_display }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Price:</strong></p>
+                                <p>${{ subscription.plan.price }}/{{ subscription.plan.plan_type }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if subscription.is_active %}
+                        <div class="d-grid">
+                            <a href="{% url 'products:subscription_cancel' %}" 
+                               class="custom-btn custom-btn-danger"
+                               onclick="return confirm('Are you sure you want to cancel your subscription?')">
+                                Cancel Subscription
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="custom-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <h3 class="h4 mb-3">No Subscription History</h3>
+                        <p class="mb-4">You haven't subscribed to any plans yet.</p>
+                        <a href="{% url 'products:subscription_plans' %}" class="custom-btn custom-btn-primary">
+                            View Available Plans
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="custom-card">
+                <div class="card-body">
+                    <h3 class="h4 mb-4">Subscription Benefits</h3>
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Access to premium workout plans
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Personalized nutrition guides
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Exclusive video content
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Community support
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

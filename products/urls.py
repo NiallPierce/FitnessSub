@@ -9,4 +9,11 @@ urlpatterns = [
     path('add/', views.add_product, name='add_product'),
     path('edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('delete/<int:product_id>/', views.delete_product, name='delete_product'),
+    
+    # Subscription URLs
+    path('subscriptions/', views.subscription_plans, name='subscription_plans'),
+    path('subscriptions/<int:plan_id>/', views.subscription_detail, name='subscription_detail'),
+    path('subscriptions/<int:plan_id>/subscribe/', views.subscribe, name='subscribe'),
+    path('subscriptions/cancel/', views.subscription_cancel, name='subscription_cancel'),
+    path('subscriptions/history/', views.subscription_history, name='subscription_history'),
 ]

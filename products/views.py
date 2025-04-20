@@ -3,9 +3,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .models import Product, Category, Review
+from .models import Product, Category, Review, SubscriptionPlan, UserSubscription
 from .forms import ReviewForm, ProductForm
 from cart.forms import CartAddProductForm
+from django.conf import settings
+import stripe
+from datetime import datetime, timedelta
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def products(request):
     """Display all products with search, filter, and sort functionality"""
@@ -195,3 +200,139 @@ def delete_product(request, product_id):
     product.delete()
     messages.success(request, 'Product deleted!')
     return redirect('products:products')
+
+def subscription_plans(request):
+    """Display all available subscription plans"""
+    plans = SubscriptionPlan.objects.filter(is_active=True)
+    user_subscription = None
+    if request.user.is_authenticated:
+        user_subscription = UserSubscription.objects.filter(
+            user=request.user,
+            is_active=True
+        ).first()
+    
+    context = {
+        'plans': plans,
+        'user_subscription': user_subscription,
+    }
+    return render(request, 'product/subscription_plans.html', context)
+
+def subscription_detail(request, plan_id):
+    """Display details of a specific subscription plan"""
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
+    user_subscription = None
+    if request.user.is_authenticated:
+        user_subscription = UserSubscription.objects.filter(
+            user=request.user,
+            is_active=True
+        ).first()
+    
+    context = {
+        'plan': plan,
+        'user_subscription': user_subscription,
+    }
+    return render(request, 'product/subscription_detail.html', context)
+
+@login_required
+def subscribe(request, plan_id):
+    """Handle subscription creation"""
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
+    
+    # Check if user already has an active subscription
+    existing_subscription = UserSubscription.objects.filter(
+        user=request.user,
+        is_active=True
+    ).first()
+    
+    if existing_subscription:
+        messages.warning(request, 'You already have an active subscription.')
+        return redirect('products:subscription_detail', plan_id=plan.id)
+    
+    try:
+        # Create Stripe customer if not exists
+        if not request.user.userprofile.stripe_customer_id:
+            customer = stripe.Customer.create(
+                email=request.user.email,
+                name=f"{request.user.first_name} {request.user.last_name}"
+            )
+            request.user.userprofile.stripe_customer_id = customer.id
+            request.user.userprofile.save()
+        
+        # Create Stripe subscription
+        subscription = stripe.Subscription.create(
+            customer=request.user.userprofile.stripe_customer_id,
+            items=[{'price': plan.stripe_price_id}],
+            payment_behavior='default_incomplete',
+            expand=['latest_invoice.payment_intent'],
+        )
+        
+        # Create UserSubscription record
+        end_date = datetime.now() + timedelta(days=30)  # Default to 30 days
+        if plan.plan_type == 'quarterly':
+            end_date = datetime.now() + timedelta(days=90)
+        elif plan.plan_type == 'annual':
+            end_date = datetime.now() + timedelta(days=365)
+        
+        user_subscription = UserSubscription.objects.create(
+            user=request.user,
+            plan=plan,
+            end_date=end_date,
+            stripe_subscription_id=subscription.id,
+            stripe_customer_id=request.user.userprofile.stripe_customer_id
+        )
+        
+        messages.success(request, 'Subscription created successfully!')
+        return redirect('products:subscription_success')
+        
+    except stripe.error.StripeError as e:
+        messages.error(request, f'Error creating subscription: {str(e)}')
+        return redirect('products:subscription_detail', plan_id=plan.id)
+    except Exception as e:
+        messages.error(request, f'An unexpected error occurred: {str(e)}')
+        return redirect('products:subscription_detail', plan_id=plan.id)
+
+@login_required
+def subscription_cancel(request):
+    """Handle subscription cancellation"""
+    subscription = get_object_or_404(
+        UserSubscription,
+        user=request.user,
+        is_active=True
+    )
+    
+    try:
+        # Cancel Stripe subscription
+        stripe.Subscription.modify(
+            subscription.stripe_subscription_id,
+            cancel_at_period_end=True
+        )
+        
+        # Update local subscription record
+        subscription.is_active = False
+        subscription.save()
+        
+        messages.success(request, 'Your subscription has been cancelled. It will remain active until the end of the current billing period.')
+        return redirect('products:subscription_history')
+        
+    except stripe.error.StripeError as e:
+        messages.error(request, f'Error cancelling subscription: {str(e)}')
+        return redirect('products:subscription_history')
+    except Exception as e:
+        messages.error(request, f'An unexpected error occurred: {str(e)}')
+        return redirect('products:subscription_history')
+
+@login_required
+def subscription_history(request):
+    """Display user's subscription history"""
+    subscriptions = UserSubscription.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+    
+    context = {
+        'subscriptions': subscriptions,
+    }
+    return render(request, 'product/subscription_history.html', context)
+
+def subscription_success(request):
+    """Display subscription success page"""
+    return render(request, 'product/subscription_success.html')

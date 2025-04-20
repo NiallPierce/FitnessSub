@@ -332,15 +332,19 @@ h1, h2, h3, h4, h5, h6 {
     background: white;
     border-radius: var(--border-radius-md);
     box-shadow: var(--shadow-md);
-    padding: var(--spacing-lg);
-    margin-top: var(--spacing-xl);
-    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-xl) auto;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    z-index: 1;
 }
 
 .allauth-container h1 {
     color: var(--primary-color);
     font-size: 2rem;
     margin-bottom: var(--spacing-lg);
+    text-align: center;
 }
 
 .allauth-container .btn {
@@ -352,6 +356,8 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 600;
+    width: 100%;
+    margin-top: var(--spacing-md);
 }
 
 .allauth-container .btn:hover {
@@ -364,6 +370,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--dark-color);
     font-size: 1.1rem;
     line-height: 1.6;
+    margin-bottom: var(--spacing-md);
 }
 
 .allauth-container a {
@@ -380,6 +387,7 @@ h1, h2, h3, h4, h5, h6 {
 .allauth-container .alert {
     border-radius: var(--border-radius-sm);
     margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
 }
 
 .allauth-container .alert-danger {
@@ -392,7 +400,9 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: var(--spacing-md);
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--light-color);
-    padding: var(--spacing-sm);
+    padding: var(--spacing-md);
+    width: 100%;
+    transition: var(--transition-fast);
 }
 
 .allauth-container .form-control:focus {
@@ -403,10 +413,17 @@ h1, h2, h3, h4, h5, h6 {
 .allauth-container .text-muted {
     margin-top: var(--spacing-md);
     text-align: center;
+    display: block;
 }
 
 .allauth-container .form-check {
     margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+}
+
+.allauth-container .form-check-input {
+    margin-right: var(--spacing-sm);
 }
 
 .allauth-container .socialaccount_ballot {
@@ -443,8 +460,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .allauth-container .login-or {
     text-align: center;
-    margin: var(--spacing-md) 0;
+    margin: var(--spacing-lg) 0;
     position: relative;
+    color: var(--dark-color);
 }
 
 .allauth-container .login-or::before,
@@ -463,4 +481,20 @@ h1, h2, h3, h4, h5, h6 {
 
 .allauth-container .login-or::after {
     right: 0;
+}
+
+/* Responsive adjustments for allauth forms */
+@media (max-width: 768px) {
+    .allauth-container {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-lg) auto;
+    }
+    
+    .allauth-container h1 {
+        font-size: 1.75rem;
+    }
+    
+    .allauth-container .form-control {
+        padding: var(--spacing-sm);
+    }
 } 
