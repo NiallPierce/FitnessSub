@@ -11,6 +11,11 @@ A full-stack e-commerce platform for fitness products and services, built with D
 - SEO optimized
 - Responsive design
 
+## Live Demo
+
+The application is currently deployed and available at:
+https://fitness-ecommerce-np92-62c36695dba8.herokuapp.com/
+
 ## Setup Instructions
 
 1. Create a virtual environment:
@@ -60,24 +65,31 @@ python manage.py runserver
 
 ## Deployment to Heroku
 
-1. Create a Heroku account and install the Heroku CLI
+### Prerequisites
+- Heroku CLI installed
+- Git installed
+- Heroku account
+- Stripe account for payment processing
+- PostgreSQL database (provided by Heroku)
 
-2. Login to Heroku:
+### Deployment Steps
+
+1. Login to Heroku:
 ```bash
 heroku login
 ```
 
-3. Create a new Heroku app:
+2. Create a new Heroku app:
 ```bash
-heroku create fitness-ecommerce
+heroku create fitness-ecommerce-np92
 ```
 
-4. Add the Heroku remote:
+3. Add the Heroku remote:
 ```bash
-heroku git:remote -a fitness-ecommerce
+heroku git:remote -a fitness-ecommerce-np92
 ```
 
-5. Set up environment variables in Heroku:
+4. Set up environment variables in Heroku:
 ```bash
 heroku config:set SECRET_KEY=your_secret_key
 heroku config:set DEBUG=False
@@ -88,29 +100,57 @@ heroku config:set EMAIL_HOST_USER=your_email
 heroku config:set EMAIL_HOST_PASS=your_email_password
 ```
 
-6. Add PostgreSQL database:
+5. Add PostgreSQL database:
 ```bash
 heroku addons:create heroku-postgresql:hobby-dev
 ```
 
-7. Push to Heroku:
+6. Push to Heroku:
 ```bash
 git push heroku main
 ```
 
-8. Run migrations on Heroku:
+7. Run migrations and setup:
 ```bash
 heroku run python manage.py migrate
-```
-
-9. Create superuser on Heroku:
-```bash
 heroku run python manage.py createsuperuser
 ```
 
-10. Collect static files:
+8. Collect static files:
 ```bash
 heroku run python manage.py collectstatic --noinput
+```
+
+### Post-Deployment Verification
+
+After deployment, verify the following:
+
+1. Application is accessible at the Heroku URL
+2. Static files are loading correctly
+3. Database migrations are applied
+4. User authentication is working
+5. Product catalog is accessible
+6. Shopping cart functionality is working
+7. Stripe payment processing is functional
+8. Newsletter subscription is working
+9. Admin interface is accessible
+10. Error pages (404, 500) are properly configured
+
+### Monitoring and Maintenance
+
+1. Check Heroku logs:
+```bash
+heroku logs --tail
+```
+
+2. Scale the application if needed:
+```bash
+heroku ps:scale web=1
+```
+
+3. Backup the database:
+```bash
+heroku pg:backups:capture
 ```
 
 ## Project Structure
@@ -133,10 +173,8 @@ This project uses:
 - Stripe for payments
 - Bootstrap 5 for frontend
 - Django Allauth for authentication
-
-## Deployment
-
-The application is designed to be deployed on a cloud platform (e.g., Heroku, AWS, or DigitalOcean) with PostgreSQL as the database.
+- Gunicorn for production server
+- WhiteNoise for static file serving
 
 ## Testing
 
@@ -144,3 +182,13 @@ Run tests with:
 ```bash
 python manage.py test
 ```
+
+## Security Considerations
+
+- DEBUG mode is disabled in production
+- Secret keys are stored in environment variables
+- CSRF protection is enabled
+- Secure session handling
+- Password hashing
+- XSS protection
+- SQL injection protection
