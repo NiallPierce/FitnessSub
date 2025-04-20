@@ -204,7 +204,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Hero Section */
 .hero-image {
-    background-image: url('../images/hero_bg.jpeg');
+    background-image: url('static/images/hero-bg.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
