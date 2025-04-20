@@ -119,7 +119,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Static files configuration
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    os.path.join(BASE_DIR, 'static'),
 ]
 
 # WhiteNoise configuration
@@ -127,7 +127,12 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_ALLOW_ALL_ORIGINS = True
-WHITENOISE_ROOT = None  # Let WhiteNoise use STATIC_ROOT by default
+
+# Make sure Django can find your static files
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
 
 # Suppress the staticfiles warning
 SILENCED_SYSTEM_CHECKS = ['staticfiles.W004']
