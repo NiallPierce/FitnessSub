@@ -74,24 +74,19 @@ def main():
     
     # Collect static files with timeout and retry
     print("Collecting static files...")
-    max_retries = 3
-    retry_delay = 30
+    
+    # First, clear the staticfiles directory
+    if os.path.exists('staticfiles'):
+        print("Clearing staticfiles directory...")
+        run_command("rm -rf staticfiles/*")
     
     # Temporarily disable S3 during collectstatic
     os.environ['DISABLE_S3_DURING_COLLECTSTATIC'] = '1'
     
-    for attempt in range(max_retries):
-        print(f"Attempt {attempt + 1} of {max_retries}")
-        if run_command("python manage.py collectstatic --noinput --clear", timeout=600):
-            print("Static files collected successfully")
-            break
-        else:
-            if attempt < max_retries - 1:
-                print(f"Retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
-            else:
-                print("Failed to collect static files after all retries")
-                return 1
+    # Run collectstatic with verbose output
+    if not run_command("python manage.py collectstatic --noinput --clear -v 2", timeout=600):
+        print("Failed to collect static files")
+        return 1
     
     # Re-enable S3 after collectstatic
     del os.environ['DISABLE_S3_DURING_COLLECTSTATIC']
