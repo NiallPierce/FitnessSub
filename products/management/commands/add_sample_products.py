@@ -31,7 +31,7 @@ class Command(BaseCommand):
         products = [
             # Supplements
             {
-                'category': 'supplements',
+                'category_slug': 'supplements',
                 'name': 'Premium Whey Protein',
                 'description': 'High-quality whey protein powder with 24g of protein per serving. Perfect for post-workout recovery and muscle growth.',
                 'price': Decimal('39.99'),
@@ -41,7 +41,7 @@ class Command(BaseCommand):
                 'image_name': 'Protein.jpeg'
             },
             {
-                'category': 'supplements',
+                'category_slug': 'supplements',
                 'name': 'BCAA Recovery Blend',
                 'description': 'Essential amino acids blend to support muscle recovery and reduce fatigue. Great for intense training sessions.',
                 'price': Decimal('29.99'),
@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 'image_name': 'bcaa.jpeg'
             },
             {
-                'category': 'supplements',
+                'category_slug': 'supplements',
                 'name': 'Pre-Workout Energy',
                 'description': 'Advanced pre-workout formula with caffeine, beta-alanine, and creatine for enhanced performance.',
                 'price': Decimal('34.99'),
@@ -61,7 +61,7 @@ class Command(BaseCommand):
                 'image_name': 'preworkout.jpeg'
             },
             {
-                'category': 'equipment',
+                'category_slug': 'equipment',
                 'name': 'Adjustable Dumbbell Set',
                 'description': 'Space-saving adjustable dumbbells with quick-change weight system. Perfect for home workouts.',
                 'price': Decimal('199.99'),
@@ -71,7 +71,7 @@ class Command(BaseCommand):
                 'image_name': 'dumbell.jpeg'
             },
             {
-                'category': 'apparel',
+                'category_slug': 'apparel',
                 'name': 'Compression Leggings',
                 'description': 'High-performance compression leggings with pocket. Perfect for running and training.',
                 'price': Decimal('34.99'),
@@ -81,7 +81,7 @@ class Command(BaseCommand):
                 'image_name': 'leggings.jpeg'
             },
             {
-                'category': 'accessories',
+                'category_slug': 'accessories',
                 'name': 'Fitness Smart Watch',
                 'description': 'Advanced fitness tracking watch with heart rate monitor, GPS, and workout tracking features.',
                 'price': Decimal('199.99'),
@@ -98,15 +98,22 @@ class Command(BaseCommand):
 
         # Add products to database
         for product_data in products:
-            category = Category.objects.get(slug=product_data['category'])
+            category_slug = product_data.pop('category_slug')
             image_name = product_data.pop('image_name', None)
+            category = Category.objects.get(slug=category_slug)
             
             # Get or create the product
             product, created = Product.objects.get_or_create(
-                category=category,
                 name=product_data['name'],
-                defaults=product_data
+                defaults={**product_data, 'category': category}
             )
+
+            if not created:
+                # Update existing product with new data
+                for key, value in product_data.items():
+                    setattr(product, key, value)
+                product.category = category
+                product.save()
 
             if image_name:
                 try:
