@@ -27,6 +27,7 @@ urlpatterns = [
     path('checkout/', include('checkout.urls', namespace='checkout')),
     path('newsletter/', include('newsletter.urls', namespace='newsletter')),
     path('profile/', include('profiles.urls', namespace='profiles')),
+    path('community/', include('community.urls', namespace='community')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps},
          name='django.contrib.sitemaps.views.sitemap'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
