@@ -13,7 +13,13 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-secret-key')
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['fitness-ecommerce-np92-62c36695dba8.herokuapp.com', 'localhost', '127.0.0.1', '8000-niallpierce-fitnesssub-4iulkchlm00.ws-us118.gitpod.io']
+ALLOWED_HOSTS = [
+    'fitness-ecommerce-np92-62c36695dba8.herokuapp.com',
+    'localhost',
+    '127.0.0.1',
+    '8000-niallpierce-fitnesssub-4iulkchlm00.ws-us118.gitpod.io',
+    '8000-niallpierce-fitnesssub-38ou272jic6.ws-us118.gitpod.io'
+]
 
 # Application definition
 INSTALLED_APPS = [
