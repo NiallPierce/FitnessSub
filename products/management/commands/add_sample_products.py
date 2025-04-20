@@ -1,6 +1,8 @@
 from django.core.management.base import BaseCommand
 from products.models import Product, Category
 from decimal import Decimal
+from django.core.files import File
+from pathlib import Path
 
 class Command(BaseCommand):
     help = 'Adds sample fitness products to the database'
@@ -34,7 +36,8 @@ class Command(BaseCommand):
                 'price': Decimal('39.99'),
                 'stock': 50,
                 'is_featured': True,
-                'rating': Decimal('4.8')
+                'rating': Decimal('4.8'),
+                'image_path': 'static/images/Protein.jpeg'
             },
             {
                 'category': 'supplements',
@@ -43,7 +46,8 @@ class Command(BaseCommand):
                 'price': Decimal('29.99'),
                 'stock': 30,
                 'is_featured': True,
-                'rating': Decimal('4.5')
+                'rating': Decimal('4.5'),
+                'image_path': 'static/images/bcaa.jpeg'
             },
             {
                 'category': 'supplements',
@@ -52,7 +56,8 @@ class Command(BaseCommand):
                 'price': Decimal('34.99'),
                 'stock': 40,
                 'is_featured': True,
-                'rating': Decimal('4.6')
+                'rating': Decimal('4.6'),
+                'image_path': 'static/images/preworkout.jpeg'
             },
             {
                 'category': 'supplements',
@@ -72,7 +77,8 @@ class Command(BaseCommand):
                 'price': Decimal('199.99'),
                 'stock': 20,
                 'is_featured': True,
-                'rating': Decimal('4.7')
+                'rating': Decimal('4.7'),
+                'image_path': 'static/images/dumbell.jpeg'
             },
             {
                 'category': 'equipment',
@@ -119,7 +125,8 @@ class Command(BaseCommand):
                 'price': Decimal('34.99'),
                 'stock': 60,
                 'is_featured': True,
-                'rating': Decimal('4.9')
+                'rating': Decimal('4.9'),
+                'image_path': 'static/images/leggings.jpeg'
             },
             {
                 'category': 'apparel',
@@ -239,19 +246,24 @@ class Command(BaseCommand):
             }
         ]
 
-        # Add products
+        # Add products to database
         for product_data in products:
             category = Category.objects.get(slug=product_data['category'])
-            Product.objects.get_or_create(
+            image_path = product_data.pop('image_path', None)
+            
+            product, created = Product.objects.get_or_create(
                 category=category,
                 name=product_data['name'],
-                defaults={
-                    'description': product_data['description'],
-                    'price': product_data['price'],
-                    'stock': product_data['stock'],
-                    'is_featured': product_data['is_featured'],
-                    'rating': product_data['rating']
-                }
+                defaults=product_data
             )
+
+            if created and image_path:
+                try:
+                    image_file = Path(image_path)
+                    if image_file.exists():
+                        with open(image_file, 'rb') as f:
+                            product.image.save(image_file.name, File(f), save=True)
+                except Exception as e:
+                    self.stdout.write(self.style.WARNING(f'Failed to add image for {product.name}: {str(e)}'))
 
         self.stdout.write(self.style.SUCCESS('Successfully added sample products')) 
