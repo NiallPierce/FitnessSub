@@ -139,7 +139,7 @@
                 </div>
 
                 {% if product.stock > 0 %}
-                    <form method="POST" action="{% url 'cart:add_to_cart' product.id %}" class="mb-4">
+                    <form method="POST" action="{% url 'cart:cart_add' product.id %}" class="mb-4">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="quantity" class="form-label">Quantity</label>
