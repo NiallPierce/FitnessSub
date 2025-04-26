@@ -20,7 +20,8 @@ ALLOWED_HOSTS = [
     '8000-niallpierce-fitnesssub-4iulkchlm00.ws-us118.gitpod.io',
     '8000-niallpierce-fitnesssub-85xiasj1nmv.ws-us118.gitpod.io',
     '8000-niallpierce-fitnesssub-38ou272jic6.ws-us118.gitpod.io',
-    '8000-niallpierce-fitnesssub-oy6vtpvjned.ws-us118.gitpod.io'
+    '8000-niallpierce-fitnesssub-oy6vtpvjned.ws-us118.gitpod.io',
+    '8000-niallpierce-fitnesssub-dayb406a95m.ws-us118.gitpod.io'
 ]
 
 # Application definition
@@ -196,6 +197,12 @@ if 'DEVELOPMENT' not in os.environ:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    'https://8000-niallpierce-fitnesssub-dayb406a95m.ws-us118.gitpod.io',
+    'https://*.gitpod.io'
+]
 
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
