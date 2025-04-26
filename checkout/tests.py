@@ -143,7 +143,10 @@ class CheckoutTests(TestCase):
             'city': 'Test City',
             'country': 'US'
         })
-        self.assertEqual(response.status_code, 302)  # Should redirect after successful checkout
+        self.assertEqual(response.status_code, 200)  # Should return JSON response
+        response_data = json.loads(response.content)
+        self.assertTrue(response_data['success'])
+        self.assertIn('clientSecret', response_data)
 
     def test_order_creation(self):
         """Test that an order is created correctly with items"""
@@ -199,16 +202,14 @@ class CheckoutTests(TestCase):
     @patch('checkout.views.stripe.PaymentIntent.create')
     def test_stripe_payment_intent_creation(self, mock_payment_intent):
         """Test that a Stripe PaymentIntent is created correctly"""
-        mock_payment_intent.return_value = stripe.PaymentIntent.construct_from({
-            'id': 'test_payment_intent',
+        # Create a proper mock PaymentIntent object
+        mock_intent = type('PaymentIntent', (), {
+            'id': 'test_payment_intent_id',
             'client_secret': 'test_client_secret',
-            'status': 'requires_payment_method',
-            'amount': 4000,  # $40.00
-            'currency': 'usd',
-            'customer': None,
-            'metadata': {}
-        }, 'test_key')
-
+            'status': 'requires_payment_method'
+        })()
+        mock_payment_intent.return_value = mock_intent
+        
         self.client.login(username='testuser', password='testpass123')
         session = self.client.session
         session['cart'] = {str(self.product1.id): {'quantity': 2, 'price': str(self.product1.price)},
@@ -225,7 +226,13 @@ class CheckoutTests(TestCase):
             'country': 'US'
         })
         
-        self.assertEqual(response.status_code, 302)
+        if response.status_code == 400:
+            print("Form errors:", json.loads(response.content))
+        
+        self.assertEqual(response.status_code, 200)  # Should return JSON response
+        response_data = json.loads(response.content)
+        self.assertTrue(response_data['success'])
+        self.assertEqual(response_data['clientSecret'], 'test_client_secret')
         mock_payment_intent.assert_called_once()
 
     def test_payment_success_view(self):

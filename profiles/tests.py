@@ -138,7 +138,7 @@ class ProfileTests(TestCase):
     def test_order_history_view(self):
         """Test order history view"""
         self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('profiles:order_history', args=[self.order.id]))
+        response = self.client.get(reverse('profiles:order_history', args=[self.order.order_number]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'checkout/checkout_success.html')
 

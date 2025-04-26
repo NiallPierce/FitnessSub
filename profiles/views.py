@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from checkout.models import Order, Payment
+from checkout.forms import OrderForm
 from cart.models import Cart, CartItem
 from .forms import UserForm, UserProfileForm
 from .models import UserProfile

@@ -7,9 +7,9 @@ from .forms import UserLoginForm
 class AccountTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.register_url = '/auth/signup/'  # Updated path
-        self.login_url = '/auth/login/'  # Updated path
-        self.logout_url = '/auth/logout/'  # Updated path
+        self.register_url = '/accounts/signup/'  # Updated path
+        self.login_url = '/accounts/login/'  # Updated path
+        self.logout_url = '/accounts/logout/'  # Updated path
         
         # Create a test user
         self.user = User.objects.create_user(

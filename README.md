@@ -235,6 +235,13 @@ The project includes comprehensive test coverage for various components. Below i
 | checkout | test_stripe_payment_intent_creation | Tests Stripe payment intent creation | ✅ |
 | products | test_product_detail_view | Tests product detail page rendering | ✅ |
 | products | test_product_search | Tests product search functionality | ✅ |
+| profiles | test_order_history_view | Tests order history view functionality | ✅ |
+| profiles | test_profile_creation | Tests automatic profile creation | ✅ |
+| profiles | test_profile_update | Tests profile update functionality | ✅ |
+| profiles | test_profile_picture_upload | Tests profile picture upload and resizing | ✅ |
+| profiles | test_profile_view_authentication | Tests profile view authentication | ✅ |
+| profiles | test_profile_data_validation | Tests profile data validation | ✅ |
+| profiles | test_newsletter_subscription_toggle | Tests newsletter subscription toggle | ✅ |
 
 ### Running Tests
 
