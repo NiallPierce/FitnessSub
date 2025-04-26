@@ -13,6 +13,7 @@ urlpatterns = [
     path('social/', views.social_feed, name='social_feed'),
     path('social/create/', views.create_post, name='create_post'),
     path('social/<int:post_id>/', views.post_detail, name='post_detail'),
+    path('social/<int:post_id>/comment/', views.add_comment, name='add_comment'),
     path('workouts/', views.group_workouts, name='group_workouts'),
     path('workouts/<int:workout_id>/', views.workout_detail, name='workout_detail'),
     path('workouts/create/', views.create_workout, name='create_workout'),

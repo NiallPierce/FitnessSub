@@ -303,32 +303,40 @@ def subscribe(request, plan_id):
 @login_required
 def subscription_cancel(request):
     """Handle subscription cancellation"""
-    subscription = get_object_or_404(
-        UserSubscription,
-        user=request.user,
-        is_active=True
-    )
-    
     try:
-        # Cancel Stripe subscription
-        stripe.Subscription.modify(
-            subscription.stripe_subscription_id,
-            cancel_at_period_end=True
-        )
+        # Get the most recent active subscription
+        subscription = UserSubscription.objects.filter(
+            user=request.user,
+            is_active=True
+        ).latest('created_at')
         
-        # Update local subscription record
-        subscription.is_active = False
-        subscription.save()
-        
-        messages.success(request, 'Your subscription has been cancelled. It will remain active until the end of the current billing period.')
-        return redirect('products:subscription_history')
-        
-    except stripe.error.StripeError as e:
-        messages.error(request, f'Error cancelling subscription: {str(e)}')
-        return redirect('products:subscription_history')
+        try:
+            # Cancel Stripe subscription
+            stripe.Subscription.modify(
+                subscription.stripe_subscription_id,
+                cancel_at_period_end=True
+            )
+            
+            # Update local subscription record
+            subscription.is_active = False
+            subscription.save()
+            
+            messages.success(request, 'Your subscription has been cancelled. It will remain active until the end of the current billing period.')
+            return redirect('products:subscription_history')
+            
+        except stripe.error.StripeError as e:
+            messages.error(request, f'Error cancelling subscription: {str(e)}')
+            return redirect('products:subscription_history')
+        except Exception as e:
+            messages.error(request, f'An unexpected error occurred: {str(e)}')
+            return redirect('products:subscription_history')
+            
+    except UserSubscription.DoesNotExist:
+        messages.error(request, 'No active subscription found.')
+        return redirect('products:subscription_plans')
     except Exception as e:
         messages.error(request, f'An unexpected error occurred: {str(e)}')
-        return redirect('products:subscription_history')
+        return redirect('products:subscription_plans')
 
 @login_required
 def subscription_history(request):

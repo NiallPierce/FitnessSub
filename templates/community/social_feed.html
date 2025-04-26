@@ -63,7 +63,7 @@
                 <div class="community-card mb-4">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <img src="{{ post.user.profile.image.url }}" 
+                            <img src="{{ post.user.userprofile.profile_picture.url }}" 
                                  alt="{{ post.user.username }}" 
                                  class="rounded-circle mr-2" 
                                  width="48" height="48">
@@ -108,7 +108,7 @@
                                 {% for comment in post.comments.all %}
                                     <div class="comment-item mb-3">
                                         <div class="d-flex align-items-center mb-2">
-                                            <img src="{{ comment.user.profile.image.url }}" 
+                                            <img src="{{ comment.user.userprofile.profile_picture.url }}" 
                                                  alt="{{ comment.user.username }}" 
                                                  class="rounded-circle mr-2" 
                                                  width="32" height="32">

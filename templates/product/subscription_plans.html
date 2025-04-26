@@ -203,7 +203,7 @@
                             </a>
                         {% endif %}
                     {% else %}
-                        <a href="{% url 'account_login' %}?next={% url 'products:subscribe' plan.id %}" 
+                        <a href="{% url 'accounts:login' %}?next={% url 'products:subscribe' plan.id %}" 
                            class="custom-btn custom-btn-primary w-100"
                            aria-label="Login to subscribe to {{ plan.name }} plan">
                             Login to Subscribe

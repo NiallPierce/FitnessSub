@@ -101,7 +101,7 @@
                     <div class="participants-list">
                         {% for participant in workout.participants.all %}
                             <div class="d-flex align-items-center mb-3">
-                                <img src="{{ participant.profile.image.url }}" 
+                                <img src="{{ participant.user.userprofile.profile_picture.url }}" 
                                      alt="{{ participant.username }}" 
                                      class="rounded-circle mr-2" 
                                      width="40" height="40">
@@ -156,7 +156,7 @@
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-center">
-                    <img src="{{ workout.created_by.profile.image.url }}" 
+                    <img src="{{ workout.created_by.user.userprofile.profile_picture.url }}" 
                          alt="{{ workout.created_by.username }}" 
                          class="rounded-circle mr-2" 
                          width="64" height="64">

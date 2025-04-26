@@ -100,32 +100,60 @@ def checkout(request):
                     # Mark the order as paid and redirect to success
                     order.paid = True
                     order.save()
-                    return redirect('checkout:payment_success', order_number=order.order_number)
+                    return JsonResponse({
+                        'success': True,
+                        'order_id': order.order_number,
+                        'redirect_url': reverse('checkout:payment_success', args=[order.order_number])
+                    })
                 
-                # For non-test orders, redirect to payment success
-                return redirect('checkout:payment_success', order_number=order.order_number)
+                # Return the client secret to the frontend
+                return JsonResponse({
+                    'success': True,
+                    'clientSecret': intent.client_secret,
+                    'order_id': order.order_number
+                })
                 
             except stripe.error.CardError as e:
-                messages.error(request, f'Card error: {str(e)}')
-                return redirect('checkout:checkout')
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Card error: {str(e)}'
+                }, status=400)
             except stripe.error.RateLimitError as e:
-                messages.error(request, 'Rate limit error. Please try again later.')
-                return redirect('checkout:checkout')
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Rate limit error. Please try again later.'
+                }, status=400)
             except stripe.error.InvalidRequestError as e:
-                messages.error(request, f'Invalid request: {str(e)}')
-                return redirect('checkout:checkout')
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Invalid request: {str(e)}'
+                }, status=400)
             except stripe.error.AuthenticationError as e:
-                messages.error(request, 'Authentication error. Please contact support.')
-                return redirect('checkout:checkout')
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Authentication error. Please contact support.'
+                }, status=400)
             except stripe.error.APIConnectionError as e:
-                messages.error(request, 'Network error. Please check your connection.')
-                return redirect('checkout:checkout')
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Network error. Please check your connection.'
+                }, status=400)
             except stripe.error.StripeError as e:
-                messages.error(request, 'Something went wrong. Please try again later.')
-                return redirect('checkout:checkout')
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Something went wrong. Please try again later.'
+                }, status=400)
             except Exception as e:
-                messages.error(request, f'Error processing payment: {str(e)}')
-                return redirect('checkout:checkout')
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Error processing payment: {str(e)}'
+                }, status=400)
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid form data',
+                'errors': form.errors
+            }, status=400)
     else:
         form = OrderCreateForm()
     

@@ -99,10 +99,48 @@
                 <!-- Payment Information -->
                 <div class="checkout-section" id="payment-section">
                     <h2 class="h4 mb-3">Payment Details</h2>
-                    <div id="payment-element">
-                        <!-- Stripe Payment Element will be inserted here -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="h5">Order Summary</h3>
+                            <table class="table table-sm">
+                                <tbody>
+                                    {% for item in cart_items %}
+                                        <tr>
+                                            <td>{{ item.product.name }} x {{ item.quantity }}</td>
+                                            <td class="text-end">${{ item.sub_total }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td>Subtotal</td>
+                                        <td class="text-end">$<span id="payment-subtotal">{{ total }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Shipping</td>
+                                        <td class="text-end">$<span id="payment-shipping">0.00</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total</th>
+                                        <th class="text-end">$<span id="payment-total">{{ total }}</span></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
-                    <div id="payment-message" class="text-danger mt-2" role="alert"></div>
+
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="h5">Payment Method</h3>
+                            <div id="payment-element">
+                                <!-- Stripe Payment Element will be inserted here -->
+                            </div>
+                            <div id="payment-message" class="text-danger mt-2" role="alert"></div>
+                            <p class="text-muted small mt-2">
+                                <i class="fas fa-lock"></i> Your payment information is secure and encrypted.
+                            </p>
+                        </div>
+                    </div>
                     
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary" id="back-to-shipping">Back to Shipping</button>
@@ -113,13 +151,55 @@
                 <!-- Order Review -->
                 <div class="checkout-section" id="review-section">
                     <h2 class="h4 mb-3">Order Review</h2>
+                    
                     <div class="card mb-4">
                         <div class="card-body">
                             <h3 class="h5">Shipping Information</h3>
-                            <div id="review-shipping-info"></div>
+                            <div id="review-shipping-info" class="mb-3"></div>
                             
-                            <h3 class="h5 mt-3">Payment Method</h3>
-                            <div id="review-payment-info"></div>
+                            <h3 class="h5">Shipping Method</h3>
+                            <div id="review-shipping-method" class="mb-3"></div>
+                            
+                            <h3 class="h5">Payment Method</h3>
+                            <div id="review-payment-info" class="mb-3">
+                                <p>Credit/Debit Card</p>
+                            </div>
+                            
+                            <h3 class="h5">Order Items</h3>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th class="text-end">Price</th>
+                                        <th class="text-end">Quantity</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="review-items">
+                                    {% for item in cart_items %}
+                                        <tr>
+                                            <td>{{ item.product.name }}</td>
+                                            <td class="text-end">${{ item.product.price }}</td>
+                                            <td class="text-end">{{ item.quantity }}</td>
+                                            <td class="text-end">${{ item.sub_total }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3">Subtotal</td>
+                                        <td class="text-end">$<span id="review-subtotal">{{ total }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3">Shipping</td>
+                                        <td class="text-end">$<span id="review-shipping">0.00</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3"><strong>Total</strong></td>
+                                        <td class="text-end"><strong>$<span id="review-total">{{ total }}</span></strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
                     
@@ -176,124 +256,282 @@
 {% block extra_js %}
 <script src="https://js.stripe.com/v3/"></script>
 <script>
-    const stripe = Stripe('{{ stripe_public_key }}');
-    const elements = stripe.elements();
+    // Debug Stripe initialization
+    console.log('Stripe Public Key:', '{{ stripe_public_key }}');
+    console.log('Stripe Public Key Length:', '{{ stripe_public_key }}'.length);
     
-    const appearance = {
-        theme: 'stripe',
-        variables: {
-            colorPrimary: '#0d6efd',
-            colorBackground: '#ffffff',
-            colorText: '#30313d',
-            colorDanger: '#df1b41',
-            fontFamily: 'system-ui, sans-serif',
-            spacingUnit: '4px',
-            borderRadius: '4px',
-        }
-    };
-
-    const paymentElement = elements.create('payment', {
-        appearance: appearance
-    });
-    paymentElement.mount('#payment-element');
-
-    // Form validation
-    const form = document.getElementById('payment-form');
-    const submitButton = document.getElementById('submit-button');
-    const spinner = document.getElementById('spinner');
-    const buttonText = document.getElementById('button-text');
-    const paymentMessage = document.getElementById('payment-message');
-
-    // Shipping cost calculation
-    const shippingCosts = {
-        standard: 0,
-        express: 9.99
-    };
-
-    function updateOrderTotal() {
-        const shippingMethod = document.querySelector('input[name="shipping_method"]:checked').value;
-        const shippingCost = shippingCosts[shippingMethod];
-        const subtotal = parseFloat(document.getElementById('order-subtotal').textContent);
-        
-        document.getElementById('shipping-cost').textContent = shippingCost.toFixed(2);
-        document.getElementById('order-total').textContent = (subtotal + shippingCost).toFixed(2);
-    }
-
-    // Shipping method change handler
-    document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
-        radio.addEventListener('change', updateOrderTotal);
-    });
-
-    // Step navigation
-    const sections = document.querySelectorAll('.checkout-section');
-    const steps = document.querySelectorAll('.step');
-    let currentStep = 0;
-
-    function showSection(index) {
-        sections.forEach(section => section.classList.remove('active'));
-        steps.forEach(step => step.classList.remove('active'));
-        
-        sections[index].classList.add('active');
-        steps[index].classList.add('active');
-        currentStep = index;
-    }
-
-    document.getElementById('next-to-payment').addEventListener('click', () => {
-        if (form.checkValidity()) {
-            showSection(1);
-            // Update review section with shipping info
-            const shippingInfo = document.getElementById('review-shipping-info');
-            shippingInfo.innerHTML = `
-                <p>${form.first_name.value} ${form.last_name.value}</p>
-                <p>${form.address.value}</p>
-                <p>${form.city.value}, ${form.postal_code.value}</p>
-                <p>${form.country.value}</p>
-            `;
-        } else {
-            form.reportValidity();
-        }
-    });
-
-    document.getElementById('back-to-shipping').addEventListener('click', () => showSection(0));
-    document.getElementById('next-to-review').addEventListener('click', () => showSection(2));
-    document.getElementById('back-to-payment').addEventListener('click', () => showSection(1));
-
-    // Form submission
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        
-        if (!form.checkValidity()) {
-            event.stopPropagation();
-            form.classList.add('was-validated');
-            return;
-        }
-
-        // Disable the submit button to prevent double submission
-        submitButton.disabled = true;
-        spinner.classList.remove('d-none');
-        buttonText.textContent = 'Processing...';
-        
+    if (!'{{ stripe_public_key }}' || '{{ stripe_public_key }}'.length < 10) {
+        console.error('Stripe public key is missing or invalid!');
+        document.getElementById('payment-element').innerHTML = `
+            <div class="alert alert-danger">
+                <strong>Error:</strong> Payment system is not properly configured. Please contact support.
+                <br>
+                <small>Debug Info: Stripe key length: ${'{{ stripe_public_key }}'.length}</small>
+            </div>
+        `;
+    } else {
         try {
-            const { error } = await stripe.confirmPayment({
-                elements,
-                confirmParams: {
-                    return_url: window.location.origin + '{% if order %}{% url "checkout:payment_success" order.id %}{% else %}{% url "checkout:checkout" %}{% endif %}',
-                },
+            const stripe = Stripe('{{ stripe_public_key }}');
+            console.log('Stripe instance created successfully');
+            
+            let elements;
+            let paymentElement;
+
+            async function initializePaymentElement() {
+                if (!paymentElement) {
+                    try {
+                        // First, submit the form to create the order and get the client secret
+                        const formData = new FormData(document.getElementById('payment-form'));
+                        const response = await fetch('{% url "checkout:checkout" %}', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            }
+                        });
+
+                        const data = await response.json();
+                        
+                        if (!data.success) {
+                            throw new Error(data.error || 'Failed to create order');
+                        }
+
+                        // Initialize Elements with the client secret
+                        elements = stripe.elements({
+                            clientSecret: data.clientSecret,
+                            appearance: {
+                                theme: 'stripe',
+                                variables: {
+                                    colorPrimary: '#0d6efd',
+                                    colorBackground: '#ffffff',
+                                    colorText: '#30313d',
+                                    colorDanger: '#df1b41',
+                                    fontFamily: 'system-ui, sans-serif',
+                                    spacingUnit: '4px',
+                                    borderRadius: '4px',
+                                }
+                            }
+                        });
+
+                        // Create and mount the payment element
+                        paymentElement = elements.create('payment');
+                        paymentElement.mount('#payment-element');
+                        console.log('Stripe payment element mounted successfully');
+                    } catch (error) {
+                        console.error('Error initializing Stripe payment element:', error);
+                        document.getElementById('payment-element').innerHTML = `
+                            <div class="alert alert-danger">
+                                <strong>Error:</strong> Failed to initialize payment system. Please try again later.
+                                <br>
+                                <small>Error details: ${error.message}</small>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            // Form validation
+            const form = document.getElementById('payment-form');
+            const submitButton = document.getElementById('submit-button');
+            const spinner = document.getElementById('spinner');
+            const buttonText = document.getElementById('button-text');
+            const paymentMessage = document.getElementById('payment-message');
+            const nextToPaymentButton = document.getElementById('next-to-payment');
+
+            // Shipping cost calculation
+            const shippingCosts = {
+                standard: 0,
+                express: 9.99
+            };
+
+            function updateOrderTotal() {
+                const shippingMethod = document.querySelector('input[name="shipping_method"]:checked').value;
+                const shippingCost = shippingCosts[shippingMethod];
+                const subtotal = parseFloat(document.getElementById('order-subtotal').textContent);
+                
+                document.getElementById('shipping-cost').textContent = shippingCost.toFixed(2);
+                document.getElementById('order-total').textContent = (subtotal + shippingCost).toFixed(2);
+            }
+
+            // Shipping method change handler
+            document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
+                radio.addEventListener('change', updateOrderTotal);
             });
 
-            if (error) {
-                paymentMessage.textContent = error.message;
-                submitButton.disabled = false;
-                spinner.classList.add('d-none');
-                buttonText.textContent = 'Place Order';
+            // Step navigation
+            const sections = document.querySelectorAll('.checkout-section');
+            const steps = document.querySelectorAll('.step');
+            let currentStep = 0;
+
+            function showSection(index) {
+                sections.forEach(section => section.classList.remove('active'));
+                steps.forEach(step => step.classList.remove('active'));
+                
+                sections[index].classList.add('active');
+                steps[index].classList.add('active');
+                currentStep = index;
+
+                // Initialize payment element when payment section is shown
+                if (index === 1) {
+                    initializePaymentElement();
+                }
             }
+
+            // Validate shipping form
+            function validateShippingForm() {
+                const requiredFields = [
+                    'first_name',
+                    'last_name',
+                    'email',
+                    'address',
+                    'postal_code',
+                    'city',
+                    'country'
+                ];
+
+                for (const field of requiredFields) {
+                    const input = form.querySelector(`[name="${field}"]`);
+                    if (!input || !input.value.trim()) {
+                        input.classList.add('is-invalid');
+                        return false;
+                    }
+                    input.classList.remove('is-invalid');
+                }
+
+                // Validate email format
+                const emailInput = form.querySelector('[name="email"]');
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput.value)) {
+                    emailInput.classList.add('is-invalid');
+                    return false;
+                }
+                emailInput.classList.remove('is-invalid');
+
+                return true;
+            }
+
+            // Next to Payment button click handler
+            nextToPaymentButton.addEventListener('click', () => {
+                if (validateShippingForm()) {
+                    showSection(1);
+                    // Update review section with shipping info
+                    const shippingInfo = document.getElementById('review-shipping-info');
+                    shippingInfo.innerHTML = `
+                        <p>${form.first_name.value} ${form.last_name.value}</p>
+                        <p>${form.address.value}</p>
+                        <p>${form.city.value}, ${form.postal_code.value}</p>
+                        <p>${form.country.value}</p>
+                    `;
+                    
+                    // Update shipping method in review
+                    const shippingMethod = document.querySelector('input[name="shipping_method"]:checked');
+                    const shippingMethodText = shippingMethod.nextElementSibling.textContent;
+                    document.getElementById('review-shipping-method').innerHTML = `<p>${shippingMethodText}</p>`;
+                    
+                    // Update payment section totals
+                    updatePaymentTotals();
+                }
+            });
+
+            function updatePaymentTotals() {
+                const shippingMethod = document.querySelector('input[name="shipping_method"]:checked').value;
+                const shippingCost = shippingCosts[shippingMethod];
+                const subtotal = parseFloat(document.getElementById('order-subtotal').textContent);
+                
+                // Update payment section
+                document.getElementById('payment-shipping').textContent = shippingCost.toFixed(2);
+                document.getElementById('payment-total').textContent = (subtotal + shippingCost).toFixed(2);
+                
+                // Update review section
+                document.getElementById('review-shipping').textContent = shippingCost.toFixed(2);
+                document.getElementById('review-total').textContent = (subtotal + shippingCost).toFixed(2);
+            }
+
+            document.getElementById('back-to-shipping').addEventListener('click', () => showSection(0));
+            document.getElementById('next-to-review').addEventListener('click', () => showSection(2));
+            document.getElementById('back-to-payment').addEventListener('click', () => showSection(1));
+
+            // Form submission
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                
+                if (!form.checkValidity()) {
+                    event.stopPropagation();
+                    form.classList.add('was-validated');
+                    return;
+                }
+
+                // Disable the submit button to prevent double submission
+                submitButton.disabled = true;
+                spinner.classList.remove('d-none');
+                buttonText.textContent = 'Processing...';
+                
+                try {
+                    // First, submit the form to create the order
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to create order');
+                    }
+
+                    if (data.redirect_url) {
+                        // For test orders, redirect directly to success page
+                        window.location.href = data.redirect_url;
+                        return;
+                    }
+                    
+                    // Then, confirm the payment with Stripe
+                    const { error } = await stripe.confirmPayment({
+                        elements,
+                        confirmParams: {
+                            return_url: window.location.origin + '{% url "checkout:payment_success" order_number="ORDER_NUMBER" %}'.replace('ORDER_NUMBER', data.order_id),
+                        },
+                    });
+
+                    if (error) {
+                        paymentMessage.textContent = error.message;
+                        submitButton.disabled = false;
+                        spinner.classList.add('d-none');
+                        buttonText.textContent = 'Place Order';
+                    }
+                } catch (error) {
+                    paymentMessage.textContent = error.message || 'An unexpected error occurred.';
+                    submitButton.disabled = false;
+                    spinner.classList.add('d-none');
+                    buttonText.textContent = 'Place Order';
+                }
+            });
+
+            // Add input validation feedback
+            const shippingInputs = form.querySelectorAll('input, select');
+            shippingInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.value.trim()) {
+                        input.classList.remove('is-invalid');
+                    }
+                });
+            });
+
+            // Initialize the first section
+            showSection(0);
         } catch (error) {
-            paymentMessage.textContent = 'An unexpected error occurred.';
-            submitButton.disabled = false;
-            spinner.classList.add('d-none');
-            buttonText.textContent = 'Place Order';
+            console.error('Error initializing Stripe:', error);
+            document.getElementById('payment-element').innerHTML = `
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> Failed to initialize Stripe. Please try again later.
+                </div>
+            `;
         }
-    });
+    }
 </script>
 
 <style>
@@ -357,6 +595,195 @@
 .form-check-input:checked {
     background-color: #0d6efd;
     border-color: #0d6efd;
+}
+
+/* Add validation styles */
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: #dc3545;
+}
+
+.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* Add transition for section changes */
+.checkout-section {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.checkout-section.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Improve button feedback */
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* Add hover effects */
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Add styles for payment and review sections */
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.table-sm td, .table-sm th {
+    padding: 0.5rem;
+}
+
+.text-end {
+    text-align: end;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.small {
+    font-size: 0.875em;
+}
+
+.fas {
+    margin-right: 0.5rem;
+}
+
+/* Improve button spacing */
+.btn {
+    margin: 0.5rem;
+}
+
+/* Add hover effects for cards */
+.card:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Add styles for Stripe payment element */
+#payment-element {
+    padding: 1rem;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.StripeElement {
+    padding: 10px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.StripeElement--focus {
+    box-shadow: 0 1px 3px 0 #cfd7df;
+}
+
+.StripeElement--invalid {
+    border-color: #fa755a;
+}
+
+.StripeElement--webkit-autofill {
+    background-color: #fefde5 !important;
+}
+
+/* Add styles for payment section */
+.payment-method {
+    margin-bottom: 1rem;
+}
+
+.payment-method label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.payment-method input {
+    margin-right: 0.5rem;
+}
+
+/* Add styles for security message */
+.security-message {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.security-message i {
+    color: #28a745;
+    margin-right: 0.5rem;
+}
+
+/* Add styles for alerts */
+.alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+/* Add styles for payment element container */
+#payment-element {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Add loading state */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.loading::after {
+    content: '';
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 </style>
 {% endblock %}

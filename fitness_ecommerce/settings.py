@@ -140,6 +140,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Configure static files finders
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -266,10 +270,6 @@ LOGGING = {
 
 # Handler for 404 errors
 handler404 = 'home.views.custom_404'
-
-# Media files configuration
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # AWS Settings
 if 'USE_AWS' in os.environ and not os.environ.get('DISABLE_S3_DURING_COLLECTSTATIC'):

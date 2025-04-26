@@ -13,19 +13,41 @@ def profile(request):
     profile = get_object_or_404(UserProfile, user=request.user)
     orders = Order.objects.filter(user=request.user).order_by('-created')
 
+    # Initialize both forms
+    user_form = UserForm(instance=request.user)
+    profile_form = UserProfileForm(instance=profile)
+
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully')
+        # Handle profile picture upload
+        if 'profile_picture' in request.FILES:
+            profile.profile_picture = request.FILES['profile_picture']
+            profile.save()
+            messages.success(request, 'Profile picture updated successfully')
+            return redirect('profiles:profile')
+        
+        # Determine which form was submitted
+        if 'update_personal' in request.POST:
+            user_form = UserForm(request.POST, instance=request.user)
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, 'Personal information updated successfully')
+            else:
+                messages.error(request, 'Failed to update personal information. Please check the form.')
+        elif 'update_shipping' in request.POST:
+            profile_form = UserProfileForm(request.POST, instance=profile)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Shipping information updated successfully')
+            else:
+                messages.error(request, 'Failed to update shipping information. Please check the form.')
         else:
-            messages.error(request, 'Update failed. Please ensure the form is valid.')
-    else:
-        form = UserProfileForm(instance=profile)
+            messages.error(request, 'Invalid form submission.')
 
     context = {
         'profile': profile,
         'orders': orders,
+        'user_form': user_form,
+        'profile_form': profile_form,
     }
 
     return render(request, template, context)

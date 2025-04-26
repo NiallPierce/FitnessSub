@@ -9,6 +9,8 @@ from .models import (
     ChallengeRequirement, ChallengeReward, Badge
 )
 from .forms import SocialPostForm, CommentForm, GroupWorkoutForm, ChallengeForm
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 # Create your views here.
 
@@ -437,3 +439,36 @@ def join_challenge(request, challenge_id):
     
     messages.success(request, f'Successfully joined {challenge.title}!')
     return redirect('community:challenge_detail', challenge_id=challenge.id)
+
+@login_required
+@require_POST
+def add_comment(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id)
+    form = CommentForm(request.POST)
+    
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.user = request.user
+        comment.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'comment': {
+                    'id': comment.id,
+                    'content': comment.content,
+                    'created_at': comment.created_at.strftime('%B %d, %Y at %I:%M %p'),
+                    'user': {
+                        'username': comment.user.username,
+                        'profile_picture': comment.user.userprofile.profile_picture.url if comment.user.userprofile.profile_picture else None
+                    }
+                }
+            })
+        messages.success(request, 'Comment added successfully!')
+    else:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors})
+        messages.error(request, 'Error adding comment. Please try again.')
+    
+    return redirect('community:post_detail', post_id=post_id)
