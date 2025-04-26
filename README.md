@@ -1,36 +1,104 @@
-# Fitness E-commerce Website
+# Fitness E-commerce Platform
 
-A full-stack e-commerce platform for fitness products and services, built with Django.
+A comprehensive e-commerce platform specializing in fitness products and services, built with Django. This platform offers a complete shopping experience with user management, product catalog, secure payments, and community features.
 
-## Features
+## 🌟 Key Features
 
-- User authentication and authorization
-- Product catalog and shopping cart
-- Secure payment processing with Stripe
+### User Management
+- User registration and authentication
+- Profile management
+- Password reset functionality
+- User subscription management
+
+### Product Management
+- Comprehensive product catalog
+- Category-based navigation
+- Product search and filtering
+- Product reviews and ratings
+- Stock management
+- Featured products section
+
+### Shopping Experience
+- Shopping cart functionality
+- Secure checkout process
+- Order history and tracking
+- Order status updates
+- Multiple payment options
+- Order confirmation emails
+
+### Payment Processing
+- Secure payment processing via Stripe
+- Support for multiple payment methods
+- Webhook handling for payment events
+- Subscription management
+- Payment receipt generation
+- Payment method management
+- Subscription cancellation and updates
+
+### Community Features
+- Product reviews and ratings
+- User profiles
 - Newsletter subscription
-- SEO optimized
-- Responsive design
+- Email notifications
 
-## Live Demo
+### Admin Features
+- Comprehensive admin dashboard
+- Product management
+- Order management
+- User management
+- Analytics and reporting
+
+## 🚀 Live Demo
 
 The application is currently deployed and available at:
 https://fitness-ecommerce-np92-62c36695dba8.herokuapp.com/
 
-## Setup Instructions
+## 🛠️ Technical Stack
 
-1. Create a virtual environment:
+### Backend
+- Django 4.2.7
+- PostgreSQL
+- Django Allauth
+- Django Crispy Forms
+- Gunicorn
+- WhiteNoise
+
+### Frontend
+- Bootstrap 5
+- JavaScript
+- jQuery
+- HTML5/CSS3
+
+### Services
+- Stripe (Payments)
+- AWS S3 (Media Storage)
+- Heroku (Hosting)
+- Neon (Database)
+- Gmail SMTP (Email)
+
+## 📦 Installation
+
+### Prerequisites
+- Python 3.10+
+- PostgreSQL
+- Git
+- Virtual Environment
+
+### Local Development Setup
+
+1. Clone the repository:
 ```bash
-python -m venv venv
+git clone https://github.com/NiallPierce/FitnessSub.git
+cd FitnessSub
 ```
 
-2. Activate the virtual environment:
-- Windows:
+2. Create and activate virtual environment:
 ```bash
-venv\Scripts\activate
-```
-- Unix/MacOS:
-```bash
-source venv/bin/activate
+python -m venv .venv
+# Windows
+.\.venv\Scripts\activate
+# Unix/MacOS
+source .venv/bin/activate
 ```
 
 3. Install dependencies:
@@ -39,57 +107,63 @@ pip install -r requirements.txt
 ```
 
 4. Set up environment variables:
-Create a `.env` file in the root directory with the following variables:
-```
+Create a `.env` file with the following variables:
+```env
+# Django Settings
 SECRET_KEY=your_secret_key
 DEBUG=True
+DEVELOPMENT=True
+
+# Database Settings
+DATABASE_URL=your_database_url
+
+# Stripe Settings
 STRIPE_PUBLIC_KEY=your_stripe_public_key
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WH_SECRET=your_stripe_webhook_secret
+
+# Email Settings
+EMAIL_HOST_USER=your_email
+EMAIL_HOST_PASS=your_email_password
+
+# AWS Settings
+USE_AWS=True
+AWS_STORAGE_BUCKET_NAME=your_bucket_name
+AWS_S3_REGION_NAME=your_region
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+
+# Django Allauth Settings
+SITE_ID=1
 ```
 
-5. Run migrations:
+5. Database setup:
 ```bash
 python manage.py migrate
-```
-
-6. Create a superuser:
-```bash
 python manage.py createsuperuser
 ```
 
-7. Run the development server:
+6. Run the development server:
 ```bash
 python manage.py runserver
 ```
 
-## Deployment to Heroku
+## 🌐 Deployment
 
-### Prerequisites
-- Heroku CLI installed
-- Git installed
-- Heroku account
-- Stripe account for payment processing
-- PostgreSQL database (provided by Heroku)
+### Heroku Deployment
 
-### Deployment Steps
-
-1. Login to Heroku:
+1. Install Heroku CLI and login:
 ```bash
-heroku login
+heroku login -i
 ```
 
-2. Create a new Heroku app:
+2. Create and configure Heroku app:
 ```bash
 heroku create fitness-ecommerce-np92
-```
-
-3. Add the Heroku remote:
-```bash
 heroku git:remote -a fitness-ecommerce-np92
 ```
 
-4. Set up environment variables in Heroku:
+3. Set up environment variables:
 ```bash
 heroku config:set SECRET_KEY=your_secret_key
 heroku config:set DEBUG=False
@@ -98,62 +172,25 @@ heroku config:set STRIPE_SECRET_KEY=your_stripe_secret_key
 heroku config:set STRIPE_WH_SECRET=your_stripe_webhook_secret
 heroku config:set EMAIL_HOST_USER=your_email
 heroku config:set EMAIL_HOST_PASS=your_email_password
+heroku config:set USE_AWS=True
+heroku config:set AWS_STORAGE_BUCKET_NAME=your_bucket_name
+heroku config:set AWS_S3_REGION_NAME=your_region
+heroku config:set AWS_ACCESS_KEY_ID=your_access_key
+heroku config:set AWS_SECRET_ACCESS_KEY=your_secret_key
 ```
 
-5. Add PostgreSQL database:
-```bash
-heroku addons:create heroku-postgresql:hobby-dev
-```
-
-6. Push to Heroku:
+4. Deploy the application:
 ```bash
 git push heroku main
 ```
 
-7. Run migrations and setup:
+5. Run migrations and collect static files:
 ```bash
 heroku run python manage.py migrate
-heroku run python manage.py createsuperuser
-```
-
-8. Collect static files:
-```bash
 heroku run python manage.py collectstatic --noinput
 ```
 
-### Post-Deployment Verification
-
-After deployment, verify the following:
-
-1. Application is accessible at the Heroku URL
-2. Static files are loading correctly
-3. Database migrations are applied
-4. User authentication is working
-5. Product catalog is accessible
-6. Shopping cart functionality is working
-7. Stripe payment processing is functional
-8. Newsletter subscription is working
-9. Admin interface is accessible
-10. Error pages (404, 500) are properly configured
-
-### Monitoring and Maintenance
-
-1. Check Heroku logs:
-```bash
-heroku logs --tail
-```
-
-2. Scale the application if needed:
-```bash
-heroku ps:scale web=1
-```
-
-3. Backup the database:
-```bash
-heroku pg:backups:capture
-```
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 fitness_ecommerce/
@@ -162,33 +199,422 @@ fitness_ecommerce/
 ├── cart/             # Shopping cart functionality
 ├── checkout/         # Payment processing
 ├── home/             # Homepage and static pages
-└── newsletter/       # Newsletter subscription
+├── newsletter/       # Newsletter subscription
+├── profiles/         # User profile management
+├── community/        # Community features
+├── static/           # Static files
+│   ├── css/         # CSS files
+│   ├── js/          # JavaScript files
+│   └── product_images/ # Product images
+└── templates/        # HTML templates
 ```
 
-## Development
+## 🔒 Security Features
 
-This project uses:
-- Django 4.2.7
-- PostgreSQL
-- Stripe for payments
-- Bootstrap 5 for frontend
-- Django Allauth for authentication
-- Gunicorn for production server
-- WhiteNoise for static file serving
+- CSRF protection
+- XSS protection
+- SQL injection protection
+- Secure password hashing
+- Environment variable management
+- SSL/TLS enforcement
+- Secure session handling
+- Rate limiting
+- Input validation
 
-## Testing
+## 🧪 Testing
 
-Run tests with:
+Run the test suite:
 ```bash
 python manage.py test
 ```
 
-## Security Considerations
+## 📈 Monitoring and Maintenance
 
-- DEBUG mode is disabled in production
-- Secret keys are stored in environment variables
-- CSRF protection is enabled
-- Secure session handling
-- Password hashing
-- XSS protection
-- SQL injection protection
+### Logging
+```bash
+heroku logs --tail
+```
+
+### Database Backups
+```bash
+heroku pg:backups:capture
+```
+
+### Scaling
+```bash
+heroku ps:scale web=1
+```
+
+## 📋 User Stories Mapping
+
+### 1. User Authentication & Profiles
+
+#### User Registration
+**User Story:**
+As a new user
+I want to register for an account
+So that I can access personalized features
+
+**Implementation:**
+- Django Allauth integration
+- Custom user model
+- Email verification
+- Profile creation signals
+
+**Acceptance Criteria:**
+- [x] User can register with email/password
+- [x] Email verification system
+- [x] Profile creation on registration
+- [x] Welcome email sent
+- [x] Error handling for existing users
+
+#### User Login
+**User Story:**
+As a registered user
+I want to log in to my account
+So that I can access my personal information and make purchases
+
+**Implementation:**
+- Django authentication system
+- Session management
+- Remember me functionality
+
+**Acceptance Criteria:**
+- [x] Secure login form
+- [x] Password reset functionality
+- [x] Session management
+- [x] Remember me feature
+
+### 2. Product Management
+
+#### Product Browsing
+**User Story:**
+As a customer
+I want to browse products by category
+So that I can find what I'm looking for
+
+**Implementation:**
+- Category-based navigation
+- Product search
+- Filtering system
+- Product detail pages
+
+**Acceptance Criteria:**
+- [x] Category navigation
+- [x] Search functionality
+- [x] Filter options
+- [x] Product details
+- [x] Image gallery
+
+#### Product Reviews
+**User Story:**
+As a customer
+I want to review products I've purchased
+So that I can share my experience with others
+
+**Implementation:**
+- Review submission system
+- Rating system
+- Review moderation
+- Review display
+
+**Acceptance Criteria:**
+- [x] Review form
+- [x] Star rating system
+- [x] Moderation tools
+- [x] Review display
+- [x] User verification
+
+### 3. Shopping Experience
+
+#### Shopping Cart
+**User Story:**
+As a customer
+I want to add products to my cart
+So that I can purchase multiple items
+
+**Implementation:**
+- Session-based cart
+- AJAX updates
+- Quantity management
+- Price calculations
+
+**Acceptance Criteria:**
+- [x] Add/remove items
+- [x] Update quantities
+- [x] Calculate totals
+- [x] Save cart between sessions
+- [x] Clear cart after purchase
+
+#### Checkout Process
+**User Story:**
+As a customer
+I want to complete my purchase
+So that I can receive my products
+
+**Implementation:**
+- Stripe payment integration
+- Order processing
+- Confirmation emails
+- Order tracking
+- Order status updates
+
+**Acceptance Criteria:**
+- [x] Secure checkout
+- [x] Multiple payment options
+- [x] Order confirmation
+- [x] Email notifications
+- [x] Order tracking
+- [x] Order status updates
+
+### 4. Admin Features
+
+#### Product Management
+**User Story:**
+As an administrator
+I want to manage products
+So that I can keep the catalog up to date
+
+**Implementation:**
+- Admin dashboard
+- Product CRUD operations
+- Image management
+- Stock tracking
+
+**Acceptance Criteria:**
+- [x] Add/edit products
+- [x] Manage categories
+- [x] Upload images
+- [x] Track stock
+- [x] Bulk operations
+
+#### Order Management
+**User Story:**
+As an administrator
+I want to manage orders
+So that I can process customer purchases
+
+**Implementation:**
+- Order dashboard
+- Status updates
+- Order search
+- Customer communication
+
+**Acceptance Criteria:**
+- [x] View all orders
+- [x] Update order status
+- [x] Search orders
+- [x] View order details
+- [x] Contact customers
+
+### 5. Community Features
+
+#### Newsletter
+**User Story:**
+As a user
+I want to subscribe to newsletters
+So that I can receive updates and promotions
+
+**Implementation:**
+- Newsletter subscription
+- Email templates
+- Unsubscribe option
+- Email sending system
+
+**Acceptance Criteria:**
+- [x] Subscription form
+- [x] Email confirmation
+- [x] Unsubscribe option
+- [x] Newsletter templates
+- [x] Email sending
+
+### Testing Coverage
+
+Each feature has been tested through:
+- Unit tests
+- Integration tests
+- User acceptance testing
+- Security testing
+- Performance testing
+
+### Implementation Notes
+
+- All features are fully implemented and deployed
+- Security best practices followed
+- Responsive design implemented
+- Performance optimized
+- Documentation complete
+
+## 💼 E-commerce Business Model
+
+### Target Market
+- Fitness enthusiasts
+- Athletes
+- Health-conscious consumers
+- Gym owners and trainers
+
+### Revenue Streams
+1. Product Sales
+   - Fitness equipment
+   - Supplements
+   - Apparel
+   - Accessories
+
+2. Subscription Services
+   - Monthly fitness plans
+   - Premium content access
+   - Exclusive product discounts
+
+3. Value Propositions
+   - High-quality fitness products
+   - Expert-curated content
+   - Community support
+   - Personalized recommendations
+
+### Marketing Strategy
+- Social media presence (Facebook, Instagram)
+- Email marketing through newsletter
+- SEO optimization
+- Community engagement
+- Influencer partnerships
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- Django Documentation
+- Bootstrap Documentation
+- Stripe Documentation
+- Heroku Documentation
+
+## 📊 Project Management
+
+### Agile Development with GitHub
+This project uses GitHub's built-in project management tools for Agile development:
+
+#### GitHub Projects
+- Project board: [Fitness E-commerce Project Board](https://github.com/NiallPierce/FitnessSub/projects)
+- Kanban-style workflow with columns:
+  - Backlog
+  - To Do
+  - In Progress
+  - Review
+  - Done
+
+#### Issue Tracking
+- User stories and tasks tracked as GitHub Issues
+- Labels for categorization:
+  - Feature
+  - Bug
+  - Enhancement
+  - Documentation
+  - Testing
+
+#### Milestones
+- Project phases tracked as GitHub Milestones
+- Sprint planning and tracking
+- Release management
+
+#### Pull Requests
+- Code review process
+- Continuous Integration checks
+- Automated testing
+
+### Development Workflow
+1. Create issues for user stories and tasks
+2. Assign issues to project board columns
+3. Create feature branches for development
+4. Submit pull requests for review
+5. Deploy to production after approval
+
+## 🎨 UX Design Documentation
+
+### Design Principles
+
+1. **Accessibility**
+   - ARIA labels for interactive elements
+   - Alt text for all images
+   - Breadcrumb navigation
+   - High contrast color scheme
+   - Responsive text sizing
+   - Keyboard navigation support
+
+2. **Mobile Responsiveness**
+   - Media queries for different screen sizes
+   - Responsive grid system
+   - Touch-friendly interface elements
+   - Collapsible navigation for smaller screens
+   - Optimized images with srcset
+
+3. **User Interface**
+   - Clean, uncluttered interface
+   - Consistent design language
+   - Clear visual feedback for actions
+   - Streamlined navigation
+   - Visual hierarchy for content
+
+### Implemented Features
+
+1. **Navigation & Information Architecture**
+   - Hierarchical category structure
+   - Persistent search functionality
+   - Clear call-to-action buttons
+   - Breadcrumb navigation
+   - Mobile-friendly navigation menu
+
+2. **Product Discovery**
+   - Visual product cards with key information
+   - Category-based filtering
+   - Search functionality
+   - Featured products section
+   - Product detail pages
+
+3. **Shopping Experience**
+   - One-page checkout process
+   - Persistent cart icon with item count
+   - Clear pricing and shipping information
+   - Multiple payment options
+   - Order confirmation system
+
+4. **User Account Management**
+   - Registration and login system
+   - Profile management
+   - Order history
+   - Subscription management
+   - Password reset functionality
+
+### Technical Implementation
+
+1. **CSS Architecture**
+   - CSS variables for consistent styling
+   - Responsive design using media queries
+   - Custom components for reusability
+   - Animation and transition effects
+   - Mobile-first approach
+
+2. **Accessibility Features**
+   - Semantic HTML structure
+   - ARIA attributes for screen readers
+   - Keyboard navigation support
+   - Focus management
+   - Error handling and feedback
+   - Modal accessibility
+   - Table responsiveness
+   - Responsive images with srcset
+
+3. **Performance Optimization**
+   - Responsive images with srcset
+   - Optimized CSS and JavaScript
+   - Efficient DOM manipulation
+   - Browser compatibility
+   - Responsive tables for mobile views
