@@ -48,6 +48,40 @@ A comprehensive e-commerce platform specializing in fitness products and service
 - User management
 - Analytics and reporting
 
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.8+
+- PostgreSQL
+- Stripe account
+- AWS S3 account (for media storage)
+
+### Installation
+1. Clone the repository
+2. Create and activate virtual environment
+3. Install dependencies: `pip install -r requirements.txt`
+4. Set up environment variables
+5. Run migrations: `python manage.py migrate`
+6. Create superuser: `python manage.py createsuperuser`
+7. Run development server: `python manage.py runserver`
+
+### Environment Variables
+Create a `.env` file with the following variables:
+```
+DEBUG=True
+SECRET_KEY=your-secret-key
+DATABASE_URL=your-database-url
+STRIPE_PUBLIC_KEY=your-stripe-public-key
+STRIPE_SECRET_KEY=your-stripe-secret-key
+STRIPE_WH_SECRET=your-stripe-webhook-secret
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_STORAGE_BUCKET_NAME=your-bucket-name
+```
+
+## 📝 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
 ## 🚀 Live Demo
 
 The application is currently deployed and available at:
