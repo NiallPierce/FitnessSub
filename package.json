@@ -1,0 +1,24 @@
+{
+  "name": "fitnesssub",
+  "version": "1.0.0",
+  "description": "A comprehensive e-commerce platform specializing in fitness products and services, built with Django. This platform offers a complete shopping experience with user management, product catalog, secure payments, and community features.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NiallPierce/FitnessSub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NiallPierce/FitnessSub/issues"
+  },
+  "homepage": "https://github.com/NiallPierce/FitnessSub#readme",
+  "devDependencies": {
+    "csslint": "^1.0.5",
+    "jshint": "^2.13.6"
+  }
+}

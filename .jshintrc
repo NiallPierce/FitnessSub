@@ -1,0 +1,14 @@
+{
+    "esversion": 6,
+    "strict": "global",
+    "undef": true,
+    "unused": true,
+    "browser": true,
+    "jquery": true,
+    "devel": true,
+    "globals": {
+        "stripe": false,
+        "STRIPE_PUBLIC_KEY": false,
+        "bootstrap": false
+    }
+} 

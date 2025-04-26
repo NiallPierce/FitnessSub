@@ -1,0 +1,7 @@
+{
+    "compatible-vendor-prefixes": true,
+    "known-properties": true,
+    "shorthand": true,
+    "vendor-prefix": true,
+    "zero-units": true
+} 

@@ -47,22 +47,25 @@
 
 {% block extra_css %}
 <style>
-    #card-element {
-        padding: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        background-color: rgba(255, 255, 255, 0.05);
-    }
-    .StripeElement--focus {
-        border-color: #80bdff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
-    .StripeElement--invalid {
-        border-color: #dc3545;
-    }
-    .StripeElement--webkit-autofill {
-        background-color: #fefde5 !important;
-    }
+  #card-element {
+    padding: 12px;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 4px;
+    background-color: rgb(255 255 255 / 5%);
+  }
+
+  .StripeElement--focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 25%);
+  }
+
+  .StripeElement--invalid {
+    border-color: #dc3545;
+  }
+
+  .StripeElement--webkit-autofill {
+    background-color: #fefde5 !important;
+  }
 </style>
 {% endblock %}
 
