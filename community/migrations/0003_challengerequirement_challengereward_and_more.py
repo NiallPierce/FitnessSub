@@ -7,8 +7,8 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('community', 
-        '0002_alter_achievement_image_alter_badge_image_and_more'),
+        ('community',
+         '0002_alter_achievement_image_alter_badge_image_and_more'),
     ]
 
     operations = [

@@ -8,7 +8,7 @@ from .models import (
     UserBadge, ProgressEntry, Achievement, ChallengeParticipation,
     ChallengeRequirement, ChallengeReward, Badge
 )
-from .forms import SocialPostForm, CommentForm, GroupWorkoutForm, ChallengeForm
+from .forms import CommentForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
@@ -17,21 +17,31 @@ from django.views.decorators.http import require_POST
 
 @login_required
 def community_home(request):
-    challenges = Challenge.objects.filter(is_active=True).order_by('-start_date')
+    challenges = Challenge.objects.filter(
+        is_active=True
+    ).order_by('-start_date')
     recent_posts = SocialPost.objects.all().order_by('-created_at')[:5]
-    upcoming_workouts = GroupWorkout.objects.filter(date_time__gte=timezone.now()).order_by('date_time')
+    upcoming_workouts = GroupWorkout.objects.filter(
+        date_time__gte=timezone.now()
+    ).order_by('date_time')
 
-    return render(request, 'community/home.html', {
-        'challenges': challenges,
-        'recent_posts': recent_posts,
-        'upcoming_workouts': upcoming_workouts,
-    })
+    return render(
+        request,
+        'community/home.html',
+        {
+            'challenges': challenges,
+            'recent_posts': recent_posts,
+            'upcoming_workouts': upcoming_workouts,
+        }
+    )
 
 
 @login_required
 def challenges(request):
     # Get all active challenges
-    active_challenges = Challenge.objects.filter(is_active=True).order_by('-start_date')
+    active_challenges = Challenge.objects.filter(
+        is_active=True
+    ).order_by('-start_date')
 
     # Get user's active challenges
     user_challenges = Challenge.objects.filter(
@@ -49,19 +59,24 @@ def challenges(request):
     challenge, created = Challenge.objects.get_or_create(
         title="Couch to 5K Challenge",
         defaults={
-            'description': """Transform your fitness journey with our 9-week Couch to 5K program!
-
-This beginner-friendly challenge is designed to take you from no running experience to completing a 5K run. Perfect for those starting their fitness journey or looking to get back into running.
-
-Program Highlights:
-• 3 structured workouts per week
-• Gradual progression from walking to running
-• Supportive community of fellow runners
-• Weekly progress tracking
-• Achievement badges for reaching milestones
-• Expert guidance and tips
-
-Whether you're a complete beginner or returning to running, this program will help you build endurance, improve your fitness, and achieve your 5K goal in just 9 weeks!""",
+            'description': (
+                "Transform your fitness journey with our 9-week Couch to 5K "
+                "program!\n\n"
+                "This beginner-friendly challenge is designed to take you "
+                "from no running experience to completing a 5K run. Perfect "
+                "for those starting their fitness journey or looking to get "
+                "back into running.\n\n"
+                "Program Highlights:\n"
+                "• 3 structured workouts per week\n"
+                "• Gradual progression from walking to running\n"
+                "• Supportive community of fellow runners\n"
+                "• Weekly progress tracking\n"
+                "• Achievement badges for reaching milestones\n"
+                "• Expert guidance and tips\n\n"
+                "Whether you're a complete beginner or returning to running, "
+                "this program will help you build endurance, improve your "
+                "fitness, and achieve your 5K goal in just 9 weeks!"
+            ),
             'start_date': timezone.now(),
             'end_date': timezone.now() + timezone.timedelta(weeks=9),
             'points': 500,
@@ -87,7 +102,7 @@ Whether you're a complete beginner or returning to running, this program will he
         for i, req in enumerate(requirements):
             requirement = ChallengeRequirement.objects.create(
                 description=req,
-                is_mandatory=(i != 3),  # Only the community sharing is optional
+                is_mandatory=(i != 3),  # Only sharing is optional
                 order=i
             )
             challenge.requirements.add(requirement)
@@ -126,11 +141,15 @@ Whether you're a complete beginner or returning to running, this program will he
             )
             challenge.rewards.add(reward)
 
-    return render(request, 'community/challenges.html', {
-        'active_challenges': active_challenges,
-        'user_challenges': user_challenges,
-        'completed_challenges': completed_challenges,
-    })
+    return render(
+        request,
+        'community/challenges.html',
+        {
+            'active_challenges': active_challenges,
+            'user_challenges': user_challenges,
+            'completed_challenges': completed_challenges,
+        }
+    )
 
 
 @login_required
@@ -141,18 +160,24 @@ def challenge_detail(request, challenge_id):
         challenge=challenge
     ).first()
 
-    return render(request, 'community/challenge_detail.html', {
-        'challenge': challenge,
-        'participation': participation,
-    })
+    return render(
+        request,
+        'community/challenge_detail.html',
+        {
+            'challenge': challenge,
+            'participation': participation,
+        }
+    )
 
 
 @login_required
 def social_feed(request):
     posts = SocialPost.objects.all().order_by('-created_at')
-    return render(request, 'community/social_feed.html', {
-        'posts': posts,
-    })
+    return render(
+        request,
+        'community/social_feed.html',
+        {'posts': posts}
+    )
 
 
 @login_required
@@ -166,10 +191,16 @@ def create_post(request):
                 image=image,
                 user=request.user
             )
-            messages.success(request, 'Post created successfully!')
+            messages.success(
+                request,
+                'Post created successfully!'
+            )
             return redirect('community:social_feed')
         else:
-            messages.error(request, 'Please enter some content.')
+            messages.error(
+                request,
+                'Please enter some content.'
+            )
     return render(request, 'community/create_post.html')
 
 
@@ -184,16 +215,26 @@ def post_detail(request, post_id):
                 post=post,
                 user=request.user
             )
-            messages.success(request, 'Comment added successfully!')
+            messages.success(
+                request,
+                'Comment added successfully!'
+            )
             return redirect('community:post_detail', post_id=post.id)
         else:
-            messages.error(request, 'Please enter a comment.')
+            messages.error(
+                request,
+                'Please enter a comment.'
+            )
 
     comments = post.comments.all().order_by('-created_at')
-    return render(request, 'community/post_detail.html', {
-        'post': post,
-        'comments': comments,
-    })
+    return render(
+        request,
+        'community/post_detail.html',
+        {
+            'post': post,
+            'comments': comments,
+        }
+    )
 
 
 @login_required
@@ -205,21 +246,31 @@ def group_workouts(request):
         date_time__lt=timezone.now()
     ).order_by('-date_time')
 
-    return render(request, 'community/group_workouts.html', {
-        'upcoming_workouts': upcoming_workouts,
-        'past_workouts': past_workouts,
-    })
+    return render(
+        request,
+        'community/group_workouts.html',
+        {
+            'upcoming_workouts': upcoming_workouts,
+            'past_workouts': past_workouts,
+        }
+    )
 
 
 @login_required
 def workout_detail(request, workout_id):
     workout = get_object_or_404(GroupWorkout, id=workout_id)
-    is_participant = workout.participants.filter(id=request.user.id).exists()
+    is_participant = workout.participants.filter(
+        id=request.user.id
+    ).exists()
 
-    return render(request, 'community/workout_detail.html', {
-        'workout': workout,
-        'is_participant': is_participant,
-    })
+    return render(
+        request,
+        'community/workout_detail.html',
+        {
+            'workout': workout,
+            'is_participant': is_participant,
+        }
+    )
 
 
 @login_required
@@ -234,7 +285,14 @@ def create_workout(request):
         location = request.POST.get('location')
         meeting_link = request.POST.get('meeting_link')
 
-        if all([title, description, workout_type, date_time, duration, max_participants]):
+        if all([
+            title,
+            description,
+            workout_type,
+            date_time,
+            duration,
+            max_participants
+        ]):
             workout = GroupWorkout.objects.create(
                 title=title,
                 description=description,
@@ -246,10 +304,19 @@ def create_workout(request):
                 meeting_link=meeting_link,
                 created_by=request.user
             )
-            messages.success(request, 'Group workout created successfully!')
-            return redirect('community:workout_detail', workout_id=workout.id)
+            messages.success(
+                request,
+                'Group workout created successfully!'
+            )
+            return redirect(
+                'community:workout_detail',
+                workout_id=workout.id
+            )
         else:
-            messages.error(request, 'Please fill in all required fields.')
+            messages.error(
+                request,
+                'Please fill in all required fields.'
+            )
 
     return render(request, 'community/create_workout.html')
 
@@ -257,18 +324,30 @@ def create_workout(request):
 @login_required
 def user_profile(request, username):
     user = get_object_or_404(User, username=username)
-    posts = SocialPost.objects.filter(user=user).order_by('-created_at')
-    achievements = Achievement.objects.filter(user=user).order_by('-date_achieved')
-    badges = UserBadge.objects.filter(user=user).order_by('-date_earned')
-    progress_entries = ProgressEntry.objects.filter(user=user).order_by('-date')
+    posts = SocialPost.objects.filter(
+        user=user
+    ).order_by('-created_at')
+    achievements = Achievement.objects.filter(
+        user=user
+    ).order_by('-date_achieved')
+    badges = UserBadge.objects.filter(
+        user=user
+    ).order_by('-date_earned')
+    progress_entries = ProgressEntry.objects.filter(
+        user=user
+    ).order_by('-date')
 
-    return render(request, 'community/user_profile.html', {
-        'profile_user': user,
-        'posts': posts,
-        'achievements': achievements,
-        'badges': badges,
-        'progress_entries': progress_entries,
-    })
+    return render(
+        request,
+        'community/user_profile.html',
+        {
+            'profile_user': user,
+            'posts': posts,
+            'achievements': achievements,
+            'badges': badges,
+            'progress_entries': progress_entries,
+        }
+    )
 
 
 @login_required
@@ -277,7 +356,10 @@ def create_c25k_challenge(request):
         # Create the main challenge
         challenge = Challenge.objects.create(
             title="Couch to 5K Challenge",
-            description="""Join our 9-week Couch to 5K program! This beginner-friendly challenge will help you go from no running experience to completing a 5K run.
+            description="""
+            Join our 9-week Couch to 5K program! This beginner-friendly
+             challenge will help you go from no running experience to
+             completing a 5K run.
 
             What to expect:
             - 3 workouts per week
@@ -287,11 +369,10 @@ def create_c25k_challenge(request):
             - Achievement badges for milestones
             """,
             start_date=timezone.now(),
-            end_date=timezone.now() +
-            timezone.timedelta(
-                weeks=9),
+            end_date=timezone.now() + timezone.timedelta(weeks=9),
             points=500,
-            is_active=True)
+            is_active=True
+        )
 
         # Create requirements
         requirements = [
@@ -305,7 +386,7 @@ def create_c25k_challenge(request):
         for i, req in enumerate(requirements):
             ChallengeRequirement.objects.create(
                 description=req,
-                is_mandatory=(i != 3),  # Only the community sharing is optional
+                is_mandatory=(i != 3),  # Only sharing is optional
                 order=i
             )
 
@@ -375,8 +456,14 @@ def create_c25k_challenge(request):
             completed=False
         )
 
-        messages.success(request, 'Couch to 5K challenge created! Start your first workout today.')
-        return redirect('community:challenge_detail', challenge_id=challenge.id)
+        messages.success(
+            request,
+            'Couch to 5K challenge created! Start your first workout today.'
+        )
+        return redirect(
+            'community:challenge_detail',
+            challenge_id=challenge.id
+        )
 
     return render(request, 'community/create_c25k.html')
 
@@ -384,7 +471,11 @@ def create_c25k_challenge(request):
 @login_required
 def update_c25k_progress(request, challenge_id):
     challenge = get_object_or_404(Challenge, id=challenge_id)
-    participation = get_object_or_404(ChallengeParticipation, user=request.user, challenge=challenge)
+    participation = get_object_or_404(
+        ChallengeParticipation,
+        user=request.user,
+        challenge=challenge
+    )
 
     if request.method == 'POST':
         week_number = int(request.POST.get('week_number'))
@@ -423,11 +514,21 @@ def update_c25k_progress(request, challenge_id):
                     points=500
                 )
 
-                messages.success(request, 'Congratulations! You\'ve completed the Couch to 5K challenge!')
+                messages.success(
+                    request,
+                    'Congratulations! You\'ve completed the Couch to 5K '
+                    'challenge!'
+                )
             else:
-                messages.success(request, f'Week {week_number} progress updated!')
+                messages.success(
+                    request,
+                    f'Week {week_number} progress updated!'
+                )
 
-    return redirect('community:challenge_detail', challenge_id=challenge.id)
+    return redirect(
+        'community:challenge_detail',
+        challenge_id=challenge.id
+    )
 
 
 @login_required
@@ -441,8 +542,14 @@ def join_challenge(request, challenge_id):
     ).first()
 
     if existing_participation:
-        messages.info(request, 'You are already participating in this challenge!')
-        return redirect('community:challenge_detail', challenge_id=challenge.id)
+        messages.info(
+            request,
+            'You are already participating in this challenge!'
+        )
+        return redirect(
+            'community:challenge_detail',
+            challenge_id=challenge.id
+        )
 
     # Create new participation
     ChallengeParticipation.objects.create(
@@ -451,8 +558,14 @@ def join_challenge(request, challenge_id):
         completed=False
     )
 
-    messages.success(request, f'Successfully joined {challenge.title}!')
-    return redirect('community:challenge_detail', challenge_id=challenge.id)
+    messages.success(
+        request,
+        f'Successfully joined {challenge.title}!'
+    )
+    return redirect(
+        'community:challenge_detail',
+        challenge_id=challenge.id
+    )
 
 
 @login_required
@@ -473,17 +586,32 @@ def add_comment(request, post_id):
                 'comment': {
                     'id': comment.id,
                     'content': comment.content,
-                    'created_at': comment.created_at.strftime('%B %d, %Y at %I:%M %p'),
+                    'created_at': comment.created_at.strftime(
+                        '%B %d, %Y at %I:%M %p'
+                    ),
                     'user': {
                         'username': comment.user.username,
-                        'profile_picture': comment.user.userprofile.profile_picture.url if comment.user.userprofile.profile_picture else None
+                        'profile_picture': (
+                            comment.user.userprofile.profile_picture.url
+                            if comment.user.userprofile.profile_picture
+                            else None
+                        )
                     }
                 }
             })
-        messages.success(request, 'Comment added successfully!')
+        messages.success(
+            request,
+            'Comment added successfully!'
+        )
     else:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'errors': form.errors})
-        messages.error(request, 'Error adding comment. Please try again.')
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+        messages.error(
+            request,
+            'Error adding comment. Please try again.'
+        )
 
     return redirect('community:post_detail', post_id=post_id)

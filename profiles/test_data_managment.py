@@ -1,15 +1,9 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.conf import settings
 from profiles.models import UserProfile
 from checkout.models import Order, OrderItem
 from products.models import Product, Category
-import os
-import shutil
-from PIL import Image
-import tempfile
 
 
 class DataManagementTests(TestCase):
@@ -66,16 +60,19 @@ class DataManagementTests(TestCase):
     def test_user_profile_update(self):
         """Test that user profile can be updated"""
         self.client.login(username='testuser', password='testpass123')
-        response = self.client.post(reverse('profiles:profile'), {
-            'phone_number': '1234567890',
-            'address_line_1': '123 Test St',
-            'address_line_2': 'Apt 4B',
-            'city': 'Test City',
-            'state': 'Test State',
-            'country': 'Test Country',
-            'postal_code': '12345',
-            'newsletter_subscription': True
-        })
+        response = self.client.post(
+            reverse('profiles:profile'),
+            {
+                'phone_number': '1234567890',
+                'address_line_1': '123 Test St',
+                'address_line_2': 'Apt 4B',
+                'city': 'Test City',
+                'state': 'Test State',
+                'country': 'Test Country',
+                'postal_code': '12345',
+                'newsletter_subscription': True
+            }
+        )
         self.assertEqual(response.status_code, 200)
         self.profile.refresh_from_db()
         self.assertEqual(self.profile.phone_number, '1234567890')
@@ -102,24 +99,30 @@ class DataManagementTests(TestCase):
         self.client.login(username='testuser', password='testpass123')
 
         # Test invalid phone number
-        response = self.client.post(reverse('profiles:profile'), {
-            'phone_number': 'invalid',
-            'address_line_1': '123 Test St',
-            'city': 'Test City',
-            'country': 'Test Country',
-            'postal_code': '12345'
-        })
+        response = self.client.post(
+            reverse('profiles:profile'),
+            {
+                'phone_number': 'invalid',
+                'address_line_1': '123 Test St',
+                'city': 'Test City',
+                'country': 'Test Country',
+                'postal_code': '12345'
+            }
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Enter a valid phone number')
 
         # Test invalid postal code
-        response = self.client.post(reverse('profiles:profile'), {
-            'phone_number': '1234567890',
-            'address_line_1': '123 Test St',
-            'city': 'Test City',
-            'country': 'Test Country',
-            'postal_code': 'invalid'
-        })
+        response = self.client.post(
+            reverse('profiles:profile'),
+            {
+                'phone_number': '1234567890',
+                'address_line_1': '123 Test St',
+                'city': 'Test City',
+                'country': 'Test Country',
+                'postal_code': 'invalid'
+            }
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Enter a valid postal code')
 

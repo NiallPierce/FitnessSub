@@ -10,8 +10,11 @@ def main():
     # Add the project root directory to the Python path
     project_root = str(Path(__file__).resolve().parent)
     sys.path.append(project_root)
-    
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fitness_ecommerce.settings')
+
+    os.environ.setdefault(
+        'DJANGO_SETTINGS_MODULE',
+        'fitness_ecommerce.settings'
+    )
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

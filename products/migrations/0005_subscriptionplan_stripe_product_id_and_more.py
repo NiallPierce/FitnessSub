@@ -13,11 +13,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='subscriptionplan',
             name='stripe_product_id',
-            field=models.CharField(blank=True, help_text='Stripe Product ID for this plan', max_length=100),
+            field=models.CharField(
+                blank=True,
+                help_text='Stripe Product ID for this plan',
+                max_length=100
+            ),
         ),
         migrations.AlterField(
             model_name='subscriptionplan',
             name='stripe_price_id',
-            field=models.CharField(blank=True, help_text='Stripe Price ID for this plan', max_length=100),
+            field=models.CharField(
+                blank=True,
+                help_text='Stripe Price ID for this plan',
+                max_length=100
+            ),
         ),
     ]

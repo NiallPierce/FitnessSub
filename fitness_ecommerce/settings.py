@@ -97,7 +97,9 @@ WSGI_APPLICATION = 'fitness_ecommerce.wsgi.application'
 
 # Database
 DATABASES = {
-    'default': dj_database_url.parse(os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'))
+    'default': dj_database_url.parse(
+        os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3')
+    )
 }
 
 # Test Database Settings
@@ -117,16 +119,28 @@ if 'test' in sys.argv:
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'UserAttributeSimilarityValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'MinimumLengthValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'CommonPasswordValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'NumericPasswordValidator'
+        ),
     },
 ]
 
@@ -154,7 +168,10 @@ STATICFILES_FINDERS = [
 ]
 
 # AWS Settings
-if 'USE_AWS' in os.environ:
+if (
+    'USE_AWS' in os.environ and
+    not os.environ.get('DISABLE_S3_DURING_COLLECTSTATIC')
+):
     # Cache control
     AWS_S3_OBJECT_PARAMETERS = {
         'Expires': 'Thu, 31 Dec 2099 20:00:00 GMT',
@@ -166,7 +183,9 @@ if 'USE_AWS' in os.environ:
     AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_S3_CUSTOM_DOMAIN = (
+        f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    )
 
     # Additional S3 settings
     AWS_S3_FILE_OVERWRITE = True
@@ -174,7 +193,10 @@ if 'USE_AWS' in os.environ:
     AWS_S3_VERIFY = True
 
     # Static and media files
-    STATICFILES_STORAGE = 'fitness_ecommerce.custom_storages.StaticStorage'
+    STATICFILES_STORAGE = (
+        'whitenoise.storage.'
+        'CompressedManifestStaticFilesStorage'
+    )
     STATICFILES_LOCATION = 'static'
     DEFAULT_FILE_STORAGE = 'fitness_ecommerce.custom_storages.MediaStorage'
     MEDIAFILES_LOCATION = 'media'
@@ -183,8 +205,10 @@ if 'USE_AWS' in os.environ:
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATICFILES_LOCATION}/'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/'
 else:
-    # Use basic Django storage during collectstatic
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    STATICFILES_STORAGE = (
+        'whitenoise.storage.'
+        'CompressedManifestStaticFilesStorage'
+    )
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Default primary key field type
@@ -275,7 +299,10 @@ LOGGING = {
 handler404 = 'home.views.custom_404'
 
 # AWS Settings
-if 'USE_AWS' in os.environ and not os.environ.get('DISABLE_S3_DURING_COLLECTSTATIC'):
+if (
+    'USE_AWS' in os.environ and
+    not os.environ.get('DISABLE_S3_DURING_COLLECTSTATIC')
+):
     # Cache control
     AWS_S3_OBJECT_PARAMETERS = {
         'Expires': 'Thu, 31 Dec 2099 20:00:00 GMT',
@@ -299,5 +326,8 @@ if 'USE_AWS' in os.environ and not os.environ.get('DISABLE_S3_DURING_COLLECTSTAT
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATICFILES_LOCATION}/'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/'
 else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = (
+        'whitenoise.storage.'
+        'CompressedManifestStaticFilesStorage'
+    )
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'

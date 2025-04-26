@@ -50,7 +50,9 @@ def products(request):
         for term in search_terms:
             name_match = Q(name__iregex=r'\b' + term + r'\b')
             desc_match = Q(description__iregex=r'\b' + term + r'\b')
-            search_filter &= (name_match | desc_match)
+            search_filter &= (
+                name_match | desc_match
+            )
 
         products = products.filter(search_filter)
 
@@ -166,7 +168,8 @@ def add_product(request):
             return redirect('products:product_detail', product_id=product.id)
         messages.error(
             request,
-            'Failed to add product. Please ensure the form is valid.'
+            'Failed to add product. '
+            'Please ensure the form is valid.'
         )
     else:
         form = ProductForm()
@@ -193,7 +196,8 @@ def edit_product(request, product_id):
             return redirect('products:product_detail', product_id=product.id)
         messages.error(
             request,
-            'Failed to update product. Please ensure the form is valid.'
+            'Failed to update product. '
+            'Please ensure the form is valid.'
         )
     else:
         form = ProductForm(instance=product)

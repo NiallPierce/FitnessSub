@@ -8,9 +8,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             site = Site.objects.get(id=1)
-            site.domain = 'fitness-ecommerce-np92-62c36695dba8.herokuapp.com'
+            site.domain = (
+                'fitness-ecommerce-np92-62c36695dba8.herokuapp.com'
+            )
             site.name = 'Fitness Ecommerce'
             site.save()
-            self.stdout.write(self.style.SUCCESS('Successfully updated site configuration'))
+            success_msg = 'Successfully updated site configuration'
+            self.stdout.write(self.style.SUCCESS(success_msg))
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f'Error setting up site: {str(e)}'))
+            error_msg = f'Error setting up site: {str(e)}'
+            self.stdout.write(self.style.ERROR(error_msg))

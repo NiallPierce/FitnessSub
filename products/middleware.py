@@ -1,5 +1,4 @@
 from django.shortcuts import redirect
-from django.urls import reverse
 from django.contrib import messages
 from .models import UserSubscription
 
@@ -19,7 +18,10 @@ class SubscriptionMiddleware:
         # Check if the current URL requires a subscription
         if any(request.path.startswith(url) for url in protected_urls):
             if not request.user.is_authenticated:
-                messages.error(request, 'Please log in to access this content.')
+                messages.error(
+                    request,
+                    'Please log in to access this content.'
+                )
                 return redirect('account_login')
 
             try:
@@ -29,10 +31,17 @@ class SubscriptionMiddleware:
                 )
                 # Check if subscription is still valid
                 if subscription.is_expired():
-                    messages.error(request, 'Your subscription has expired. Please renew to access premium content.')
+                    messages.error(
+                        request,
+                        'Your subscription has expired. '
+                        'Please renew to access premium content.'
+                    )
                     return redirect('products:subscription_plans')
             except UserSubscription.DoesNotExist:
-                messages.error(request, 'This content requires an active subscription.')
+                messages.error(
+                    request,
+                    'This content requires an active subscription.'
+                )
                 return redirect('products:subscription_plans')
 
         response = self.get_response(request)

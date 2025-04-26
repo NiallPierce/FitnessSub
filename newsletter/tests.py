@@ -21,7 +21,8 @@ class NewsletterSubscriptionModelTests(TestCase):
     def test_subscription_creation(self):
         """Test that a subscription can be created"""
         self.assertEqual(self.subscription.email, 'test@example.com')
-        self.assertFalse(self.subscription.is_active)  # Should be inactive by default
+        # Should be inactive by default
+        self.assertFalse(self.subscription.is_active)
         self.assertIsNotNone(self.subscription.date_subscribed)
 
     def test_subscription_string_representation(self):
@@ -95,30 +96,41 @@ class NewsletterViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Check that subscription was created but not active
-        subscription = NewsletterSubscription.objects.get(email='test@example.com')
+        subscription = NewsletterSubscription.objects.get(
+            email='test@example.com'
+        )
         self.assertFalse(subscription.is_active)
         self.assertIsNotNone(subscription.confirmation_token)
 
         # Check that confirmation email was sent
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Confirm Your Newsletter Subscription')
+        self.assertEqual(
+            mail.outbox[0].subject,
+            'Confirm Your Newsletter Subscription'
+        )
 
     def test_signup_POST_invalid_data(self):
         """Test POST request with invalid data"""
         response = self.client.post(self.signup_url, self.invalid_data)
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(NewsletterSubscription.objects.filter(
-            email='invalid-email'
-        ).exists())
+        self.assertFalse(
+            NewsletterSubscription.objects.filter(
+                email='invalid-email'
+            ).exists()
+        )
 
     def test_confirm_subscription_valid_token(self):
         """Test confirmation with valid token"""
         # Create subscription and get token
-        subscription = NewsletterSubscription.objects.create(email='test@example.com')
+        subscription = NewsletterSubscription.objects.create(
+            email='test@example.com'
+        )
         token = subscription.generate_confirmation_token()
 
         # Confirm subscription
-        response = self.client.get(reverse('newsletter:confirm_subscription', args=[token]))
+        response = self.client.get(
+            reverse('newsletter:confirm_subscription', args=[token])
+        )
         self.assertEqual(response.status_code, 302)  # Should redirect
 
         # Check subscription is active
@@ -128,24 +140,35 @@ class NewsletterViewTests(TestCase):
 
         # Check welcome email was sent
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Welcome to Our Newsletter')
+        self.assertEqual(
+            mail.outbox[0].subject,
+            'Welcome to Our Newsletter'
+        )
 
     def test_confirm_subscription_invalid_token(self):
         """Test confirmation with invalid token"""
-        response = self.client.get(reverse('newsletter:confirm_subscription', args=['invalid-token']))
+        response = self.client.get(
+            reverse('newsletter:confirm_subscription', args=['invalid-token'])
+        )
         self.assertEqual(response.status_code, 302)  # Should redirect
-        self.assertFalse(NewsletterSubscription.objects.filter(is_active=True).exists())
+        self.assertFalse(
+            NewsletterSubscription.objects.filter(is_active=True).exists()
+        )
 
     def test_confirm_subscription_expired_token(self):
         """Test confirmation with expired token"""
         # Create subscription with old token
-        subscription = NewsletterSubscription.objects.create(email='test@example.com')
+        subscription = NewsletterSubscription.objects.create(
+            email='test@example.com'
+        )
         token = subscription.generate_confirmation_token()
         subscription.confirmation_sent = timezone.now() - timedelta(hours=25)
         subscription.save()
 
         # Try to confirm
-        response = self.client.get(reverse('newsletter:confirm_subscription', args=[token]))
+        response = self.client.get(
+            reverse('newsletter:confirm_subscription', args=[token])
+        )
         self.assertEqual(response.status_code, 302)  # Should redirect
 
         # Check subscription is still inactive

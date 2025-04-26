@@ -1,15 +1,10 @@
-from products.sitemaps import ProductSitemap, CategorySitemap
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from .sitemaps import StaticViewSitemap
-
-# Import sitemaps using absolute import
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from products.sitemaps import ProductSitemap, CategorySitemap
 
 sitemaps = {
     'static': StaticViewSitemap,
@@ -29,4 +24,7 @@ urlpatterns = [
     path('community/', include('community.urls', namespace='community')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps},
          name='django.contrib.sitemaps.views.sitemap'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + (
+    static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) +
+    static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+)

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
 from profiles.models import UserProfile
-from checkout.models import Order
+from checkout.models import Order, OrderLineItem
 from products.models import Product
 import os
 import shutil
@@ -14,60 +14,67 @@ import tempfile
 
 class ProfileTests(TestCase):
     def setUp(self):
+        """Set up test data"""
         self.client = Client()
-
-        # Create a test user
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
             password='testpass123'
         )
-
-        # Create a test profile (should be created automatically via signal)
         self.profile = UserProfile.objects.get(user=self.user)
 
-        # Create a temporary test image
-        self.image = self.create_test_image()
-
-        # Create a test product
+        # Create test product
         self.product = Product.objects.create(
             name='Test Product',
             description='Test Description',
-            price=10.00,
-            stock=10
+            price=10.00
         )
 
-        # Create a test order
+        # Create test order
         self.order = Order.objects.create(
-            user=self.user,
-            first_name='Test',
-            last_name='User',
+            user_profile=self.profile,
+            full_name='Test User',
             email='test@example.com',
-            address='123 Test St',
-            postal_code='12345',
-            city='Test City',
+            phone_number='1234567890',
             country='US',
-            paid=True
+            postcode='12345',
+            town_or_city='Test City',
+            street_address1='123 Test St',
+            order_total=10.00,
+            grand_total=10.00,
+            original_bag='{}',
+            stripe_pid='test_pid'
         )
 
-        # Profile update data
+        # Create order line item
+        OrderLineItem.objects.create(
+            order=self.order,
+            product=self.product,
+            quantity=1,
+            lineitem_total=10.00
+        )
+
+        # Create test profile data
         self.profile_data = {
             'phone_number': '1234567890',
             'address_line_1': '123 Test St',
-            'address_line_2': 'Apt 4B',
+            'address_line_2': '',
             'city': 'Test City',
             'state': 'Test State',
-            'country': 'Test Country',
+            'country': 'US',
             'postal_code': '12345',
             'newsletter_subscription': True
         }
 
+        # Create test image
+        self.image = self.create_test_image()
+
     def create_test_image(self):
-        """Helper method to create a test image"""
-        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as f:
-            image = Image.new('RGB', (100, 100), 'white')
-            image.save(f, 'JPEG')
-        return f.name
+        """Create a test image file"""
+        image = Image.new('RGB', (400, 400), color='red')
+        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image.save(tmp_file.name)
+        return tmp_file.name
 
     def tearDown(self):
         """Clean up after tests"""
@@ -76,8 +83,12 @@ class ProfileTests(TestCase):
             os.unlink(self.image)
 
         # Clean up any uploaded files
-        if os.path.exists(os.path.join(settings.MEDIA_ROOT, f'user_{self.user.id}')):
-            shutil.rmtree(os.path.join(settings.MEDIA_ROOT, f'user_{self.user.id}'))
+        if os.path.exists(
+            os.path.join(settings.MEDIA_ROOT, f'user_{self.user.id}')
+        ):
+            shutil.rmtree(
+                os.path.join(settings.MEDIA_ROOT, f'user_{self.user.id}')
+            )
 
     def test_profile_creation(self):
         """Test that profile is created automatically when user is created"""
@@ -91,8 +102,11 @@ class ProfileTests(TestCase):
     def test_profile_update(self):
         """Test profile update functionality"""
         self.client.login(username='testuser', password='testpass123')
-        response = self.client.post(reverse('profiles:profile'), self.profile_data)
-        self.assertEqual(response.status_code, 200)  # Should stay on same page after update
+        response = self.client.post(
+            reverse('profiles:profile'),
+            self.profile_data
+        )
+        self.assertEqual(response.status_code, 200)
 
         # Refresh profile from database
         self.profile.refresh_from_db()
@@ -112,9 +126,12 @@ class ProfileTests(TestCase):
                 content=img.read(),
                 content_type='image/jpeg'
             )
-            response = self.client.post(reverse('profiles:profile'), post_data)
+            response = self.client.post(
+                reverse('profiles:profile'),
+                post_data
+            )
 
-        self.assertEqual(response.status_code, 200)  # Should stay on same page after upload
+        self.assertEqual(response.status_code, 200)
 
         # Refresh profile from database
         self.profile.refresh_from_db()
@@ -129,7 +146,7 @@ class ProfileTests(TestCase):
         """Test that profile view requires authentication"""
         # Test without login
         response = self.client.get(reverse('profiles:profile'))
-        self.assertEqual(response.status_code, 302)  # Should redirect to login
+        self.assertEqual(response.status_code, 302)
 
         # Test with login
         self.client.login(username='testuser', password='testpass123')
@@ -139,7 +156,12 @@ class ProfileTests(TestCase):
     def test_order_history_view(self):
         """Test order history view"""
         self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('profiles:order_history', args=[self.order.order_number]))
+        response = self.client.get(
+            reverse(
+                'profiles:order_history',
+                args=[self.order.order_number]
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'checkout/checkout_success.html')
 
@@ -150,13 +172,19 @@ class ProfileTests(TestCase):
         # Test with invalid phone number
         invalid_data = self.profile_data.copy()
         invalid_data['phone_number'] = 'invalid-phone'
-        response = self.client.post(reverse('profiles:profile'), invalid_data)
-        self.assertEqual(response.status_code, 200)  # Should stay on same page
+        response = self.client.post(
+            reverse('profiles:profile'),
+            invalid_data
+        )
+        self.assertEqual(response.status_code, 200)
 
         # Test with invalid postal code
         invalid_data = self.profile_data.copy()
         invalid_data['postal_code'] = 'invalid-postal'
-        response = self.client.post(reverse('profiles:profile'), invalid_data)
+        response = self.client.post(
+            reverse('profiles:profile'),
+            invalid_data
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_newsletter_subscription_toggle(self):
@@ -164,17 +192,23 @@ class ProfileTests(TestCase):
         self.client.login(username='testuser', password='testpass123')
 
         # Test subscribing
-        response = self.client.post(reverse('profiles:profile'), {
-            **self.profile_data,
-            'newsletter_subscription': True
-        })
+        self.client.post(
+            reverse('profiles:profile'),
+            {
+                **self.profile_data,
+                'newsletter_subscription': True
+            }
+        )
         self.profile.refresh_from_db()
         self.assertTrue(self.profile.newsletter_subscription)
 
         # Test unsubscribing
-        response = self.client.post(reverse('profiles:profile'), {
-            **self.profile_data,
-            'newsletter_subscription': False
-        })
+        self.client.post(
+            reverse('profiles:profile'),
+            {
+                **self.profile_data,
+                'newsletter_subscription': False
+            }
+        )
         self.profile.refresh_from_db()
         self.assertFalse(self.profile.newsletter_subscription)

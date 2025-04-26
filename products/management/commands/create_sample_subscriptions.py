@@ -9,39 +9,54 @@ class Command(BaseCommand):
         plans = [
             {
                 'name': 'Basic Plan',
-                'description': 'Perfect for beginners starting their fitness journey',
+                'description': (
+                    'Perfect for beginners '
+                    'starting their fitness journey'
+                ),
                 'price': 9.99,
                 'plan_type': 'monthly',
-                'features': '''Access to basic workout plans
-Basic nutrition guidance
-Community forum access
-Weekly progress tracking
-Email support''',
+                'features': (
+                    'Access to basic workout plans\n'
+                    'Basic nutrition guidance\n'
+                    'Community forum access\n'
+                    'Weekly progress tracking\n'
+                    'Email support'
+                ),
             },
             {
                 'name': 'Pro Plan',
-                'description': 'For serious fitness enthusiasts looking to level up',
+                'description': (
+                    'For serious fitness enthusiasts '
+                    'looking to level up'
+                ),
                 'price': 19.99,
                 'plan_type': 'monthly',
-                'features': '''All Basic Plan features
-Customized workout plans
-Personalized nutrition plans
-Video tutorials
-Priority support
-Monthly progress review''',
+                'features': (
+                    'All Basic Plan features\n'
+                    'Customized workout plans\n'
+                    'Personalized nutrition plans\n'
+                    'Video tutorials\n'
+                    'Priority support\n'
+                    'Monthly progress review'
+                ),
             },
             {
                 'name': 'Elite Plan',
-                'description': 'The ultimate fitness experience with premium features',
+                'description': (
+                    'The ultimate fitness experience '
+                    'with premium features'
+                ),
                 'price': 29.99,
                 'plan_type': 'monthly',
-                'features': '''All Pro Plan features
-1-on-1 coaching sessions
-Advanced analytics
-Exclusive content
-24/7 support
-Custom meal planning
-Progress tracking dashboard''',
+                'features': (
+                    'All Pro Plan features\n'
+                    '1-on-1 coaching sessions\n'
+                    'Advanced analytics\n'
+                    'Exclusive content\n'
+                    '24/7 support\n'
+                    'Custom meal planning\n'
+                    'Progress tracking dashboard'
+                ),
             }
         ]
 
@@ -51,6 +66,14 @@ Progress tracking dashboard''',
                 defaults=plan_data
             )
             if created:
-                self.stdout.write(self.style.SUCCESS(f'Created subscription plan: {plan.name}'))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f'Created subscription plan: {plan.name}'
+                    )
+                )
             else:
-                self.stdout.write(self.style.WARNING(f'Subscription plan already exists: {plan.name}'))
+                self.stdout.write(
+                    self.style.WARNING(
+                        f'Subscription plan already exists: {plan.name}'
+                    )
+                )

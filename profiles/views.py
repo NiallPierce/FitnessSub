@@ -1,11 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from checkout.models import Order, Payment
-from checkout.forms import OrderForm
-from cart.models import Cart, CartItem
-from .forms import UserForm, UserProfileForm
 from .models import UserProfile
+from .forms import UserProfileForm, UserForm
+from checkout.models import Order
 
 
 @login_required
@@ -24,7 +22,10 @@ def profile(request):
         if 'profile_picture' in request.FILES:
             profile.profile_picture = request.FILES['profile_picture']
             profile.save()
-            messages.success(request, 'Profile picture updated successfully')
+            messages.success(
+                request,
+                'Profile picture updated successfully'
+            )
             return redirect('profiles:profile')
 
         # Determine which form was submitted
@@ -32,16 +33,30 @@ def profile(request):
             user_form = UserForm(request.POST, instance=request.user)
             if user_form.is_valid():
                 user_form.save()
-                messages.success(request, 'Personal information updated successfully')
+                messages.success(
+                    request,
+                    'Personal information updated successfully'
+                )
             else:
-                messages.error(request, 'Failed to update personal information. Please check the form.')
+                messages.error(
+                    request,
+                    'Failed to update personal information. '
+                    'Please check the form.'
+                )
         elif 'update_shipping' in request.POST:
             profile_form = UserProfileForm(request.POST, instance=profile)
             if profile_form.is_valid():
                 profile_form.save()
-                messages.success(request, 'Shipping information updated successfully')
+                messages.success(
+                    request,
+                    'Shipping information updated successfully'
+                )
             else:
-                messages.error(request, 'Failed to update shipping information. Please check the form.')
+                messages.error(
+                    request,
+                    'Failed to update shipping information. '
+                    'Please check the form.'
+                )
         else:
             messages.error(request, 'Invalid form submission.')
 
@@ -59,12 +74,19 @@ def profile(request):
 def order_history(request, order_number):
     """ Display a past order. """
     template = 'checkout/checkout_success.html'
-    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+    order = get_object_or_404(
+        Order,
+        order_number=order_number,
+        user=request.user
+    )
 
-    messages.info(request, (
-        f'This is a past confirmation for order number {order_number}. '
-        'A confirmation email was sent on the order date.'
-    ))
+    messages.info(
+        request,
+        (
+            f'This is a past confirmation for order number {order_number}. '
+            'A confirmation email was sent on the order date.'
+        )
+    )
 
     context = {
         'order': order,
@@ -78,7 +100,11 @@ def order_history(request, order_number):
 def order_tracking(request, order_number):
     """ Display order tracking information. """
     template = 'profiles/order_tracking.html'
-    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+    order = get_object_or_404(
+        Order,
+        order_number=order_number,
+        user=request.user
+    )
 
     # Calculate estimated delivery if not set
     if not order.estimated_delivery and order.shipping_date:

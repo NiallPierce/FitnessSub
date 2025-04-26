@@ -6,9 +6,17 @@ from django.utils.crypto import get_random_string
 class NewsletterSubscription(models.Model):
     email = models.EmailField(max_length=254, unique=True)
     date_subscribed = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=False)  # Changed to False until confirmed
-    confirmation_token = models.CharField(max_length=64, unique=True, blank=True)
-    confirmation_sent = models.DateTimeField(null=True, blank=True)
+    # Changed to False until confirmed
+    is_active = models.BooleanField(default=False)
+    confirmation_token = models.CharField(
+        max_length=64,
+        unique=True,
+        blank=True
+    )
+    confirmation_sent = models.DateTimeField(
+        null=True,
+        blank=True
+    )
     confirmed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):

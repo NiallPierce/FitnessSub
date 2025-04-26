@@ -17,14 +17,37 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SubscriptionPlan',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
                 ('name', models.CharField(max_length=100)),
                 ('description', models.TextField()),
-                ('price', models.DecimalField(decimal_places=2, max_digits=6, validators=[django.core.validators.MinValueValidator(0)])),
-                ('plan_type', models.CharField(choices=[('monthly', 'Monthly'), ('quarterly', 'Quarterly'), ('annual', 'Annual')], max_length=20)),
-                ('features', models.TextField(help_text='List of features separated by newlines')),
+                ('price', models.DecimalField(
+                    decimal_places=2,
+                    max_digits=6,
+                    validators=[
+                        django.core.validators.MinValueValidator(0)
+                    ]
+                )),
+                ('plan_type', models.CharField(
+                    choices=[
+                        ('monthly', 'Monthly'),
+                        ('quarterly', 'Quarterly'),
+                        ('annual', 'Annual')
+                    ],
+                    max_length=20
+                )),
+                ('features', models.TextField(
+                    help_text='List of features separated by newlines'
+                )),
                 ('is_active', models.BooleanField(default=True)),
-                ('stripe_price_id', models.CharField(blank=True, max_length=100)),
+                ('stripe_price_id', models.CharField(
+                    blank=True,
+                    max_length=100
+                )),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],
@@ -32,16 +55,34 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserSubscription',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
                 ('start_date', models.DateTimeField(auto_now_add=True)),
                 ('end_date', models.DateTimeField()),
                 ('is_active', models.BooleanField(default=True)),
-                ('stripe_subscription_id', models.CharField(blank=True, max_length=100)),
-                ('stripe_customer_id', models.CharField(blank=True, max_length=100)),
+                ('stripe_subscription_id', models.CharField(
+                    blank=True,
+                    max_length=100
+                )),
+                ('stripe_customer_id', models.CharField(
+                    blank=True,
+                    max_length=100
+                )),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('plan', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='products.subscriptionplan')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subscriptions', to=settings.AUTH_USER_MODEL)),
+                ('plan', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT,
+                    to='products.subscriptionplan'
+                )),
+                ('user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='subscriptions',
+                    to=settings.AUTH_USER_MODEL
+                )),
             ],
             options={
                 'ordering': ['-created_at'],

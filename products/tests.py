@@ -52,7 +52,9 @@ class ProductTests(TestCase):
 
     def test_product_detail_view(self):
         """Test that the product detail view returns a 200 status code"""
-        response = self.client.get(reverse('products:product_detail', args=[self.product1.id]))
+        response = self.client.get(
+            reverse('products:product_detail', args=[self.product1.id])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'product/product_detail.html')
         self.assertContains(response, 'Test Product 1')
@@ -60,14 +62,20 @@ class ProductTests(TestCase):
 
     def test_product_filtering_by_category(self):
         """Test that product filtering by category works"""
-        response = self.client.get(reverse('products:products'), {'category': self.category1.name})
+        response = self.client.get(
+            reverse('products:products'),
+            {'category': self.category1.name}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Product 1')
         self.assertNotContains(response, 'Test Product 2')
 
     def test_product_sorting(self):
         """Test that product sorting works"""
-        response = self.client.get(reverse('products:products'), {'sort': 'price'})
+        response = self.client.get(
+            reverse('products:products'),
+            {'sort': 'price'}
+        )
         self.assertEqual(response.status_code, 200)
         products = list(response.context['products'])
         self.assertEqual(products[0].price, Decimal('99.99'))
@@ -75,14 +83,20 @@ class ProductTests(TestCase):
 
     def test_product_rating_filtering(self):
         """Test that product filtering by rating works"""
-        response = self.client.get(reverse('products:products'), {'rating': '4'})
+        response = self.client.get(
+            reverse('products:products'),
+            {'rating': '4'}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Product 1')
         self.assertNotContains(response, 'Test Product 2')
 
     def test_product_search(self):
         """Test that product search works"""
-        response = self.client.get(reverse('products:products'), {'q': 'Test Product 1'})
+        response = self.client.get(
+            reverse('products:products'),
+            {'q': 'Test Product 1'}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Product 1')
         self.assertNotContains(response, 'Test Product 2')

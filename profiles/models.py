@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from PIL import Image
 import os
@@ -23,7 +22,11 @@ class UserProfile(models.Model):
     country = models.CharField(max_length=50, blank=True)
     postal_code = models.CharField(max_length=10, blank=True)
     newsletter_subscription = models.BooleanField(default=False)
-    profile_picture = models.ImageField(upload_to=user_profile_picture_path, blank=True, null=True)
+    profile_picture = models.ImageField(
+        upload_to=user_profile_picture_path,
+        blank=True,
+        null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -53,8 +56,8 @@ class UserProfile(models.Model):
                         temp_file,
                         save=False
                     )
-            except Exception as e:
-                # If there's an error processing the image, just save the original
+            except Exception:
+
                 pass
 
         super().save(*args, **kwargs)

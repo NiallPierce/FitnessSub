@@ -1,5 +1,4 @@
 from PIL import Image, ImageDraw, ImageFont
-import os
 
 # Create a new image with a light gray background
 img = Image.new('RGB', (200, 200), color='#f0f0f0')

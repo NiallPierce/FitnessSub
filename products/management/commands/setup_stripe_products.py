@@ -5,11 +5,16 @@ from django.conf import settings
 
 
 class Command(BaseCommand):
-    help = 'Creates or updates Stripe products and prices for subscription plans'
+    help = (
+        'Creates or updates Stripe products and prices '
+        'for subscription plans'
+    )
 
     def handle(self, *args, **kwargs):
         if not settings.STRIPE_SECRET_KEY:
-            self.stdout.write(self.style.ERROR('Stripe secret key is not configured'))
+            self.stdout.write(
+                self.style.ERROR('Stripe secret key is not configured')
+            )
             return
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -22,12 +27,12 @@ class Command(BaseCommand):
                         # Verify the price exists and is recurring
                         price = stripe.Price.retrieve(plan.stripe_price_id)
                         if price.recurring:
-                            self.stdout.write(
-                                self.style.SUCCESS(f'Price already exists for {plan.name}')
-                            )
+                            msg = f'Price already exists for {plan.name}'
+                            self.stdout.write(self.style.SUCCESS(msg))
                             continue
                     except stripe.error.InvalidRequestError:
-                        # Price doesn't exist or is invalid, we'll create a new one
+                        # Price doesn't exist or is invalid
+                        # we'll create a new one
                         pass
 
                 # Create or update Stripe product
@@ -61,15 +66,19 @@ class Command(BaseCommand):
                 plan.stripe_price_id = price.id
                 plan.save()
 
-                self.stdout.write(
-                    self.style.SUCCESS(f'Successfully created Stripe product and price for {plan.name}')
+                success_msg = (
+                    f'Successfully created Stripe product and price '
+                    f'for {plan.name}'
                 )
+                self.stdout.write(self.style.SUCCESS(success_msg))
                 self.stdout.write(f'Product ID: {product.id}')
                 self.stdout.write(f'Price ID: {price.id}')
 
             except stripe.error.StripeError as e:
-                self.stdout.write(
-                    self.style.ERROR(f'Error creating Stripe product/price for {plan.name}: {str(e)}')
+                error_msg = (
+                    f'Error creating Stripe product/price for '
+                    f'{plan.name}: {str(e)}'
                 )
+                self.stdout.write(self.style.ERROR(error_msg))
                 import traceback
                 self.stdout.write(traceback.format_exc())
