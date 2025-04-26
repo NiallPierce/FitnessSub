@@ -63,7 +63,7 @@ class UsabilityTests(TestCase):
     def test_form_validation_feedback(self):
         """Test that form validation provides clear feedback"""
         # Test login form validation
-        response = self.client.post('/accounts/login/', {
+        response = self.client.post(reverse('accounts:login'), {
             'login': '',
             'password': ''
         })
@@ -72,7 +72,7 @@ class UsabilityTests(TestCase):
         self.assertTrue(response.context['form'].errors)  # Should have errors
         
         # Test registration form validation
-        response = self.client.post('/accounts/signup/', {
+        response = self.client.post(reverse('accounts:signup'), {
             'username': '',
             'email': 'invalid-email',
             'password1': 'short',
@@ -97,7 +97,7 @@ class UsabilityTests(TestCase):
     def test_success_messages(self):
         """Test that success messages are displayed appropriately"""
         # Test successful login using Django's built-in login
-        response = self.client.post('/auth/login/', {
+        response = self.client.post(reverse('accounts:login'), {
             'username': self.user.username,
             'password': 'testpass123'
         }, follow=True)
@@ -109,7 +109,7 @@ class UsabilityTests(TestCase):
         self.assertContains(response, self.user.username)
 
         # Test successful registration using Django's built-in registration
-        response = self.client.post('/auth/register/', {
+        response = self.client.post(reverse('accounts:signup'), {
             'username': 'newuser',
             'email': 'newuser@example.com',
             'password1': 'newuserpass123',

@@ -20,7 +20,7 @@ def user_login(request):
                 return redirect('profiles:profile')
     else:
         form = UserLoginForm()
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'account/login.html', {'form': form})
 
 @login_required
 def user_logout(request):
@@ -31,20 +31,17 @@ def user_logout(request):
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
-        print(f"Form is valid: {form.is_valid()}")
-        print(f"Form errors: {form.errors}")
-        
         if not form.is_valid():
-            return render(request, 'accounts/register.html', {'form': form})
+            return render(request, 'account/signup.html', {'form': form})
         
         try:
             user = form.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, f'Account created for {user.username}!')
             return redirect('profiles:profile')
         except Exception as e:
-            print(f"Error during save: {e}")
-            return render(request, 'accounts/register.html', {'form': form})
+            logger.error(f"Error during user registration: {e}")
+            return render(request, 'account/signup.html', {'form': form})
     else:
         form = UserRegistrationForm()
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'account/signup.html', {'form': form})

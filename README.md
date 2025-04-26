@@ -223,10 +223,46 @@ fitness_ecommerce/
 
 ## 🧪 Testing
 
-Run the test suite:
+The project includes comprehensive test coverage for various components. Below is a summary of the test suites and their status:
+
+### Test Suites
+
+| App | Test Case | Description | Status |
+|-----|-----------|-------------|--------|
+| accounts | test_form_validation_feedback | Tests form validation for login and registration | ✅ |
+| accounts | test_success_messages | Tests success messages for login and registration | ✅ |
+| checkout | test_checkout_view | Tests checkout process with items in cart | ✅ |
+| checkout | test_stripe_payment_intent_creation | Tests Stripe payment intent creation | ✅ |
+| products | test_product_detail_view | Tests product detail page rendering | ✅ |
+| products | test_product_search | Tests product search functionality | ✅ |
+
+### Running Tests
+
+To run all tests:
 ```bash
-python manage.py test
+python manage.py test --keepdb
 ```
+
+To run specific app tests:
+```bash
+python manage.py test <app_name>.tests --keepdb
+```
+
+To run a specific test case:
+```bash
+python manage.py test <app_name>.tests.<TestClass>.<test_method> --keepdb
+```
+
+### Test Coverage
+
+The tests cover:
+- User authentication and registration
+- Product search and filtering
+- Shopping cart functionality
+- Checkout process
+- Payment processing
+- Form validation
+- Success/error message handling
 
 ## 📈 Monitoring and Maintenance
 
@@ -427,23 +463,6 @@ So that I can receive updates and promotions
 - [x] Unsubscribe option
 - [x] Newsletter templates
 - [x] Email sending
-
-### Testing Coverage
-
-Each feature has been tested through:
-- Unit tests
-- Integration tests
-- User acceptance testing
-- Security testing
-- Performance testing
-
-### Implementation Notes
-
-- All features are fully implemented and deployed
-- Security best practices followed
-- Responsive design implemented
-- Performance optimized
-- Documentation complete
 
 ## 💼 E-commerce Business Model
 

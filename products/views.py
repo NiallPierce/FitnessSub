@@ -29,7 +29,7 @@ def products(request):
     categories = Category.objects.all()
     
     # Search functionality
-    search_query = request.GET.get('search', '')
+    search_query = request.GET.get('q', '')
     if search_query:
         cleaned_query = clean_search_query(search_query)
         # Create a list of search terms
@@ -37,34 +37,33 @@ def products(request):
         # Build a complex Q object for flexible searching
         search_filter = Q()
         for term in search_terms:
-            search_filter |= Q(name__icontains=term) | Q(description__icontains=term)
+            # Use exact word matching with word boundaries
+            search_filter &= (Q(name__iregex=r'\b' + term + r'\b') | 
+                            Q(description__iregex=r'\b' + term + r'\b'))
         products = products.filter(search_filter)
     
     # Category filter
-    category_slug = request.GET.get('category', '')
-    if category_slug:
-        category = get_object_or_404(Category, slug=category_slug)
-        products = products.filter(category=category)
+    category = request.GET.get('category', '')
+    if category:
+        category_obj = get_object_or_404(Category, name=category)
+        products = products.filter(category=category_obj)
     
-    # Price range filter
-    min_price = request.GET.get('min_price', '')
-    max_price = request.GET.get('max_price', '')
-    if min_price:
-        products = products.filter(price__gte=float(min_price))
-    if max_price:
-        products = products.filter(price__lte=float(max_price))
+    # Rating filter
+    rating = request.GET.get('rating', '')
+    if rating:
+        products = products.filter(rating__gte=float(rating))
     
     # Sorting
-    sort_by = request.GET.get('sort_by', 'newest')
-    if sort_by == 'price_asc':
+    sort = request.GET.get('sort', '')
+    if sort == 'price':
         products = products.order_by('price')
-    elif sort_by == 'price_desc':
+    elif sort == '-price':
         products = products.order_by('-price')
-    elif sort_by == 'name_asc':
+    elif sort == 'name':
         products = products.order_by('name')
-    elif sort_by == 'name_desc':
+    elif sort == '-name':
         products = products.order_by('-name')
-    else:  # newest
+    else:  # default to newest
         products = products.order_by('-created_at')
     
     # Pagination
@@ -82,10 +81,8 @@ def products(request):
         'page_obj': page_obj,
         'categories': categories,
         'search_query': search_query,
-        'selected_category': category_slug,
-        'min_price': min_price,
-        'max_price': max_price,
-        'sort_by': sort_by,
+        'selected_category': category,
+        'sort': sort,
         'is_paginated': paginator.num_pages > 1
     }
     return render(request, 'product/products.html', context)
