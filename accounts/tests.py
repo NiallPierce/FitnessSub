@@ -7,9 +7,9 @@ from .forms import UserLoginForm
 class AccountTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.register_url = '/accounts/signup/'  # Allauth signup
-        self.login_url = '/accounts/login/'  # Allauth login
-        self.logout_url = '/accounts/logout/'  # Allauth logout
+        self.register_url = '/auth/signup/'  # Updated path
+        self.login_url = '/auth/login/'  # Updated path
+        self.logout_url = '/auth/logout/'  # Updated path
         
         # Create a test user
         self.user = User.objects.create_user(
@@ -25,6 +25,10 @@ class AccountTests(TestCase):
             'password1': 'newuserpass123',
             'password2': 'newuserpass123',
         }
+
+    def tearDown(self):
+        # Clean up all users except the test user
+        User.objects.exclude(username='testuser').delete()
 
     def test_user_registration(self):
         """Test user registration functionality"""
@@ -44,7 +48,7 @@ class AccountTests(TestCase):
     def test_user_login(self):
         """Test user login functionality"""
         response = self.client.post(self.login_url, {
-            'login': 'testuser',
+            'username': 'testuser',
             'password': 'testpass123'
         })
         self.assertEqual(response.status_code, 302)  # Should redirect after successful login
@@ -53,7 +57,7 @@ class AccountTests(TestCase):
     def test_user_login_invalid_credentials(self):
         """Test user login with invalid credentials"""
         response = self.client.post(self.login_url, {
-            'login': 'testuser',
+            'username': 'testuser',
             'password': 'wrongpass'
         })
         self.assertEqual(response.status_code, 200)  # Should stay on the same page
@@ -97,17 +101,19 @@ class AccountTests(TestCase):
     def test_unique_email_validation(self):
         """Test that email must be unique"""
         # First registration
-        response = self.client.post(self.register_url, self.user_data, follow=True)
-        self.assertEqual(response.status_code, 200)  # Should show success page after redirect
+        response = self.client.post(self.register_url, self.user_data)
+        self.assertEqual(response.status_code, 302)  # Should redirect after successful registration
         self.assertTrue(User.objects.filter(username='newuser').exists())
         
         # Second registration with same email
         duplicate_data = self.user_data.copy()
         duplicate_data['username'] = 'anotheruser'
-        response = self.client.post(self.register_url, duplicate_data, follow=True)
+        response = self.client.post(self.register_url, duplicate_data)
         self.assertEqual(response.status_code, 200)  # Should show form with errors
         self.assertFalse(User.objects.filter(username='anotheruser').exists())
         
         # Check for error message in form errors
-        self.assertTrue('email' in response.context['form'].errors)
-        self.assertIn('already in use', str(response.context['form'].errors['email']))
+        form = response.context['form']
+        self.assertTrue(form.errors)
+        self.assertIn('email', form.errors)
+        self.assertIn('already in use', str(form.errors['email']))
