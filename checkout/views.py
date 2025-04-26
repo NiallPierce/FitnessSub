@@ -1,8 +1,6 @@
-import datetime
-import json
 import stripe
 from django.conf import settings
-from django.shortcuts import render, redirect, reverse, get_object_or_404, HttpResponse
+from django.shortcuts import render, redirect, reverse, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -10,20 +8,16 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.auth.tokens import default_token_generator
 from decimal import Decimal
 
-from .forms import OrderForm
+from .forms import OrderCreateForm
 from .models import Order, OrderItem, Payment
 from cart.models import Cart, CartItem
-from cart.contexts import cart_contents
-from .forms import OrderCreateForm
 from products.models import Product
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 @login_required
 def checkout(request):
@@ -58,7 +52,7 @@ def checkout(request):
             if request.user.is_authenticated:
                 order.user = request.user
             order.save()
-            
+
             # Create order items from cart items
             for cart_item in cart_items:
                 if isinstance(cart_item, dict):
@@ -77,7 +71,7 @@ def checkout(request):
                         price=cart_item.product.price,
                         quantity=cart_item.quantity
                     )
-            
+
             try:
                 # Create a PaymentIntent with the order amount and currency
                 intent = stripe.PaymentIntent.create(
@@ -90,12 +84,13 @@ def checkout(request):
                         'order_id': order.id
                     }
                 )
-                
+
                 # Update the order with the payment intent ID
                 order.stripe_id = intent.id
                 order.save()
-                
-                # For testing purposes, if the order number starts with 'TEST', skip payment
+
+                # For testing purposes, if the order number starts with 'TEST',
+                # skip payment
                 if order.order_number.startswith('TEST'):
                     # Mark the order as paid and redirect to success
                     order.paid = True
@@ -103,50 +98,53 @@ def checkout(request):
                     return JsonResponse({
                         'success': True,
                         'order_id': order.order_number,
-                        'redirect_url': reverse('checkout:payment_success', args=[order.order_number])
+                        'redirect_url': reverse(
+                            'checkout:payment_success',
+                            args=[order.order_number]
+                        )
                     })
-                
+
                 # Return the client secret to the frontend
                 return JsonResponse({
                     'success': True,
                     'clientSecret': intent.client_secret,
                     'order_id': order.order_number
                 })
-                
-            except stripe.error.CardError as e:
+
+            except stripe.error.CardError:
                 return JsonResponse({
                     'success': False,
-                    'error': f'Card error: {str(e)}'
+                    'error': 'Card error. Please check your card details.'
                 }, status=400)
-            except stripe.error.RateLimitError as e:
+            except stripe.error.RateLimitError:
                 return JsonResponse({
                     'success': False,
                     'error': 'Rate limit error. Please try again later.'
                 }, status=400)
-            except stripe.error.InvalidRequestError as e:
+            except stripe.error.InvalidRequestError:
                 return JsonResponse({
                     'success': False,
-                    'error': f'Invalid request: {str(e)}'
+                    'error': 'Invalid request. Please try again.'
                 }, status=400)
-            except stripe.error.AuthenticationError as e:
+            except stripe.error.AuthenticationError:
                 return JsonResponse({
                     'success': False,
                     'error': 'Authentication error. Please contact support.'
                 }, status=400)
-            except stripe.error.APIConnectionError as e:
+            except stripe.error.APIConnectionError:
                 return JsonResponse({
                     'success': False,
                     'error': 'Network error. Please check your connection.'
                 }, status=400)
-            except stripe.error.StripeError as e:
+            except stripe.error.StripeError:
                 return JsonResponse({
                     'success': False,
                     'error': 'Something went wrong. Please try again later.'
                 }, status=400)
-            except Exception as e:
+            except Exception as error:
                 return JsonResponse({
                     'success': False,
-                    'error': f'Error processing payment: {str(e)}'
+                    'error': f'Error processing payment: {str(error)}'
                 }, status=400)
         else:
             return JsonResponse({
@@ -156,7 +154,7 @@ def checkout(request):
             }, status=400)
     else:
         form = OrderCreateForm()
-    
+
     return render(request, 'checkout/checkout.html', {
         'cart_items': cart_items,
         'form': form,
@@ -164,28 +162,35 @@ def checkout(request):
         'order_id': None
     })
 
+
 def payment_success(request, order_number):
     try:
         order = Order.objects.get(order_number=order_number)
-        
+
         # Check if the user is authorized to view this order
-        if not request.user.is_authenticated or (order.user and order.user != request.user):
+        if not request.user.is_authenticated or (
+            order.user and order.user != request.user
+        ):
             return HttpResponse(status=404)
-        
+
         # If the order already has a stripe_id, verify the payment
         if order.stripe_id:
             # Retrieve the PaymentIntent to confirm the payment status
             intent = stripe.PaymentIntent.retrieve(order.stripe_id)
-            
+
             if intent.status == 'succeeded':
                 order.paid = True
                 order.save()
-                
+
                 # Create a Payment record
                 Payment.objects.create(
                     order=order,
                     payment_id=intent.id,
-                    payment_method=intent.payment_method_types[0] if intent.payment_method_types else 'card',
+                    payment_method=(
+                        intent.payment_method_types[0]
+                        if intent.payment_method_types
+                        else 'card'
+                    ),
                     amount_paid=order.get_total_cost(),
                     status='completed'
                 )
@@ -193,7 +198,7 @@ def payment_success(request, order_number):
             # If no stripe_id, mark as paid anyway (for testing purposes)
             order.paid = True
             order.save()
-            
+
             # Create a Payment record
             Payment.objects.create(
                 order=order,
@@ -202,7 +207,7 @@ def payment_success(request, order_number):
                 amount_paid=order.get_total_cost(),
                 status='completed'
             )
-        
+
         # Clear the cart
         try:
             cart = Cart.objects.get(cart_id=request.session.session_key)
@@ -211,13 +216,16 @@ def payment_success(request, order_number):
             cart.delete()
         except Cart.DoesNotExist:
             pass
-        
+
         # Send confirmation email
         subject = f'Order Confirmation - #{order.order_number}'
-        html_message = render_to_string('checkout/email/order_confirmation.html', {
-            'order': order,
-            'site': get_current_site(request)
-        })
+        html_message = render_to_string(
+            'checkout/email/order_confirmation.html',
+            {
+                'order': order,
+                'site': get_current_site(request)
+            }
+        )
         plain_message = strip_tags(html_message)
         send_mail(
             subject,
@@ -226,25 +234,36 @@ def payment_success(request, order_number):
             [order.email],
             html_message=html_message
         )
-        
-        messages.success(request, f'Payment successful! Your order number is #{order.order_number}.')
-        
+
+        messages.success(
+            request,
+            f'Payment successful! Your order number is #{order.order_number}.'
+        )
+
         # Redirect to order history
-        return redirect('profiles:order_history', order_number=order.order_number)
-        
+        return redirect(
+            'profiles:order_history',
+            order_number=order.order_number
+        )
+
     except Order.DoesNotExist:
         messages.error(request, 'Order not found.')
         return redirect('checkout:checkout')
-    except stripe.error.StripeError as e:
-        messages.error(request, f'Error verifying payment: {str(e)}')
+    except stripe.error.StripeError as error:
+        messages.error(request, f'Error verifying payment: {str(error)}')
         return redirect('checkout:checkout')
-    except Exception as e:
-        messages.error(request, f'An unexpected error occurred: {str(e)}')
+    except Exception as error:
+        messages.error(request, f'An unexpected error occurred: {str(error)}')
         return redirect('checkout:checkout')
 
+
 def payment_cancel(request):
-    messages.info(request, 'Payment was cancelled. You can try again if you wish.')
+    messages.info(
+        request,
+        'Payment was cancelled. You can try again if you wish.'
+    )
     return redirect('cart:view_cart')
+
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -256,9 +275,9 @@ def stripe_webhook(request):
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
-    except ValueError as e:
+    except ValueError:
         return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError:
         return HttpResponse(status=400)
 
     if event['type'] == 'checkout.session.completed':
@@ -269,13 +288,13 @@ def stripe_webhook(request):
             order.paid = True
             order.stripe_id = session['payment_intent']
             order.save()
-            
+
             # Update payment record
             payment = Payment.objects.get(order=order)
             payment.status = 'completed'
             payment.save()
-            
+
         except Order.DoesNotExist:
             return HttpResponse(status=404)
 
-    return HttpResponse(status=200) 
+    return HttpResponse(status=200)

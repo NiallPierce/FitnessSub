@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    
+
     # Third party apps
     'allauth',
     'allauth.account',
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'storages',
-    
+
     # Local apps
     'fitness_ecommerce',
     'accounts',
@@ -167,7 +167,7 @@ if 'USE_AWS' in os.environ:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-    
+
     # Additional S3 settings
     AWS_S3_FILE_OVERWRITE = True
     AWS_QUERYSTRING_AUTH = False
@@ -300,4 +300,4 @@ if 'USE_AWS' in os.environ and not os.environ.get('DISABLE_S3_DURING_COLLECTSTAT
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/'
 else:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage' 
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'

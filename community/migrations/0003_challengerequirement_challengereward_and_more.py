@@ -7,14 +7,20 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('community', '0002_alter_achievement_image_alter_badge_image_and_more'),
+        ('community', 
+        '0002_alter_achievement_image_alter_badge_image_and_more'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='ChallengeRequirement',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
                 ('description', models.TextField()),
                 ('is_mandatory', models.BooleanField(default=True)),
                 ('order', models.IntegerField(default=0)),
@@ -26,20 +32,36 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ChallengeReward',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
                 ('description', models.TextField()),
                 ('points_value', models.IntegerField(default=0)),
-                ('badge', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='community.badge')),
+                ('badge', models.ForeignKey(
+                    blank=True,
+                    null=True,
+                    on_delete=django.db.models.deletion.SET_NULL,
+                    to='community.badge'
+                )),
             ],
         ),
         migrations.AddField(
             model_name='challenge',
             name='requirements',
-            field=models.ManyToManyField(related_name='challenges', to='community.challengerequirement'),
+            field=models.ManyToManyField(
+                related_name='challenges',
+                to='community.challengerequirement'
+            ),
         ),
         migrations.AddField(
             model_name='challenge',
             name='rewards',
-            field=models.ManyToManyField(related_name='challenges', to='community.challengereward'),
+            field=models.ManyToManyField(
+                related_name='challenges',
+                to='community.challengereward'
+            ),
         ),
     ]

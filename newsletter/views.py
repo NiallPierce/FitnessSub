@@ -9,6 +9,7 @@ from .models import NewsletterSubscription
 from django.utils import timezone
 from datetime import timedelta
 
+
 def newsletter_signup(request):
     """Handle newsletter subscription"""
     if request.method == 'POST':
@@ -18,19 +19,19 @@ def newsletter_signup(request):
                 subscription = form.save(commit=False)
                 subscription.is_active = False  # Set to inactive until confirmed
                 subscription.save()
-                
+
                 # Generate confirmation token and send email
                 token = subscription.generate_confirmation_token()
                 confirmation_url = request.build_absolute_uri(
                     reverse('newsletter:confirm_subscription', args=[token])
                 )
-                
+
                 # Send confirmation email
                 subject = 'Confirm Your Newsletter Subscription'
                 message = render_to_string('newsletter/email/newsletter_confirmation.html', {
                     'confirmation_url': confirmation_url,
                 })
-                
+
                 send_mail(
                     subject,
                     message,
@@ -39,7 +40,7 @@ def newsletter_signup(request):
                     html_message=message,
                     fail_silently=False,
                 )
-                
+
                 messages.success(request, 'Please check your email to confirm your subscription.')
                 context = {
                     'form': NewsletterForm(),
@@ -58,27 +59,28 @@ def newsletter_signup(request):
     }
     return render(request, 'newsletter/signup.html', context)
 
+
 def confirm_subscription(request, token):
     """Handle subscription confirmation"""
     try:
         subscription = NewsletterSubscription.objects.get(confirmation_token=token)
-        
+
         # Check if token is expired (24 hours)
         if subscription.confirmation_sent and \
            timezone.now() - subscription.confirmation_sent > timedelta(hours=24):
             messages.error(request, 'Confirmation link has expired. Please subscribe again.')
             return redirect('newsletter:newsletter_signup')
-        
+
         # Confirm subscription
         subscription.confirm_subscription()
-        
+
         # Send welcome email
         profile_url = request.build_absolute_uri(reverse('profiles:profile'))
         subject = 'Welcome to Our Newsletter'
         message = render_to_string('newsletter/email/newsletter_welcome.html', {
             'profile_url': profile_url,
         })
-        
+
         send_mail(
             subject,
             message,
@@ -87,7 +89,7 @@ def confirm_subscription(request, token):
             html_message=message,
             fail_silently=False,
         )
-        
+
         messages.success(request, 'Thank you for confirming your subscription!')
         return redirect('home:index')
     except NewsletterSubscription.DoesNotExist:

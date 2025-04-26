@@ -10,7 +10,7 @@ urlpatterns = [
     path('edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('delete/<int:product_id>/', views.delete_product, name='delete_product'),
     path('category/<slug:category_slug>/', views.category_detail, name='category_detail'),
-    
+
     # Subscription URLs
     path('subscription-plans/', views.subscription_plans, name='subscription_plans'),
     path('subscriptions/<int:plan_id>/', views.subscription_detail, name='subscription_detail'),

@@ -7,6 +7,7 @@ from cart.models import Cart, CartItem
 from .forms import UserForm, UserProfileForm
 from .models import UserProfile
 
+
 @login_required
 def profile(request):
     """ Display the user's profile. """
@@ -25,7 +26,7 @@ def profile(request):
             profile.save()
             messages.success(request, 'Profile picture updated successfully')
             return redirect('profiles:profile')
-        
+
         # Determine which form was submitted
         if 'update_personal' in request.POST:
             user_form = UserForm(request.POST, instance=request.user)
@@ -53,6 +54,7 @@ def profile(request):
 
     return render(request, template, context)
 
+
 @login_required
 def order_history(request, order_number):
     """ Display a past order. """
@@ -70,6 +72,7 @@ def order_history(request, order_number):
     }
 
     return render(request, template, context)
+
 
 @login_required
 def order_tracking(request, order_number):

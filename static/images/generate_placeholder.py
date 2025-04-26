@@ -23,4 +23,4 @@ d.text((x, y), text, fill='#666666', font=font)
 
 # Save the image
 img.save('no-image.png')
-print("Generated no-image.png successfully!") 
+print("Generated no-image.png successfully!")

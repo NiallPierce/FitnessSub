@@ -1,6 +1,7 @@
 from django import forms
 from .models import Review, Product, Category
 
+
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
@@ -14,6 +15,7 @@ class ProductForm(forms.ModelForm):
             'is_featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
@@ -21,4 +23,4 @@ class ReviewForm(forms.ModelForm):
         widgets = {
             'rating': forms.Select(attrs={'class': 'form-control'}),
             'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-        } 
+        }

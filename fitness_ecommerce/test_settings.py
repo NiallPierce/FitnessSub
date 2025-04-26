@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    
+
     # Third party apps
     'allauth',
     'allauth.account',
@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'storages',
-    
+
     # Local apps
     'fitness_ecommerce',
     'accounts',
@@ -175,4 +175,4 @@ AWS_SECRET_ACCESS_KEY = 'test-secret'
 
 # Static files storage
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage' 
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'

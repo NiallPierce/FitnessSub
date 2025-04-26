@@ -13,41 +13,70 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='delivery_date',
-            field=models.DateTimeField(blank=True, null=True),
+            field=models.DateTimeField(
+                blank=True,
+                null=True),
         ),
         migrations.AddField(
             model_name='order',
             name='estimated_delivery',
-            field=models.DateTimeField(blank=True, null=True),
+            field=models.DateTimeField(
+                blank=True,
+                null=True),
         ),
         migrations.AddField(
             model_name='order',
             name='payment_method',
-            field=models.CharField(default='card', max_length=50),
+            field=models.CharField(
+                default='card',
+                max_length=50),
         ),
         migrations.AddField(
             model_name='order',
             name='shipping_cost',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
+            field=models.DecimalField(
+                decimal_places=2,
+                default=0,
+                max_digits=10),
         ),
         migrations.AddField(
             model_name='order',
             name='shipping_date',
-            field=models.DateTimeField(blank=True, null=True),
+            field=models.DateTimeField(
+                blank=True,
+                null=True),
         ),
         migrations.AddField(
             model_name='order',
             name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('shipped', 'Shipped'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled')], default='pending', max_length=20),
+            field=models.CharField(
+                choices=[
+                    ('pending',
+                     'Pending'),
+                    ('processing',
+                     'Processing'),
+                    ('shipped',
+                     'Shipped'),
+                    ('delivered',
+                     'Delivered'),
+                    ('cancelled',
+                     'Cancelled')],
+                default='pending',
+                max_length=20),
         ),
         migrations.AddField(
             model_name='order',
             name='tracking_number',
-            field=models.CharField(blank=True, max_length=50),
+            field=models.CharField(
+                blank=True,
+                max_length=50),
         ),
         migrations.AlterField(
             model_name='order',
             name='order_number',
-            field=models.CharField(editable=False, max_length=32, unique=True),
+            field=models.CharField(
+                editable=False,
+                max_length=32,
+                unique=True),
         ),
     ]

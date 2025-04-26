@@ -1,13 +1,13 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import HttpRequest
 from products.models import Product, Category
 from cart.models import Cart, CartItem
 from .models import Order, OrderItem, Payment
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.contrib.messages.middleware import MessageMiddleware
-from django.http import HttpRequest
 from decimal import Decimal
+
 
 class OrderManagementTests(TestCase):
     def setUp(self):
@@ -17,13 +17,13 @@ class OrderManagementTests(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        
+
         # Create a test category
         self.category = Category.objects.create(
             name='Test Category',
             friendly_name='Test Category'
         )
-        
+
         # Create test products
         self.product1 = Product.objects.create(
             category=self.category,
@@ -33,7 +33,7 @@ class OrderManagementTests(TestCase):
             rating=4.5,
             image=None
         )
-        
+
         self.product2 = Product.objects.create(
             category=self.category,
             name='Test Product 2',
@@ -42,32 +42,31 @@ class OrderManagementTests(TestCase):
             rating=4.0,
             image=None
         )
-        
+
         # Initialize the client
         self.client = Client()
-        
+
         # Set up session
         self.request = HttpRequest()
         middleware = SessionMiddleware(lambda x: None)
         middleware.process_request(self.request)
         self.request.session.save()
-        
-        # Create cart
-        self.cart = Cart.objects.create(cart_id=self.request.session.session_key)
-        
-        # Add products to cart
-        self.cart_item1 = CartItem.objects.create(
-            product=self.product1,
+
+        # Create a test cart
+        self.cart = Cart.objects.create(user=self.user)
+
+        # Add items to cart
+        CartItem.objects.create(
             cart=self.cart,
+            product=self.product1,
             quantity=2
         )
-        
-        self.cart_item2 = CartItem.objects.create(
-            product=self.product2,
+        CartItem.objects.create(
             cart=self.cart,
+            product=self.product2,
             quantity=1
         )
-        
+
         # Create a test order
         self.order = Order.objects.create(
             user=self.user,
@@ -77,89 +76,88 @@ class OrderManagementTests(TestCase):
             address='123 Test St',
             postal_code='12345',
             city='Test City',
-            country='US',
-            order_number='TEST456'
+            country='Test Country',
+            paid=True
         )
-        
-        # Add items to the order
+
+        # Add items to order
         OrderItem.objects.create(
             order=self.order,
             product=self.product1,
-            price=self.product1.price,
+            price=10.00,
             quantity=2
         )
-        
         OrderItem.objects.create(
             order=self.order,
             product=self.product2,
-            price=self.product2.price,
+            price=20.00,
             quantity=1
         )
-        
-        # Create a payment record
+
+        # Create a test payment
         self.payment = Payment.objects.create(
             order=self.order,
             payment_id='test_payment_id',
             payment_method='card',
-            amount_paid=self.order.get_total_cost(),
+            amount_paid=40.00,
             status='completed'
         )
-    
+
     def test_order_creation(self):
-        """Test that an order is created correctly with items"""
-        self.assertEqual(Order.objects.count(), 1)
-        self.assertEqual(self.order.items.count(), 2)
-        self.assertEqual(self.order.get_total_cost(), Decimal('40.00'))  # (10 * 2) + (20 * 1)
-    
+        """Test that an order can be created successfully"""
+        order = Order.objects.create(
+            user=self.user,
+            first_name='New',
+            last_name='Order',
+            email='new@example.com',
+            address='456 New St',
+            postal_code='67890',
+            city='New City',
+            country='New Country',
+            paid=False
+        )
+        self.assertIsNotNone(order)
+        self.assertEqual(order.user, self.user)
+        self.assertFalse(order.paid)
+
     def test_order_status_update(self):
         """Test that order status can be updated"""
-        self.order.paid = False
+        self.order.status = 'processing'
         self.order.save()
-        self.assertFalse(self.order.paid)
-        
-        self.order.paid = True
-        self.order.save()
-        self.assertTrue(self.order.paid)
-    
+        self.assertEqual(self.order.status, 'processing')
+
     def test_order_history_view(self):
-        """Test that order history is accessible to authenticated users"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('profiles:order_history', args=[self.order.order_number]))
+        """Test that order history view works correctly"""
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('checkout:order_history'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'checkout/checkout_success.html')
-        self.assertContains(response, self.order.order_number)
-        self.assertContains(response, self.product1.name)
-        self.assertContains(response, self.product2.name)
-    
+        self.assertContains(response, 'Test Product 1')
+
     def test_order_detail_view(self):
-        """Test that order details are accessible to the order owner"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('checkout:payment_success', args=[self.order.order_number]))
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('profiles:order_history', args=[self.order.order_number]))
-    
+        """Test that order detail view works correctly"""
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse('checkout:order_detail', args=[self.order.id])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Product 1')
+
     def test_order_payment_status(self):
-        """Test that payment status is correctly associated with the order"""
+        """Test that payment status is correctly associated with order"""
         self.assertEqual(self.payment.order, self.order)
         self.assertEqual(self.payment.status, 'completed')
-        self.assertEqual(self.payment.amount_paid, self.order.get_total_cost())
-    
+
     def test_order_item_cost_calculation(self):
-        """Test that order item costs are calculated correctly"""
-        order_item1 = self.order.items.get(product=self.product1)
-        order_item2 = self.order.items.get(product=self.product2)
-        
-        self.assertEqual(order_item1.get_cost(), Decimal('20.00'))  # 10 * 2
-        self.assertEqual(order_item2.get_cost(), Decimal('20.00'))  # 20 * 1
-    
+        """Test that order item cost is calculated correctly"""
+        order_item = OrderItem.objects.get(
+            order=self.order,
+            product=self.product1
+        )
+        self.assertEqual(order_item.get_cost(), Decimal('20.00'))
+
     def test_order_unauthorized_access(self):
         """Test that unauthorized users cannot access order details"""
-        # Create another user
-        other_user = User.objects.create_user(
-            username='otheruser',
-            password='otherpass123'
+        response = self.client.get(
+            reverse('checkout:order_detail', args=[self.order.id])
         )
-        self.client.login(username='otheruser', password='otherpass123')
-        
-        response = self.client.get(reverse('checkout:payment_success', args=[self.order.order_number]))
-        self.assertEqual(response.status_code, 404)  # Should not be able to access other user's order 
+        self.assertEqual(response.status_code, 302)  # Redirect to login

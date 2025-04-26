@@ -1,3 +1,4 @@
+from products.sitemaps import ProductSitemap, CategorySitemap
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -9,7 +10,6 @@ from .sitemaps import StaticViewSitemap
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from products.sitemaps import ProductSitemap, CategorySitemap
 
 sitemaps = {
     'static': StaticViewSitemap,

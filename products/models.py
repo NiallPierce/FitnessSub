@@ -5,10 +5,11 @@ from django.utils.text import slugify
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
+
 class Category(models.Model):
     class Meta:
         verbose_name_plural = 'Categories'
-        
+
     name = models.CharField(max_length=254)
     friendly_name = models.CharField(max_length=254, null=True, blank=True)
     slug = models.SlugField(max_length=254, unique=True, blank=True)
@@ -23,6 +24,7 @@ class Category(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
 
 class Product(models.Model):
     category = models.ForeignKey('Category', null=True, blank=True, on_delete=models.SET_NULL)
@@ -48,6 +50,7 @@ class Product(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+
 class Review(models.Model):
     RATING_CHOICES = [
         (1, '1 - Poor'),
@@ -56,7 +59,7 @@ class Review(models.Model):
         (4, '4 - Very Good'),
         (5, '5 - Excellent'),
     ]
-    
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=RATING_CHOICES)
@@ -71,13 +74,14 @@ class Review(models.Model):
     def __str__(self):
         return f'Review by {self.user.username} for {self.product.name}'
 
+
 class SubscriptionPlan(models.Model):
     PLAN_TYPES = [
         ('monthly', 'Monthly'),
         ('quarterly', 'Quarterly'),
         ('annual', 'Annual'),
     ]
-    
+
     name = models.CharField(max_length=100)
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)])
@@ -91,6 +95,7 @@ class SubscriptionPlan(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.plan_type})"
+
 
 class UserSubscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
@@ -107,4 +112,4 @@ class UserSubscription(models.Model):
         return f"{self.user.username}'s {self.plan.name} subscription"
 
     class Meta:
-        ordering = ['-created_at'] 
+        ordering = ['-created_at']

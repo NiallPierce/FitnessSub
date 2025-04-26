@@ -4,33 +4,34 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
 from profiles.models import UserProfile
-from checkout.models import Order
+from checkout.models import Order, OrderItem
 from products.models import Product, Category
 import os
 import shutil
 from PIL import Image
 import tempfile
 
+
 class DataManagementTests(TestCase):
     def setUp(self):
         self.client = Client()
-        
+
         # Create a test user
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
             password='testpass123'
         )
-        
+
         # Create a test profile
         self.profile = UserProfile.objects.get(user=self.user)
-        
+
         # Create a test category
         self.category = Category.objects.create(
             name='Test Category',
             friendly_name='Test Category'
         )
-        
+
         # Create a test product
         self.product = Product.objects.create(
             category=self.category,
@@ -39,7 +40,7 @@ class DataManagementTests(TestCase):
             price=10.00,
             stock=10
         )
-        
+
         # Create a test order
         self.order = Order.objects.create(
             user=self.user,
@@ -90,7 +91,7 @@ class DataManagementTests(TestCase):
             price=self.product.price,
             quantity=2
         )
-        
+
         # Test relationships
         self.assertEqual(self.order.user, self.user)
         self.assertEqual(self.order.items.count(), 1)
@@ -99,7 +100,7 @@ class DataManagementTests(TestCase):
     def test_data_validation(self):
         """Test data validation in profile updates"""
         self.client.login(username='testuser', password='testpass123')
-        
+
         # Test invalid phone number
         response = self.client.post(reverse('profiles:profile'), {
             'phone_number': 'invalid',
@@ -110,7 +111,7 @@ class DataManagementTests(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Enter a valid phone number')
-        
+
         # Test invalid postal code
         response = self.client.post(reverse('profiles:profile'), {
             'phone_number': '1234567890',
@@ -131,13 +132,13 @@ class DataManagementTests(TestCase):
             price=self.product.price,
             quantity=2
         )
-        
+
         # Delete the order
         self.order.delete()
-        
+
         # Check that order items are also deleted
         self.assertFalse(OrderItem.objects.filter(id=order_item.id).exists())
-        
+
         # Check that user profile is not deleted when user is deleted
         profile_id = self.profile.id
         self.user.delete()
@@ -152,10 +153,10 @@ class DataManagementTests(TestCase):
                 email='test@example.com',  # Same email as existing user
                 password='anotherpass123'
             )
-        
+
         # Test required fields
         with self.assertRaises(Exception):
             Order.objects.create(
                 user=self.user,
                 # Missing required fields
-            ) 
+            )

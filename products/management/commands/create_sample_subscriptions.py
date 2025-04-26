@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from products.models import SubscriptionPlan
 
+
 class Command(BaseCommand):
     help = 'Creates sample subscription plans'
 
@@ -52,4 +53,4 @@ Progress tracking dashboard''',
             if created:
                 self.stdout.write(self.style.SUCCESS(f'Created subscription plan: {plan.name}'))
             else:
-                self.stdout.write(self.style.WARNING(f'Subscription plan already exists: {plan.name}')) 
+                self.stdout.write(self.style.WARNING(f'Subscription plan already exists: {plan.name}'))

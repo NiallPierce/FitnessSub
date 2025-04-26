@@ -14,21 +14,35 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='achievement',
             name='image',
-            field=models.ImageField(blank=True, null=True, upload_to=community.models.achievement_image_path),
+            field=models.ImageField(
+                blank=True,
+                null=True,
+                upload_to=community.models.achievement_image_path
+            ),
         ),
         migrations.AlterField(
             model_name='badge',
             name='image',
-            field=models.ImageField(upload_to=community.models.badge_image_path),
+            field=models.ImageField(
+                upload_to=community.models.badge_image_path
+            ),
         ),
         migrations.AlterField(
             model_name='progressentry',
             name='image',
-            field=models.ImageField(blank=True, null=True, upload_to='progress_images/'),
+            field=models.ImageField(
+                blank=True,
+                null=True,
+                upload_to='progress_images/'
+            ),
         ),
         migrations.AlterField(
             model_name='socialpost',
             name='image',
-            field=models.ImageField(blank=True, null=True, upload_to='social_posts/'),
+            field=models.ImageField(
+                blank=True,
+                null=True,
+                upload_to='social_posts/'
+            ),
         ),
     ]

@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
+
 class NewsletterSubscription(models.Model):
     email = models.EmailField(max_length=254, unique=True)
     date_subscribed = models.DateTimeField(auto_now_add=True)

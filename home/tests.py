@@ -5,6 +5,7 @@ from django.contrib.sites.models import Site
 from products.models import Product, Category
 from django.test import override_settings
 
+
 class UsabilityTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -13,13 +14,13 @@ class UsabilityTests(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        
+
         # Create a test category
         self.category = Category.objects.create(
             name='Test Category',
             friendly_name='Test Category'
         )
-        
+
         # Create a test product
         self.product = Product.objects.create(
             category=self.category,
@@ -29,7 +30,7 @@ class UsabilityTests(TestCase):
             rating=4.5,
             image=None
         )
-        
+
         # Get or create the default site
         self.site = Site.objects.get_or_create(
             id=1,
@@ -43,17 +44,17 @@ class UsabilityTests(TestCase):
         """Test that all navigation links are present and working"""
         response = self.client.get(reverse('home:index'))
         self.assertEqual(response.status_code, 200)
-        
+
         # Check for main navigation links
         self.assertContains(response, 'Home')
         self.assertContains(response, 'Products')
         self.assertContains(response, 'Subscriptions')
         self.assertContains(response, 'Newsletter')
         self.assertContains(response, 'Community')
-        
+
         # Check for cart icon
         self.assertContains(response, 'fa-shopping-cart')
-        
+
         # Check for user-specific links when logged in
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('home:index'))
@@ -70,7 +71,7 @@ class UsabilityTests(TestCase):
         self.assertEqual(response.status_code, 200)  # Should stay on the same page
         self.assertTrue('form' in response.context)  # Should have a form in context
         self.assertTrue(response.context['form'].errors)  # Should have errors
-        
+
         # Test registration form validation
         response = self.client.post(reverse('accounts:signup'), {
             'username': '',
@@ -88,7 +89,7 @@ class UsabilityTests(TestCase):
         response = self.client.get('/nonexistent-page/')
         self.assertEqual(response.status_code, 404)
         self.assertTemplateUsed(response, '404.html')
-        
+
         # Test permission denied
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('admin:index'))
@@ -102,7 +103,7 @@ class UsabilityTests(TestCase):
             'password': 'testpass123'
         }, follow=True)
         self.assertEqual(response.status_code, 200)
-        
+
         # Verify we can access a protected page after login
         response = self.client.get(reverse('home:index'))
         self.assertEqual(response.status_code, 200)
@@ -116,12 +117,13 @@ class UsabilityTests(TestCase):
             'password2': 'newuserpass123'
         }, follow=True)
         self.assertEqual(response.status_code, 200)
-        
+
         # Verify the new user can log in
         self.client.login(username='newuser', password='newuserpass123')
         response = self.client.get(reverse('home:index'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'newuser')
+
 
 class ResponsivenessTests(TestCase):
     def setUp(self):

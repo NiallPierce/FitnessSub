@@ -3,6 +3,7 @@ from products.models import SubscriptionPlan
 import stripe
 from django.conf import settings
 
+
 class Command(BaseCommand):
     help = 'Creates or updates Stripe products and prices for subscription plans'
 
@@ -34,7 +35,7 @@ class Command(BaseCommand):
                     'name': plan.name,
                     'description': plan.description,
                 }
-                
+
                 if plan.stripe_product_id:
                     product = stripe.Product.modify(
                         plan.stripe_product_id,
@@ -52,7 +53,7 @@ class Command(BaseCommand):
                         'interval': 'month',
                     },
                 }
-                
+
                 price = stripe.Price.create(**price_data)
 
                 # Update the plan with Stripe IDs
@@ -71,4 +72,4 @@ class Command(BaseCommand):
                     self.style.ERROR(f'Error creating Stripe product/price for {plan.name}: {str(e)}')
                 )
                 import traceback
-                self.stdout.write(traceback.format_exc()) 
+                self.stdout.write(traceback.format_exc())

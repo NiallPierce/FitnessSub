@@ -11,23 +11,24 @@ import shutil
 from PIL import Image
 import tempfile
 
+
 class ProfileTests(TestCase):
     def setUp(self):
         self.client = Client()
-        
+
         # Create a test user
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
             password='testpass123'
         )
-        
+
         # Create a test profile (should be created automatically via signal)
         self.profile = UserProfile.objects.get(user=self.user)
-        
+
         # Create a temporary test image
         self.image = self.create_test_image()
-        
+
         # Create a test product
         self.product = Product.objects.create(
             name='Test Product',
@@ -35,7 +36,7 @@ class ProfileTests(TestCase):
             price=10.00,
             stock=10
         )
-        
+
         # Create a test order
         self.order = Order.objects.create(
             user=self.user,
@@ -48,7 +49,7 @@ class ProfileTests(TestCase):
             country='US',
             paid=True
         )
-        
+
         # Profile update data
         self.profile_data = {
             'phone_number': '1234567890',
@@ -73,7 +74,7 @@ class ProfileTests(TestCase):
         # Remove test image
         if hasattr(self, 'image') and os.path.exists(self.image):
             os.unlink(self.image)
-        
+
         # Clean up any uploaded files
         if os.path.exists(os.path.join(settings.MEDIA_ROOT, f'user_{self.user.id}')):
             shutil.rmtree(os.path.join(settings.MEDIA_ROOT, f'user_{self.user.id}'))
@@ -92,7 +93,7 @@ class ProfileTests(TestCase):
         self.client.login(username='testuser', password='testpass123')
         response = self.client.post(reverse('profiles:profile'), self.profile_data)
         self.assertEqual(response.status_code, 200)  # Should stay on same page after update
-        
+
         # Refresh profile from database
         self.profile.refresh_from_db()
         self.assertEqual(self.profile.phone_number, '1234567890')
@@ -102,7 +103,7 @@ class ProfileTests(TestCase):
     def test_profile_picture_upload(self):
         """Test profile picture upload and resizing"""
         self.client.login(username='testuser', password='testpass123')
-        
+
         # Create the POST data with image
         with open(self.image, 'rb') as img:
             post_data = self.profile_data.copy()
@@ -112,13 +113,13 @@ class ProfileTests(TestCase):
                 content_type='image/jpeg'
             )
             response = self.client.post(reverse('profiles:profile'), post_data)
-        
+
         self.assertEqual(response.status_code, 200)  # Should stay on same page after upload
-        
+
         # Refresh profile from database
         self.profile.refresh_from_db()
         self.assertTrue(self.profile.profile_picture)
-        
+
         # Check if image was resized
         with Image.open(self.profile.profile_picture.path) as img:
             self.assertLessEqual(img.height, 300)
@@ -129,7 +130,7 @@ class ProfileTests(TestCase):
         # Test without login
         response = self.client.get(reverse('profiles:profile'))
         self.assertEqual(response.status_code, 302)  # Should redirect to login
-        
+
         # Test with login
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('profiles:profile'))
@@ -145,13 +146,13 @@ class ProfileTests(TestCase):
     def test_profile_data_validation(self):
         """Test profile data validation"""
         self.client.login(username='testuser', password='testpass123')
-        
+
         # Test with invalid phone number
         invalid_data = self.profile_data.copy()
         invalid_data['phone_number'] = 'invalid-phone'
         response = self.client.post(reverse('profiles:profile'), invalid_data)
         self.assertEqual(response.status_code, 200)  # Should stay on same page
-        
+
         # Test with invalid postal code
         invalid_data = self.profile_data.copy()
         invalid_data['postal_code'] = 'invalid-postal'
@@ -161,7 +162,7 @@ class ProfileTests(TestCase):
     def test_newsletter_subscription_toggle(self):
         """Test newsletter subscription toggle"""
         self.client.login(username='testuser', password='testpass123')
-        
+
         # Test subscribing
         response = self.client.post(reverse('profiles:profile'), {
             **self.profile_data,
@@ -169,11 +170,11 @@ class ProfileTests(TestCase):
         })
         self.profile.refresh_from_db()
         self.assertTrue(self.profile.newsletter_subscription)
-        
+
         # Test unsubscribing
         response = self.client.post(reverse('profiles:profile'), {
             **self.profile_data,
             'newsletter_subscription': False
         })
         self.profile.refresh_from_db()
-        self.assertFalse(self.profile.newsletter_subscription) 
+        self.assertFalse(self.profile.newsletter_subscription)

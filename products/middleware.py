@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib import messages
 from .models import UserSubscription
 
+
 class SubscriptionMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -35,4 +36,4 @@ class SubscriptionMiddleware:
                 return redirect('products:subscription_plans')
 
         response = self.get_response(request)
-        return response 
+        return response

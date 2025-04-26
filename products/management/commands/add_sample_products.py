@@ -6,6 +6,7 @@ import os
 from django.conf import settings
 from django.utils.text import slugify
 
+
 class Command(BaseCommand):
     help = 'Adds sample fitness products to the database'
 
@@ -20,7 +21,7 @@ class Command(BaseCommand):
             'recovery': 'Recovery',
             'home-gym': 'Home Gym'
         }
-        
+
         for slug, name in categories.items():
             Category.objects.get_or_create(
                 name=name,
@@ -268,7 +269,7 @@ class Command(BaseCommand):
             category_slug = product_data.pop('category_slug')
             image_name = product_data.pop('image_name', None)
             category = Category.objects.get(slug=category_slug)
-            
+
             # Get or create the product
             product, created = Product.objects.get_or_create(
                 name=product_data['name'],
@@ -286,10 +287,10 @@ class Command(BaseCommand):
                 try:
                     # Source image path (in static directory)
                     source_path = os.path.join(settings.BASE_DIR, 'static', 'product_images', image_name)
-                    
+
                     # Create product_images directory if it doesn't exist
                     os.makedirs(os.path.join(settings.MEDIA_ROOT, 'images', 'product_images'), exist_ok=True)
-                    
+
                     # Copy the image if it exists
                     if os.path.exists(source_path):
                         # Use the original image name
@@ -316,4 +317,4 @@ class Command(BaseCommand):
                         self.style.ERROR(f'Error adding image for {product.name}: {str(e)}')
                     )
 
-        self.stdout.write(self.style.SUCCESS('Successfully added sample products')) 
+        self.stdout.write(self.style.SUCCESS('Successfully added sample products'))

@@ -17,16 +17,28 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='order_number',
-            field=models.CharField(default='6e7922ee42d84548975dd3487b7eb2c0', editable=False, max_length=32, unique=True),
+            field=models.CharField(
+                default='6e7922ee42d84548975dd3487b7eb2c0',
+                editable=False,
+                max_length=32,
+                unique=True),
         ),
         migrations.AlterField(
             model_name='order',
             name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='checkout_orders', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name='checkout_orders',
+                to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='orderitem',
             name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='checkout_order_items', to='products.product'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='checkout_order_items',
+                to='products.product'),
         ),
     ]

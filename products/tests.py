@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from .models import Product, Category
 from decimal import Decimal
 
+
 class ProductTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -12,7 +13,7 @@ class ProductTests(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        
+
         # Create test categories
         self.category1 = Category.objects.create(
             name='Test Category 1',
@@ -22,7 +23,7 @@ class ProductTests(TestCase):
             name='Test Category 2',
             friendly_name='Test Category 2'
         )
-        
+
         # Create test products
         self.product1 = Product.objects.create(
             category=self.category1,

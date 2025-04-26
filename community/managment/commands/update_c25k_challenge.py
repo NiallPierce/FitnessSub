@@ -4,6 +4,7 @@ from community.models import (
     Challenge, ChallengeRequirement, ChallengeReward, Badge
 )
 
+
 class Command(BaseCommand):
     help = 'Updates the Couch to 5K challenge with requirements and rewards'
 
@@ -12,8 +13,10 @@ class Command(BaseCommand):
         challenge, created = Challenge.objects.get_or_create(
             title="Couch to 5K Challenge",
             defaults={
-                'description': """Join our 9-week Couch to 5K program! This beginner-friendly challenge will help you go from no running experience to completing a 5K run.
-                
+                'description': """Join our 9-week Couch to 5K program! This
+                 beginner-friendly challenge will help you go from no running
+                 experience to completing a 5K run.
+
                 What to expect:
                 - 3 workouts per week
                 - Gradual progression from walking to running
@@ -40,11 +43,12 @@ class Command(BaseCommand):
             "Share your journey in the community (optional)",
             "Complete the final 5K run"
         ]
-        
+
         for i, req in enumerate(requirements):
             requirement = ChallengeRequirement.objects.create(
                 description=req,
-                is_mandatory=(i != 3),  # Only the community sharing is optional
+                # Only the community sharing is optional
+                is_mandatory=(i != 3),
                 order=i
             )
             challenge.requirements.add(requirement)
@@ -74,7 +78,7 @@ class Command(BaseCommand):
                 )[0]
             }
         ]
-        
+
         for reward_data in rewards:
             reward = ChallengeReward.objects.create(
                 description=reward_data["description"],
@@ -83,4 +87,9 @@ class Command(BaseCommand):
             )
             challenge.rewards.add(reward)
 
-        self.stdout.write(self.style.SUCCESS('Successfully updated Couch to 5K challenge with requirements and rewards')) 
+        self.stdout.write(
+            self.style.SUCCESS(
+                'Successfully updated Couch to 5K challenge with '
+                'requirements and rewards'
+            )
+        )

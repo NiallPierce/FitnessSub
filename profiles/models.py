@@ -7,9 +7,11 @@ from django.core.files.base import ContentFile
 from PIL import Image
 import os
 
+
 def user_profile_picture_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/profile_pictures/<filename>
     return f'user_{instance.user.id}/profile_pictures/{filename}'
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -34,17 +36,17 @@ class UserProfile(models.Model):
             try:
                 # Open the image
                 img = Image.open(self.profile_picture)
-                
+
                 # Resize the image to 300x300
                 if img.height > 300 or img.width > 300:
                     output_size = (300, 300)
                     img.thumbnail(output_size)
-                    
+
                     # Save the resized image
                     temp_file = ContentFile(b'')
                     img.save(temp_file, format=img.format)
                     temp_file.seek(0)
-                    
+
                     # Save the resized image to the profile_picture field
                     self.profile_picture.save(
                         os.path.basename(self.profile_picture.name),
@@ -54,8 +56,9 @@ class UserProfile(models.Model):
             except Exception as e:
                 # If there's an error processing the image, just save the original
                 pass
-                
+
         super().save(*args, **kwargs)
+
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
