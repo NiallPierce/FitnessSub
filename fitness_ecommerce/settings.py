@@ -12,18 +12,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-secret-key')
 
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = [
-    'fitness-ecommerce-np92-62c36695dba8.herokuapp.com',
-    'localhost',
-    '127.0.0.1',
-    '8000-niallpierce-fitnesssub-4iulkchlm00.ws-us118.gitpod.io',
-    '8000-niallpierce-fitnesssub-85xiasj1nmv.ws-us118.gitpod.io',
-    '8000-niallpierce-fitnesssub-38ou272jic6.ws-us118.gitpod.io',
-    '8000-niallpierce-fitnesssub-oy6vtpvjned.ws-us118.gitpod.io',
-    '8000-niallpierce-fitnesssub-dayb406a95m.ws-us118.gitpod.io'
-]
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [
+        'fitness-ecommerce-np92-62c36695dba8.herokuapp.com',
+        'localhost',
+        '127.0.0.1',
+        '8000-niallpierce-fitnesssub-4iulkchlm00.ws-us118.gitpod.io',
+        '8000-niallpierce-fitnesssub-85xiasj1nmv.ws-us118.gitpod.io',
+        '8000-niallpierce-fitnesssub-38ou272jic6.ws-us118.gitpod.io',
+        '8000-niallpierce-fitnesssub-oy6vtpvjned.ws-us118.gitpod.io',
+        '8000-niallpierce-fitnesssub-dayb406a95m.ws-us118.gitpod.io'
+    ]
 
 # Application definition
 INSTALLED_APPS = [
