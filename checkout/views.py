@@ -1,6 +1,8 @@
 import stripe
 from django.conf import settings
-from django.shortcuts import render, redirect, reverse, HttpResponse
+from django.shortcuts import (
+    render, redirect, reverse, HttpResponse, get_object_or_404
+)
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -13,8 +15,8 @@ from decimal import Decimal
 
 from .forms import OrderCreateForm
 from .models import Order, OrderItem, Payment
-from cart.models import Cart, CartItem
 from products.models import Product
+from cart.models import Cart, CartItem
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -298,3 +300,17 @@ def stripe_webhook(request):
             return HttpResponse(status=404)
 
     return HttpResponse(status=200)
+
+
+@login_required
+def order_history(request):
+    """View to display user's order history"""
+    orders = Order.objects.filter(user=request.user).order_by('-created')
+    return render(request, 'profiles/profile.html', {'orders': orders})
+
+
+@login_required
+def order_detail(request, order_id):
+    """View to display order details"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, 'profiles/order_tracking.html', {'order': order})

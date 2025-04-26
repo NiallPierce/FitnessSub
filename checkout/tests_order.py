@@ -131,7 +131,7 @@ class OrderManagementTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse('checkout:order_history'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Test Product 1')
+        self.assertContains(response, self.order.order_number)
 
     def test_order_detail_view(self):
         """Test that order detail view works correctly"""
@@ -140,7 +140,7 @@ class OrderManagementTests(TestCase):
             reverse('checkout:order_detail', args=[self.order.id])
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Test Product 1')
+        self.assertContains(response, self.order.order_number)
 
     def test_order_payment_status(self):
         """Test that payment status is correctly associated with order"""

@@ -97,6 +97,9 @@ class UsabilityTests(TestCase):
         response = self.client.get('/nonexistent-page/')
         self.assertEqual(response.status_code, 404)
         self.assertTemplateUsed(response, '404.html')
+        self.assertContains(response, '404', status_code=404)
+        self.assertContains(response, 'Page Not Found', status_code=404)
+        self.assertContains(response, 'Return to Home', status_code=404)
 
         # Test permission denied
         self.client.login(username='testuser', password='testpass123')
