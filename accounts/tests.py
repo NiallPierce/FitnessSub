@@ -2,14 +2,14 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
-from .forms import UserRegistrationForm, UserLoginForm
+from .forms import UserLoginForm
 
 class AccountTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.register_url = reverse('accounts:register')
-        self.login_url = reverse('accounts:login')
-        self.logout_url = reverse('accounts:logout')
+        self.register_url = '/accounts/signup/'  # Allauth signup
+        self.login_url = '/accounts/login/'  # Allauth login
+        self.logout_url = '/accounts/logout/'  # Allauth logout
         
         # Create a test user
         self.user = User.objects.create_user(
@@ -44,7 +44,7 @@ class AccountTests(TestCase):
     def test_user_login(self):
         """Test user login functionality"""
         response = self.client.post(self.login_url, {
-            'username': 'testuser',
+            'login': 'testuser',
             'password': 'testpass123'
         })
         self.assertEqual(response.status_code, 302)  # Should redirect after successful login
@@ -53,7 +53,7 @@ class AccountTests(TestCase):
     def test_user_login_invalid_credentials(self):
         """Test user login with invalid credentials"""
         response = self.client.post(self.login_url, {
-            'username': 'testuser',
+            'login': 'testuser',
             'password': 'wrongpass'
         })
         self.assertEqual(response.status_code, 200)  # Should stay on the same page
@@ -97,12 +97,17 @@ class AccountTests(TestCase):
     def test_unique_email_validation(self):
         """Test that email must be unique"""
         # First registration
-        response = self.client.post(self.register_url, self.user_data)
-        self.assertEqual(response.status_code, 302)  # Should redirect after successful registration
+        response = self.client.post(self.register_url, self.user_data, follow=True)
+        self.assertEqual(response.status_code, 200)  # Should show success page after redirect
+        self.assertTrue(User.objects.filter(username='newuser').exists())
         
         # Second registration with same email
         duplicate_data = self.user_data.copy()
         duplicate_data['username'] = 'anotheruser'
-        response = self.client.post(self.register_url, duplicate_data)
-        self.assertEqual(response.status_code, 200)  # Should stay on same page
+        response = self.client.post(self.register_url, duplicate_data, follow=True)
+        self.assertEqual(response.status_code, 200)  # Should show form with errors
         self.assertFalse(User.objects.filter(username='anotheruser').exists())
+        
+        # Check for error message in form errors
+        self.assertTrue('email' in response.context['form'].errors)
+        self.assertIn('already in use', str(response.context['form'].errors['email']))
