@@ -243,28 +243,6 @@ fitness_ecommerce/
 └── templates/        # HTML templates
 ```
 
-## 🎨 Wireframes
-
-The following wireframes illustrate the key pages of the application:
-
-![Home Page](static/images/wireframes/fshome.png)
-*Home page with featured products and categories*
-
-![Products Page](static/images/wireframes/fsprod.png)
-*Products listing page with filtering options*
-
-![Product Detail Page](static/images/wireframes/fsproddetail.png)
-*Detailed product view with images and description*
-
-![Shopping Cart](static/images/wireframes/fscart.png)
-*Shopping cart with items and checkout options*
-
-![User Profile](static/images/wireframes/fsprofile.png)
-*User profile page with order history*
-
-![Community Page](static/images/wireframes/fscommunity.png)
-*Community feed with posts and challenges*
-
 ## 🎨 Security Features
 
 - CSRF protection
