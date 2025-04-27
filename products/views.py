@@ -58,7 +58,7 @@ def products(request):
 
     category = request.GET.get('category', '')
     if category:
-        category_obj = get_object_or_404(Category, name=category)
+        category_obj = get_object_or_404(Category, slug=category)
         products = products.filter(category=category_obj)
 
     rating = request.GET.get('rating', '')
