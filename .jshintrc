@@ -16,6 +16,16 @@
         "expect": true,
         "beforeEach": true,
         "afterEach": true,
+        "it": true,
+        "document": true,
+        "window": true,
+        "fetch": true,
+        "FormData": true,
+        "Event": true,
+        "Promise": true,
+        "console": true,
+        "alert": true,
+        "confirm": true,
         "global": true,
         "require": true
     }

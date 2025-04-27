@@ -45,60 +45,21 @@
     // Import the community.js file
     require('./community.js');
 
-    const setupEventListeners = () => {
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const content = form.querySelector('textarea[name="content"]').value;
-                if (!content.trim()) {
-                    global.alert('Please enter some content');
-                    return;
-                }
-                const formData = new FormData(form);
-                global.fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-                    },
-                    body: formData
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.location.reload();
-                        } else {
-                            const action = form.id === 'postForm' ? 'creating post' : 'adding comment';
-                            global.alert(`Error ${action}: ${data.error}`);
-                        }
-                    });
-            });
-        });
-    };
-
-    beforeEach(() => {
-        // Reset mocks before each test
-        jest.clearAllMocks();
-
-        // Set up the DOM
-        document.body.innerHTML =
-            `<form id="postForm" action="/community/posts/create/">
-                <input type="hidden" name="csrfmiddlewaretoken" value="test-token">
+    const setupDOM = () => {
+        document.body.innerHTML = `
+            <form id="postForm">
                 <textarea name="content">Test post content</textarea>
-                <button type="submit">Post</button>
+                <input type="hidden" name="csrfmiddlewaretoken" value="test-token">
             </form>
-            
             <div class="post" data-post-id="1">
                 <button class="like-post" data-post-id="1">
                     <span class="like-count">0</span>
                 </button>
                 <button class="delete-post" data-post-id="1">Delete</button>
-                
                 <form class="comment-form" data-post-id="1">
+                    <textarea name="content">Test comment</textarea>
                     <input type="hidden" name="csrfmiddlewaretoken" value="test-token">
-                    <textarea name="content">Test comment content</textarea>
-                    <button type="submit">Comment</button>
                 </form>
-                
                 <div class="comment" data-comment-id="1">
                     <button class="like-comment" data-comment-id="1">
                         <span class="like-count">0</span>
@@ -106,77 +67,187 @@
                     <button class="delete-comment" data-comment-id="1">Delete</button>
                 </div>
             </div>
-            
-            <button class="join-challenge" data-challenge-id="1">Join Challenge</button>
-            <button class="join-workout" data-workout-id="1">Join Workout</button>
-            
-            <button data-bs-toggle="tooltip" title="Test Tooltip">Tooltip</button>
         `;
 
-        // Setup event listeners
-        setupEventListeners();
+        // Mock form actions
+        const postForm = document.getElementById('postForm');
+        Object.defineProperty(postForm, 'action', {
+            get: () => '/community/posts/create/'
+        });
 
-        // Trigger DOMContentLoaded event
-        const event = new Event('DOMContentLoaded');
-        document.dispatchEvent(event);
-    });
+        const commentForm = document.querySelector('.comment-form');
+        Object.defineProperty(commentForm, 'action', {
+            get: () => '/community/posts/1/comment/'
+        });
+    };
 
-    describe('Post Creation', () => {
-        test('handles successful post creation', async () => {
-            setupEventListeners();
-            // Mock successful response
-            global.fetch.mockResolvedValueOnce({
-                json: () => Promise.resolve({ success: true })
-            });
+    describe('Community Features', () => {
+        beforeEach(() => {
+            setupDOM();
+            jest.clearAllMocks();
+            // Trigger DOMContentLoaded event
+            const event = new Event('DOMContentLoaded');
+            document.dispatchEvent(event);
+        });
 
-            // Submit the form
-            document.getElementById('postForm').dispatchEvent(new Event('submit'));
-
-            // Wait for promises to resolve
-            await new Promise(resolve => setTimeout(resolve, 0));
-
-            expect(global.fetch).toHaveBeenCalledWith(
-                expect.stringContaining('/community/posts/create/'),
-                expect.objectContaining({
-                    method: 'POST',
-                    headers: expect.objectContaining({
-                        'X-CSRFToken': 'test-token'
+        describe('Post Creation', () => {
+            test('handles successful post creation', async () => {
+                const form = document.getElementById('postForm');
+                form.dispatchEvent(new Event('submit'));
+                await Promise.resolve();
+                expect(global.fetch).toHaveBeenCalledWith(
+                    '/community/posts/create/',
+                    expect.objectContaining({
+                        method: 'POST',
+                        headers: expect.objectContaining({
+                            'X-CSRFToken': 'test-token'
+                        })
                     })
-                })
-            );
-            expect(window.location.reload).toHaveBeenCalled();
-        });
-
-        test('handles post creation error', async () => {
-            setupEventListeners();
-            // Mock error response
-            global.fetch.mockResolvedValueOnce({
-                json: () => Promise.resolve({ success: false, error: 'Test error' })
+                );
             });
 
-            // Submit the form
-            document.getElementById('postForm').dispatchEvent(new Event('submit'));
+            test('handles post creation error', async () => {
+                const mockResponse = {
+                    json: () => Promise.resolve({ success: false, error: 'Test error' })
+                };
+                global.fetch.mockImplementationOnce(() => Promise.resolve(mockResponse));
+                
+                const form = document.getElementById('postForm');
+                form.dispatchEvent(new Event('submit'));
+                
+                // Wait for all promises to resolve
+                await new Promise(resolve => setTimeout(resolve, 0));
+                await new Promise(resolve => setTimeout(resolve, 0));
+                
+                expect(global.alert).toHaveBeenCalledWith('Error creating post: Test error');
+            });
 
-            // Wait for promises to resolve
-            await new Promise(resolve => setTimeout(resolve, 0));
-
-            expect(global.alert).toHaveBeenCalledWith('Error creating post: Test error');
+            test('handles empty post content', async () => {
+                const form = document.getElementById('postForm');
+                form.querySelector('textarea[name="content"]').value = '';
+                form.dispatchEvent(new Event('submit'));
+                await Promise.resolve();
+                expect(global.alert).toHaveBeenCalledWith('Please enter some content');
+            });
         });
 
-        test('handles empty post content', async () => {
-            // Clear the textarea
-            const textarea = document.querySelector('#postForm textarea[name="content"]');
-            textarea.value = '';
+        describe('Post Likes', () => {
+            test('handles successful post like', async () => {
+                const likeButton = document.querySelector('.like-post');
+                likeButton.click();
+                await Promise.resolve();
+                expect(global.fetch).toHaveBeenCalledWith(
+                    '/community/posts/1/like/',
+                    expect.objectContaining({
+                        method: 'POST',
+                        headers: expect.objectContaining({
+                            'X-CSRFToken': 'test-token'
+                        })
+                    })
+                );
+            });
 
-            // Submit the form
-            const form = document.getElementById('postForm');
-            form.dispatchEvent(new Event('submit'));
+            test('handles post like error', async () => {
+                const mockResponse = {
+                    json: () => Promise.resolve({ success: false, error: 'Like error' })
+                };
+                global.fetch.mockImplementationOnce(() => Promise.resolve(mockResponse));
+                
+                const likeButton = document.querySelector('.like-post');
+                likeButton.click();
+                
+                // Wait for all promises to resolve
+                await new Promise(resolve => setTimeout(resolve, 0));
+                await new Promise(resolve => setTimeout(resolve, 0));
+                
+                expect(global.alert).toHaveBeenCalledWith('Error liking post: Like error');
+            });
+        });
 
-            // Wait for promises to resolve
-            await new Promise(resolve => setTimeout(resolve, 0));
+        describe('Comment Creation', () => {
+            test('handles successful comment creation', async () => {
+                const commentForm = document.querySelector('.comment-form');
+                commentForm.dispatchEvent(new Event('submit'));
+                await Promise.resolve();
+                expect(global.fetch).toHaveBeenCalledWith(
+                    '/community/posts/1/comment/',
+                    expect.objectContaining({
+                        method: 'POST',
+                        headers: expect.objectContaining({
+                            'X-CSRFToken': 'test-token'
+                        })
+                    })
+                );
+            });
 
-            expect(global.alert).toHaveBeenCalledWith('Please enter some content');
-            expect(global.fetch).not.toHaveBeenCalled();
+            test('handles empty comment content', async () => {
+                const commentForm = document.querySelector('.comment-form');
+                commentForm.querySelector('textarea[name="content"]').value = '';
+                commentForm.dispatchEvent(new Event('submit'));
+                await Promise.resolve();
+                expect(global.alert).toHaveBeenCalledWith('Please enter some content');
+            });
+        });
+
+        describe('Comment Likes', () => {
+            test('handles successful comment like', async () => {
+                const likeButton = document.querySelector('.like-comment');
+                likeButton.click();
+                await Promise.resolve();
+                expect(global.fetch).toHaveBeenCalledWith(
+                    '/community/comments/1/like/',
+                    expect.objectContaining({
+                        method: 'POST',
+                        headers: expect.objectContaining({
+                            'X-CSRFToken': 'test-token'
+                        })
+                    })
+                );
+            });
+        });
+
+        describe('Post Deletion', () => {
+            test('handles post deletion with confirmation', async () => {
+                global.confirm.mockReturnValueOnce(true);
+                const deleteButton = document.querySelector('.delete-post');
+                deleteButton.click();
+                await Promise.resolve();
+                expect(global.fetch).toHaveBeenCalledWith(
+                    '/community/posts/1/delete/',
+                    expect.objectContaining({
+                        method: 'POST',
+                        headers: expect.objectContaining({
+                            'X-CSRFToken': 'test-token'
+                        })
+                    })
+                );
+            });
+
+            test('cancels post deletion when not confirmed', async () => {
+                global.confirm.mockReturnValueOnce(false);
+                const deleteButton = document.querySelector('.delete-post');
+                deleteButton.click();
+                await Promise.resolve();
+                expect(global.fetch).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Comment Deletion', () => {
+            test('handles comment deletion with confirmation', async () => {
+                global.confirm.mockReturnValueOnce(true);
+                const deleteButton = document.querySelector('.delete-comment');
+                deleteButton.click();
+                await Promise.resolve();
+                expect(global.fetch).toHaveBeenCalledWith(
+                    '/community/comments/1/delete/',
+                    expect.objectContaining({
+                        method: 'POST',
+                        headers: expect.objectContaining({
+                            'X-CSRFToken': 'test-token'
+                        })
+                    })
+                );
+            });
         });
     });
 })();

@@ -1,5 +1,8 @@
 module.exports = {
     testEnvironment: 'jsdom',
+    testEnvironmentOptions: {
+        url: 'http://localhost'
+    },
     moduleNameMapper: {
         '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     },
