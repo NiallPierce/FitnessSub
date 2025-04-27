@@ -602,11 +602,19 @@ So that I can receive updates and promotions
 
 ## 🙏 Acknowledgments
 
-- Django Documentation
-- Bootstrap Documentation
-- Stripe Documentation
-- Heroku Documentation
-- DeepAI (for image generation)
+- Django Documentation (https://docs.djangoproject.com/)
+- Code Institute Full Stack Software Development Program
+- MDN Web Docs (https://developer.mozilla.org/)
+- Bootstrap Documentation (https://getbootstrap.com/docs/)
+- Real Python (https://realpython.com/)
+- Stack Overflow (https://stackoverflow.com/)
+- Corey Schafer (YouTube)
+- Traversy Media (YouTube)
+- The Net Ninja (YouTube)
+- Heroku Documentation (https://devcenter.heroku.com/)
+- Stripe Documentation (https://stripe.com/docs)
+- DeepAI (for image generation) (https://deepai.org/)
+- GitHub Docs (https://docs.github.com/)
 
 ## 📊 Project Management
 
