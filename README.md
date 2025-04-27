@@ -265,7 +265,7 @@ The following wireframes illustrate the key pages of the application:
 ![Community Page](static/images/wireframes/fscommunity.png)
 *Community feed with posts and challenges*
 
-## �� Security Features
+## 🎨 Security Features
 
 - CSRF protection
 - XSS protection
@@ -606,6 +606,7 @@ So that I can receive updates and promotions
 - Bootstrap Documentation
 - Stripe Documentation
 - Heroku Documentation
+- DeepAI (for image generation)
 
 ## 📊 Project Management
 
