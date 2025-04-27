@@ -4,6 +4,5 @@ Disallow: /admin/
 Disallow: /accounts/
 Disallow: /checkout/
 Disallow: /cart/
-Disallow: /profiles/
 
-Sitemap: https://fitness-ecommerce-np92-62c36695dba8.herokuapp.com/sitemap.xml 
+Sitemap: http://fitness-ecommerce-np92-62c36695dba8.herokuapp.com/sitemap.xml 
