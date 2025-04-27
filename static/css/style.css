@@ -40,12 +40,29 @@
 }
 
 /* Base Styles */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 body {
   font-family: var(--font-primary);
   font-size: var(--font-size-base);
   line-height: var(--line-height-base);
   color: var(--dark-color);
   background-color: var(--light-color);
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+  padding-bottom: 60px; /* Add some padding at the bottom */
+}
+
+.footer {
+  flex-shrink: 0;
+  width: 100%;
 }
 
 /* Typography */
