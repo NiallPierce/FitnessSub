@@ -247,8 +247,19 @@ if 'DEVELOPMENT' not in os.environ:
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
     'https://8000-niallpierce-fitnesssub-dayb406a95m.ws-us118.gitpod.io',
-    'https://*.gitpod.io'
+    'https://*.gitpod.io',
+    'https://*.gitpod.dev'
 ]
+
+# Ensure CSRF cookie settings are correct
+CSRF_COOKIE_DOMAIN = None
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Session settings
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

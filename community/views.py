@@ -55,11 +55,17 @@ def challenges(request):
         challengeparticipation__completed=True
     ).order_by('-start_date')
 
-    # Create or update C25K challenge
-    challenge, created = Challenge.objects.get_or_create(
+    # Check if there's already an active C25K challenge
+    c25k_challenge = Challenge.objects.filter(
         title="Couch to 5K Challenge",
-        defaults={
-            'description': (
+        is_active=True
+    ).first()
+
+    # If no active C25K challenge exists, create one
+    if not c25k_challenge:
+        c25k_challenge = Challenge.objects.create(
+            title="Couch to 5K Challenge",
+            description=(
                 "Transform your fitness journey with our 9-week Couch to 5K "
                 "program!\n\n"
                 "This beginner-friendly challenge is designed to take you "
@@ -77,18 +83,11 @@ def challenges(request):
                 "this program will help you build endurance, improve your "
                 "fitness, and achieve your 5K goal in just 9 weeks!"
             ),
-            'start_date': timezone.now(),
-            'end_date': timezone.now() + timezone.timedelta(weeks=9),
-            'points': 500,
-            'is_active': True
-        }
-    )
-
-    # If challenge exists but has no requirements or rewards, add them
-    if not challenge.requirements.exists() or not challenge.rewards.exists():
-        # Clear existing requirements and rewards
-        challenge.requirements.clear()
-        challenge.rewards.clear()
+            start_date=timezone.now(),
+            end_date=timezone.now() + timezone.timedelta(weeks=9),
+            points=500,
+            is_active=True
+        )
 
         # Create requirements
         requirements = [
@@ -105,7 +104,7 @@ def challenges(request):
                 is_mandatory=(i != 3),  # Only sharing is optional
                 order=i
             )
-            challenge.requirements.add(requirement)
+            c25k_challenge.requirements.add(requirement)
 
         # Create rewards
         rewards = [
@@ -139,7 +138,7 @@ def challenges(request):
                 points_value=reward_data["points_value"],
                 badge=reward_data["badge"]
             )
-            challenge.rewards.add(reward)
+            c25k_challenge.rewards.add(reward)
 
     return render(
         request,
