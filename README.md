@@ -243,7 +243,29 @@ fitness_ecommerce/
 └── templates/        # HTML templates
 ```
 
-## 🔒 Security Features
+## 🎨 Wireframes
+
+The following wireframes illustrate the key pages of the application:
+
+![Home Page](static/images/wireframes/fshome.png)
+*Home page with featured products and categories*
+
+![Products Page](static/images/wireframes/fsprod.png)
+*Products listing page with filtering options*
+
+![Product Detail Page](static/images/wireframes/fsproddetail.png)
+*Detailed product view with images and description*
+
+![Shopping Cart](static/images/wireframes/fscart.png)
+*Shopping cart with items and checkout options*
+
+![User Profile](static/images/wireframes/fsprofile.png)
+*User profile page with order history*
+
+![Community Page](static/images/wireframes/fscommunity.png)
+*Community feed with posts and challenges*
+
+## �� Security Features
 
 - CSRF protection
 - XSS protection
@@ -654,28 +676,28 @@ This project uses GitHub's built-in project management tools for Agile developme
 ### Wireframes
 
 #### Homepage
-![Homepage Wireframe](static/wireframes/homepage.png)
-*Description: Main landing page with featured products, categories, and community highlights*
+![Homepage Wireframe](static/images/wireframes/fshome.png)
+
 
 #### Product Listing
-![Product Listing Wireframe](static/wireframes/product_listing.png)
-*Description: Product grid view with filtering options and sorting capabilities*
+![Product Listing Wireframe](static/images/wireframes/fsprod.png)
+
 
 #### Product Detail
-![Product Detail Wireframe](static/wireframes/product_detail.png)
-*Description: Detailed product view with images, description, reviews, and add to cart functionality*
+![Product Detail Wireframe](static/images/wireframes/fsproddetail.png)
+
 
 #### Shopping Cart
-![Shopping Cart Wireframe](static/wireframes/shopping_cart.png)
-*Description: Cart view showing items, quantities, and total price*
+![Shopping Cart Wireframe](static/images/wireframes/fscart.png)
+
 
 #### User Profile
-![User Profile Wireframe](static/wireframes/user_profile.png)
-*Description: User profile page with order history and account settings*
+![User Profile Wireframe](static/images/wireframes/fsprofile.png)
+
 
 #### Community Feed
-![Community Feed Wireframe](static/wireframes/community_feed.png)
-*Description: Social feed showing posts, comments, and challenges*
+![Community Feed Wireframe](static/images/wireframes/fscommunity.png)
+
 
 
 ### Implemented Features
