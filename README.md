@@ -651,6 +651,33 @@ This project uses GitHub's built-in project management tools for Agile developme
    - Streamlined navigation
    - Visual hierarchy for content
 
+### Wireframes
+
+#### Homepage
+![Homepage Wireframe](static/wireframes/homepage.png)
+*Description: Main landing page with featured products, categories, and community highlights*
+
+#### Product Listing
+![Product Listing Wireframe](static/wireframes/product_listing.png)
+*Description: Product grid view with filtering options and sorting capabilities*
+
+#### Product Detail
+![Product Detail Wireframe](static/wireframes/product_detail.png)
+*Description: Detailed product view with images, description, reviews, and add to cart functionality*
+
+#### Shopping Cart
+![Shopping Cart Wireframe](static/wireframes/shopping_cart.png)
+*Description: Cart view showing items, quantities, and total price*
+
+#### User Profile
+![User Profile Wireframe](static/wireframes/user_profile.png)
+*Description: User profile page with order history and account settings*
+
+#### Community Feed
+![Community Feed Wireframe](static/wireframes/community_feed.png)
+*Description: Social feed showing posts, comments, and challenges*
+
+
 ### Implemented Features
 
 1. **Navigation & Information Architecture**
