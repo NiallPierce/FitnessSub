@@ -259,7 +259,7 @@ fitness_ecommerce/
 
 The project includes comprehensive test coverage for various components. Below is a summary of the test suites and their status:
 
-### Test Suites
+### Django Test Suites
 
 | App | Test Case | Description | Status |
 |-----|-----------|-------------|--------|
@@ -277,21 +277,41 @@ The project includes comprehensive test coverage for various components. Below i
 | profiles | test_profile_data_validation | Tests profile data validation | ✅ |
 | profiles | test_newsletter_subscription_toggle | Tests newsletter subscription toggle | ✅ |
 
+### JavaScript Test Suites
+
+| File | Test Case | Description | Status |
+|------|-----------|-------------|--------|
+| checkout.js | test_form_validation | Tests checkout form validation | ✅ |
+| checkout.js | test_payment_processing | Tests Stripe payment processing | ✅ |
+| community.js | test_post_creation | Tests post creation and validation | ✅ |
+| community.js | test_like_functionality | Tests post and comment likes | ✅ |
+| community.js | test_comment_system | Tests comment creation and replies | ✅ |
+| community.js | test_challenge_participation | Tests challenge joining and updates | ✅ |
+
 ### Running Tests
 
-To run all tests:
+#### Django Tests
 ```bash
+# Run all Django tests
 python manage.py test --keepdb
-```
 
-To run specific app tests:
-```bash
+# Run specific app tests
 python manage.py test <app_name>.tests --keepdb
+
+# Run specific test case
+python manage.py test <app_name>.tests.<TestClass>.<test_method> --keepdb
 ```
 
-To run a specific test case:
+#### JavaScript Tests
 ```bash
-python manage.py test <app_name>.tests.<TestClass>.<test_method> --keepdb
+# Run all JavaScript tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run specific test file
+npx jest static/js/checkout.test.js
 ```
 
 ### Test Coverage
@@ -304,6 +324,18 @@ The tests cover:
 - Payment processing
 - Form validation
 - Success/error message handling
+- Community features (posts, comments, likes)
+- Challenge participation
+
+### Linting
+The project uses ESLint for JavaScript code quality. Run the linter with:
+```bash
+# Check for issues
+npm run lint
+
+# Fix issues automatically
+npm run lint:fix
+```
 
 ## 📈 Monitoring and Maintenance
 

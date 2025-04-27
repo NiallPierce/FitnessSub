@@ -12,8 +12,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (postForm) {
         postForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            const content = this.querySelector('textarea[name="content"]').value;
+            if (!content.trim()) {
+                alert('Please enter some content');
+                return;
+            }
             const formData = new FormData(this);
-            
+
             fetch(this.action, {
                 method: 'POST',
                 body: formData,
@@ -21,19 +26,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Refresh the posts list
-                    location.reload();
-                } else {
-                    alert('Error creating post: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while creating the post.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error creating post: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating the post.');
+                });
         });
     }
 
@@ -47,15 +51,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const likeCount = this.querySelector('.like-count');
-                    likeCount.textContent = data.likes_count;
-                    this.classList.toggle('text-danger');
-                }
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const likeCount = this.querySelector('.like-count');
+                        if (likeCount) {
+                            likeCount.textContent = data.likes_count ? data.likes_count.toString() : '0';
+                        }
+                        this.classList.toggle('text-danger');
+                    } else {
+                        alert('Error liking post: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error liking post: ' + error.message);
+                });
         });
     });
 
@@ -63,9 +74,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.comment-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            const content = this.querySelector('textarea[name="content"]').value;
+            if (!content.trim()) {
+                alert('Please enter some content');
+                return;
+            }
             const formData = new FormData(this);
             const postId = this.dataset.postId;
-            
+
             fetch(`/community/posts/${postId}/comment/`, {
                 method: 'POST',
                 body: formData,
@@ -73,19 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Refresh the comments section
-                    location.reload();
-                } else {
-                    alert('Error adding comment: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while adding the comment.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error adding comment: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding the comment.');
+                });
         });
     });
 
@@ -99,15 +114,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const likeCount = this.querySelector('.like-count');
-                    likeCount.textContent = data.likes_count;
-                    this.classList.toggle('text-danger');
-                }
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const likeCount = this.querySelector('.like-count');
+                        if (likeCount) {
+                            likeCount.textContent = data.likes_count ? data.likes_count.toString() : '0';
+                        }
+                        this.classList.toggle('text-danger');
+                    } else {
+                        alert('Error liking comment: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error liking comment: ' + error.message);
+                });
         });
     });
 
@@ -122,18 +144,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                     }
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error deleting post: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the post.');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Error deleting post: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting the post.');
+                    });
             }
         });
     });
@@ -149,18 +171,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                     }
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error deleting comment: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the comment.');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Error deleting comment: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting the comment.');
+                    });
             }
         });
     });
@@ -175,18 +197,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Error joining challenge: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while joining the challenge.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error joining challenge: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while joining the challenge.');
+                });
         });
     });
 
@@ -200,18 +222,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Error joining workout: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while joining the workout.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error joining workout: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while joining the workout.');
+                });
         });
     });
-}); 
+});
