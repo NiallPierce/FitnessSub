@@ -1,5 +1,45 @@
 {% extends "community/base.html" %}
 
+{% block meta %}
+    <meta name="keywords" content="fitness challenges, workout challenges, community challenges, fitness goals">
+    <meta property="og:title" content="Fitness Community Challenges">
+    <meta property="og:description" content="Join our fitness challenges and achieve your goals with our supportive community.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+  transition: transform 0.2s;
+  box-shadow: 0 0.125rem 0.25rem rgb(0 0 0 / 7.5%);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.list-group-item {
+  transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.badge {
+  font-size: 0.9rem;
+  padding: 0.5em 0.75em;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
 {% block community_content %}
 <div class="container mt-4">
     <div class="row">
@@ -95,33 +135,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.card {
-  transition: transform 0.2s;
-  box-shadow: 0 0.125rem 0.25rem rgb(0 0 0 / 7.5%);
-}
-
-.card:hover {
-  transform: translateY(-5px);
-}
-
-.list-group-item {
-  transition: background-color 0.2s;
-}
-
-.list-group-item:hover {
-  background-color: #f8f9fa;
-}
-
-.badge {
-  font-size: 0.9rem;
-  padding: 0.5em 0.75em;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-</style>
 {% endblock %} 

@@ -3,7 +3,6 @@
 {% load crispy_forms_tags %}
 
 {% block meta %}
-    <meta name="description" content="{{ product.description|truncatewords:30 }}">
     <meta name="keywords" content="{{ product.name }}, fitness, supplements, workout equipment">
     <meta property="og:title" content="{{ product.name }} - Fitness Store">
     <meta property="og:description" content="{{ product.description|truncatewords:30 }}">
@@ -168,7 +167,7 @@
                 <div class="card-header">
                     <h2>Customer Reviews</h2>
                 </div>
-                <div class="card-body">
+                <div class="card-body" itemscope itemtype="https://schema.org/Product">
                     {% if reviews %}
                         {% for review in reviews %}
                             <div class="review mb-4" itemprop="review" itemscope itemtype="https://schema.org/Review">

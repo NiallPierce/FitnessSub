@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block meta %}
-    <meta name="description" content="{{ challenge.description|truncatewords:30 }} - Join this fitness challenge and earn rewards. Duration: {{ challenge.start_date|date:'F j, Y' }} to {{ challenge.end_date|date:'F j, Y' }}. {{ challenge.participants.count }} participants.">
     <meta name="keywords" content="fitness challenge, workout challenge, {{ challenge.title }}, fitness community, fitness rewards">
     <meta property="og:title" content="{{ challenge.title }} - Fitness Challenge">
     <meta property="og:description" content="{{ challenge.description|truncatewords:30 }}">
@@ -43,105 +42,7 @@
     </script>
 {% endblock %}
 
-{% block content %}
-<div class="challenge-detail">
-    <div class="challenge-header">
-        <h1>{{ challenge.title }}</h1>
-        <p class="challenge-description">{{ challenge.description }}</p>
-        <div class="challenge-meta">
-            <span class="duration">
-                <i class="fas fa-calendar-alt"></i> 
-                {{ challenge.start_date|date:"F j, Y" }} - {{ challenge.end_date|date:"F j, Y" }}
-            </span>
-            <span class="participants">
-                <i class="fas fa-users"></i> 
-                {{ challenge.participants.count }} Participants
-            </span>
-            <span class="points">
-                <i class="fas fa-star"></i> 
-                {{ challenge.points }} Points
-            </span>
-        </div>
-    </div>
-
-    {% if user.is_authenticated %}
-        {% if user_participation %}
-            <div class="participation-status">
-                <h3>Your Progress</h3>
-                <p><i class="fas fa-calendar-check"></i> Joined: {{ user_participation.joined_date|date:"F j, Y" }}</p>
-                <p><i class="fas fa-flag"></i> Status: {% if user_participation.completed %}Completed{% else %}In Progress{% endif %}</p>
-                {% if not user_participation.completed %}
-                    <form method="post" action="{% url 'community:complete_challenge' challenge.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-check-circle"></i> Mark as Complete
-                        </button>
-                    </form>
-                {% endif %}
-            </div>
-        {% else %}
-            <div class="join-challenge">
-                <a href="{% url 'community:join_challenge' challenge.id %}" class="btn btn-primary">
-                    <i class="fas fa-plus-circle"></i> Join Challenge
-                </a>
-            </div>
-        {% endif %}
-    {% else %}
-        <div class="login-prompt">
-            <p>Please <a href="{% url 'account_login' %}">login</a> to join this challenge.</p>
-        </div>
-    {% endif %}
-
-    <div class="challenge-content">
-        <div class="requirements-section">
-            <h2><i class="fas fa-tasks"></i> Challenge Requirements</h2>
-            <div class="requirements-list">
-                {% for requirement in challenge.requirements.all %}
-                    <div class="requirement-item">
-                        <div class="requirement-header">
-                            <span class="requirement-number">{{ forloop.counter }}</span>
-                            <span class="requirement-mandatory">
-                                {% if requirement.is_mandatory %}
-                                    <i class="fas fa-exclamation-circle text-danger"></i> Required
-                                {% else %}
-                                    <i class="fas fa-check-circle text-success"></i> Optional
-                                {% endif %}
-                            </span>
-                        </div>
-                        <p class="requirement-description">{{ requirement.description }}</p>
-                    </div>
-                {% empty %}
-                    <p class="text-muted">No specific requirements listed for this challenge.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="rewards-section">
-            <h2><i class="fas fa-trophy"></i> Challenge Rewards</h2>
-            <div class="rewards-list">
-                {% for reward in challenge.rewards.all %}
-                    <div class="reward-item">
-                        <div class="reward-header">
-                            <h4>{{ reward.description }}</h4>
-                            <span class="reward-points">
-                                <i class="fas fa-star"></i> {{ reward.points_value }} Points
-                            </span>
-                        </div>
-                        {% if reward.badge %}
-                            <div class="badge-info">
-                                <i class="fas fa-medal"></i> 
-                                <span class="badge-name">{{ reward.badge.name }}</span>
-                            </div>
-                        {% endif %}
-                    </div>
-                {% empty %}
-                    <p class="text-muted">No specific rewards listed for this challenge.</p>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
 <style>
 .challenge-detail {
   max-width: 800px;
@@ -302,4 +203,104 @@
   color: #6c757d;
 }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="challenge-detail">
+    <div class="challenge-header">
+        <h1>{{ challenge.title }}</h1>
+        <p class="challenge-description">{{ challenge.description }}</p>
+        <div class="challenge-meta">
+            <span class="duration">
+                <i class="fas fa-calendar-alt"></i> 
+                {{ challenge.start_date|date:"F j, Y" }} - {{ challenge.end_date|date:"F j, Y" }}
+            </span>
+            <span class="participants">
+                <i class="fas fa-users"></i> 
+                {{ challenge.participants.count }} Participants
+            </span>
+            <span class="points">
+                <i class="fas fa-star"></i> 
+                {{ challenge.points }} Points
+            </span>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+        {% if user_participation %}
+            <div class="participation-status">
+                <h3>Your Progress</h3>
+                <p><i class="fas fa-calendar-check"></i> Joined: {{ user_participation.joined_date|date:"F j, Y" }}</p>
+                <p><i class="fas fa-flag"></i> Status: {% if user_participation.completed %}Completed{% else %}In Progress{% endif %}</p>
+                {% if not user_participation.completed %}
+                    <form method="post" action="{% url 'community:complete_challenge' challenge.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check-circle"></i> Mark as Complete
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="join-challenge">
+                <a href="{% url 'community:join_challenge' challenge.id %}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Join Challenge
+                </a>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="login-prompt">
+            <p>Please <a href="{% url 'account_login' %}">login</a> to join this challenge.</p>
+        </div>
+    {% endif %}
+
+    <div class="challenge-content">
+        <div class="requirements-section">
+            <h2><i class="fas fa-tasks"></i> Challenge Requirements</h2>
+            <div class="requirements-list">
+                {% for requirement in challenge.requirements.all %}
+                    <div class="requirement-item">
+                        <div class="requirement-header">
+                            <span class="requirement-number">{{ forloop.counter }}</span>
+                            <span class="requirement-mandatory">
+                                {% if requirement.is_mandatory %}
+                                    <i class="fas fa-exclamation-circle text-danger"></i> Required
+                                {% else %}
+                                    <i class="fas fa-check-circle text-success"></i> Optional
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="requirement-description">{{ requirement.description }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No specific requirements listed for this challenge.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="rewards-section">
+            <h2><i class="fas fa-trophy"></i> Challenge Rewards</h2>
+            <div class="rewards-list">
+                {% for reward in challenge.rewards.all %}
+                    <div class="reward-item">
+                        <div class="reward-header">
+                            <h4>{{ reward.description }}</h4>
+                            <span class="reward-points">
+                                <i class="fas fa-star"></i> {{ reward.points_value }} Points
+                            </span>
+                        </div>
+                        {% if reward.badge %}
+                            <div class="badge-info">
+                                <i class="fas fa-medal"></i> 
+                                <span class="badge-name">{{ reward.badge.name }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No specific rewards listed for this challenge.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %} 
