@@ -1,6 +1,12 @@
+/* jshint esversion: 8, module: true */
+/* global Stripe */
+"use strict";
+
 // Checkout form handling
 export function validateShippingForm() {
     const form = document.getElementById('payment-form');
+    if (!form) return false;
+
     const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
 
@@ -28,9 +34,11 @@ export function showSection(sectionIndex) {
 }
 
 export function updateOrderTotal() {
-    const shippingMethod = document.querySelector('input[name="shipping_method"]:checked').value;
-    // In a real implementation, this would calculate and update the total
-    console.log(`Shipping method changed to: ${shippingMethod}`);
+    const selectedShipping = document.querySelector('input[name="shipping_method"]:checked');
+    if (selectedShipping) {
+        console.log(`Shipping method changed to: ${selectedShipping.value}`);
+        // Here you could add logic to recalculate totals based on shipping
+    }
 }
 
 export async function initializePaymentElement() {
@@ -48,14 +56,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Shipping method change handler
-    const shippingMethodInput = document.querySelector('input[name="shipping_method"]');
-    if (shippingMethodInput) {
-        shippingMethodInput.addEventListener('change', updateOrderTotal);
-    }
+    const shippingMethodInputs = document.querySelectorAll('input[name="shipping_method"]');
+    shippingMethodInputs.forEach(input => {
+        input.addEventListener('change', updateOrderTotal);
+    });
 
     // Form submission handler
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        if (!validateShippingForm()) {
+            console.warn('Form validation failed.');
+            return;
+        }
+
         await initializePaymentElement();
 
         try {
@@ -69,8 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await response.json();
             if (result.success) {
-                // Handle successful payment
                 console.log('Payment successful');
+                // You could redirect or show a success message here
+            } else {
+                console.error('Payment failed:', result.message);
             }
         } catch (error) {
             console.error('Payment failed:', error);

@@ -1,14 +1,22 @@
 {
-    "esversion": 6,
-    "strict": "global",
+    "esversion": 8,
+    "strict": false, 
     "undef": true,
     "unused": true,
     "browser": true,
     "jquery": true,
     "devel": true,
     "globals": {
-        "stripe": false,
+        "Stripe": false,
         "STRIPE_PUBLIC_KEY": false,
-        "bootstrap": false
+        "bootstrap": false,
+        "jest": true,
+        "describe": true,
+        "test": true,
+        "expect": true,
+        "beforeEach": true,
+        "afterEach": true,
+        "global": true,
+        "require": true
     }
-} 
+}
