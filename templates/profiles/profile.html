@@ -74,6 +74,14 @@
 
     <div class="row mt-4">
         <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">Account Actions</h3>
+                <a href="{% url 'profiles:delete_account' %}"
+                   class="btn btn-outline-danger"
+                   onclick="return confirm('Are you sure you want to delete your account? This cannot be undone.');">
+                    Delete Account
+                </a>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <h4>Order History</h4>

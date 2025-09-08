@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .models import UserProfile
 from .forms import UserProfileForm, UserForm
 from checkout.models import Order
+from django.contrib.auth import logout
 
 
 @login_required
@@ -117,3 +118,19 @@ def order_tracking(request, order_number):
     }
 
     return render(request, template, context)
+
+
+@login_required
+def delete_account(request):
+    """Confirm and delete the authenticated user's account."""
+    if request.method == 'POST':
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(
+            request,
+            'Your account has been deleted successfully.'
+        )
+        return redirect('home:index')
+
+    return render(request, 'profiles/delete_account_confirm.html')

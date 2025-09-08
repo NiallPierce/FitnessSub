@@ -15,4 +15,9 @@ urlpatterns = [
         views.order_tracking,
         name='order_tracking'
     ),
+    path(
+        'delete/',
+        views.delete_account,
+        name='delete_account'
+    ),
 ]
