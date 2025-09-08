@@ -11,6 +11,7 @@ from .models import (
 from .forms import CommentForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.utils.dateparse import parse_datetime
 
 # Create your views here.
 
@@ -125,7 +126,7 @@ def challenges(request):
                     name="5K Runner",
                     defaults={
                         'description': 'Completed the Couch to 5K Challenge',
-                        'badge_type': 'achievement',
+                        'badge_type': 'community',
                         'required_points': 500
                     }
                 )[0]
@@ -204,6 +205,34 @@ def create_post(request):
 
 
 @login_required
+def edit_post(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id, user=request.user)
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        image = request.FILES.get('image')
+        if not content:
+            messages.error(request, 'Content cannot be empty.')
+            return redirect('community:social_feed')
+        post.content = content
+        if image is not None:
+            post.image = image
+        post.save()
+        messages.success(request, 'Post updated successfully!')
+        return redirect('community:social_feed')
+    return render(request, 'community/create_post.html', {'post': post})
+
+
+@login_required
+def delete_post(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id, user=request.user)
+    if request.method == 'POST':
+        post.delete()
+        messages.success(request, 'Post deleted successfully!')
+        return redirect('community:social_feed')
+    return render(request, 'community/create_post.html', {'post': post})
+
+
+@login_required
 def post_detail(request, post_id):
     post = get_object_or_404(SocialPost, id=post_id)
     if request.method == 'POST':
@@ -262,14 +291,74 @@ def workout_detail(request, workout_id):
         id=request.user.id
     ).exists()
 
+    remaining_capacity = workout.max_participants - workout.participants.count()
     return render(
         request,
         'community/workout_detail.html',
         {
             'workout': workout,
             'is_participant': is_participant,
+            'remaining_capacity': remaining_capacity,
         }
     )
+
+
+@login_required
+def join_workout(request, workout_id):
+    workout = get_object_or_404(GroupWorkout, id=workout_id)
+    if request.method == 'POST':
+        workout.participants.add(request.user)
+        messages.success(request, 'You have joined the workout!')
+    return redirect('community:workout_detail', workout_id=workout.id)
+
+
+@login_required
+def leave_workout(request, workout_id):
+    workout = get_object_or_404(GroupWorkout, id=workout_id)
+    if request.method == 'POST':
+        workout.participants.remove(request.user)
+        messages.success(request, 'You have left the workout.')
+    return redirect('community:workout_detail', workout_id=workout.id)
+
+
+@login_required
+def edit_workout(request, workout_id):
+    workout = get_object_or_404(GroupWorkout, id=workout_id, created_by=request.user)
+    if request.method == 'POST':
+        workout.title = request.POST.get('title', workout.title)
+        workout.description = request.POST.get('description', workout.description)
+        dt_str = request.POST.get('date_time')
+        if dt_str:
+            parsed = parse_datetime(dt_str)
+            if parsed is None:
+                messages.error(request, 'Invalid date/time format.')
+                return redirect('community:workout_detail', workout_id=workout.id)
+            if timezone.is_naive(parsed):
+                parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+            workout.date_time = parsed
+        workout.duration = request.POST.get('duration', workout.duration)
+        workout.max_participants = request.POST.get('max_participants', workout.max_participants)
+        if workout.workout_type == 'local':
+            workout.location = request.POST.get('location', workout.location)
+        else:
+            workout.meeting_link = request.POST.get('meeting_link', workout.meeting_link)
+        workout.save()
+        messages.success(request, 'Workout updated successfully!')
+        return redirect('community:workout_detail', workout_id=workout.id)
+    return redirect('community:workout_detail', workout_id=workout.id)
+
+
+@login_required
+def delete_workout(request, workout_id):
+    workout = get_object_or_404(GroupWorkout, id=workout_id)
+    if not (request.user == workout.created_by or request.user.is_superuser):
+        messages.error(request, 'You do not have permission to delete this workout.')
+        return redirect('community:workout_detail', workout_id=workout.id)
+    if request.method == 'POST':
+        workout.delete()
+        messages.success(request, 'Workout deleted successfully!')
+        return redirect('community:group_workouts')
+    return redirect('community:workout_detail', workout_id=workout.id)
 
 
 @login_required
@@ -292,11 +381,18 @@ def create_workout(request):
             duration,
             max_participants
         ]):
+            # Parse user-supplied start date/time from datetime-local input
+            parsed = parse_datetime(date_time)
+            if parsed is None:
+                messages.error(request, 'Invalid date/time format.')
+                return redirect('community:group_workouts')
+            if timezone.is_naive(parsed):
+                parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
             workout = GroupWorkout.objects.create(
                 title=title,
                 description=description,
                 workout_type=workout_type,
-                date_time=date_time,
+                date_time=parsed,
                 duration=duration,
                 max_participants=max_participants,
                 location=location,

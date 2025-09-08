@@ -62,10 +62,17 @@
                 <div class="community-card mb-4">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <img src="{{ post.user.userprofile.profile_picture.url }}" 
-                                 alt="{{ post.user.username }}" 
-                                 class="rounded-circle mr-2" 
-                                 width="48" height="48">
+                            {% if post.user.userprofile.profile_picture %}
+                                <img src="{{ post.user.userprofile.profile_picture.url }}" 
+                                     alt="{{ post.user.username }}" 
+                                     class="rounded-circle mr-2" 
+                                     width="48" height="48">
+                            {% else %}
+                                <img src="{% static 'images/favicon/favicon-32x32.png' %}" 
+                                     alt="{{ post.user.username }}" 
+                                     class="rounded-circle mr-2" 
+                                     width="48" height="48">
+                            {% endif %}
                             <div>
                                 <h5 class="mb-0">{{ post.user.username }}</h5>
                                 <small class="text-muted">{{ post.created_at|timesince }} ago</small>
@@ -107,10 +114,17 @@
                                 {% for comment in post.comments.all %}
                                     <div class="comment-item mb-3">
                                         <div class="d-flex align-items-center mb-2">
-                                            <img src="{{ comment.user.userprofile.profile_picture.url }}" 
-                                                 alt="{{ comment.user.username }}" 
-                                                 class="rounded-circle mr-2" 
-                                                 width="32" height="32">
+                                            {% if comment.user.userprofile.profile_picture %}
+                                                <img src="{{ comment.user.userprofile.profile_picture.url }}" 
+                                                     alt="{{ comment.user.username }}" 
+                                                     class="rounded-circle mr-2" 
+                                                     width="32" height="32">
+                                            {% else %}
+                                                <img src="{% static 'images/favicon/favicon-32x32.png' %}" 
+                                                     alt="{{ comment.user.username }}" 
+                                                     class="rounded-circle mr-2" 
+                                                     width="32" height="32">
+                                            {% endif %}
                                             <div>
                                                 <h6 class="mb-0">{{ comment.user.username }}</h6>
                                                 <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
@@ -249,4 +263,4 @@ function deletePost(postId) {
     // Implement delete functionality
 }
 </script>
-{% endblock %} 
+{% endblock %}

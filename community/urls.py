@@ -28,6 +28,8 @@ urlpatterns = [
     ),
     path('social/', views.social_feed, name='social_feed'),
     path('social/create/', views.create_post, name='create_post'),
+    path('social/<int:post_id>/edit/', views.edit_post, name='edit_post'),
+    path('social/<int:post_id>/delete/', views.delete_post, name='delete_post'),
     path(
         'social/<int:post_id>/',
         views.post_detail,
@@ -43,6 +45,26 @@ urlpatterns = [
         'workouts/<int:workout_id>/',
         views.workout_detail,
         name='workout_detail'
+    ),
+    path(
+        'workouts/<int:workout_id>/join/',
+        views.join_workout,
+        name='join_workout'
+    ),
+    path(
+        'workouts/<int:workout_id>/leave/',
+        views.leave_workout,
+        name='leave_workout'
+    ),
+    path(
+        'workouts/<int:workout_id>/edit/',
+        views.edit_workout,
+        name='edit_workout'
+    ),
+    path(
+        'workouts/<int:workout_id>/delete/',
+        views.delete_workout,
+        name='delete_workout'
     ),
     path('workouts/create/', views.create_workout, name='create_workout'),
     path(

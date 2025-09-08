@@ -1,4 +1,5 @@
 {% extends "community/base.html" %}
+{% load static %}
 
 {% block community_content %}
 <div class="row">
@@ -43,10 +44,17 @@
                     {% for post in recent_posts %}
                         <div class="post-item mb-3">
                             <div class="d-flex align-items-center mb-2">
-                                <img src="{{ post.user.userprofile.profile_picture.url }}" 
-                                     alt="{{ post.user.username }}" 
-                                     class="rounded-circle mr-2" 
-                                     width="32" height="32">
+                                {% if post.user.userprofile.profile_picture %}
+                                    <img src="{{ post.user.userprofile.profile_picture.url }}" 
+                                         alt="{{ post.user.username }}" 
+                                         class="rounded-circle mr-2" 
+                                         width="32" height="32">
+                                {% else %}
+                                    <img src="{% static 'images/favicon/favicon-32x32.png' %}" 
+                                         alt="{{ post.user.username }}" 
+                                         class="rounded-circle mr-2" 
+                                         width="32" height="32">
+                                {% endif %}
                                 <div>
                                     <h5 class="mb-0">{{ post.user.username }}</h5>
                                     <small class="text-muted">{{ post.created_at|timesince }} ago</small>
@@ -122,4 +130,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

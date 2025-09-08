@@ -1,4 +1,5 @@
 {% extends "community/base.html" %}
+{% load static %}
 
 {% block meta %}
     <meta name="description" content="{{ workout.title }} - {{ workout.description|truncatewords:30 }}. Join this {{ workout.get_workout_type_display }} workout on {{ workout.date_time|date:'F j, Y' }} at {{ workout.date_time|time:'g:i A' }}. {{ workout.participants.count }}/{{ workout.max_participants }} participants.">
@@ -39,7 +40,7 @@
             "name": "{% if workout.workout_type == 'local' %}{{ workout.location }}{% else %}Online Workout{% endif %}"
         },
         "maximumAttendeeCapacity": {{ workout.max_participants }},
-        "remainingAttendeeCapacity": {{ workout.max_participants|sub:workout.participants.count }}
+        "remainingAttendeeCapacity": {{ remaining_capacity }}
     }
     </script>
 {% endblock %}
@@ -128,7 +129,7 @@
                         {% if workout.participants.count < workout.max_participants %}
                             <form method="post" action="{% url 'community:join_workout' workout.id %}" class="d-inline">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-community">
+                                <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-plus"></i> Join Workout
                                 </button>
                             </form>
@@ -139,10 +140,16 @@
                         {% endif %}
                     {% endif %}
                     
-                    {% if workout.created_by == request.user %}
-                        <button class="btn btn-warning" data-toggle="modal" data-target="#editWorkoutModal">
+                    {% if workout.created_by == request.user or request.user.is_superuser %}
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editWorkoutModal">
                             <i class="fas fa-edit"></i> Edit Workout
                         </button>
+                        <form method="post" action="{% url 'community:delete_workout' workout.id %}" class="d-inline ms-2" onsubmit="return confirm('Delete this workout? This cannot be undone.');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete Workout
+                            </button>
+                        </form>
                     {% endif %}
                 </div>
             </div>
@@ -203,14 +210,12 @@
 </div>
 
 <!-- Edit Workout Modal -->
-<div class="modal fade" id="editWorkoutModal" tabindex="-1" role="dialog" aria-labelledby="editWorkoutModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="editWorkoutModal" tabindex="-1" aria-labelledby="editWorkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editWorkoutModalLabel">Edit Workout</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="post" action="{% url 'community:edit_workout' workout.id %}">
                 {% csrf_token %}
@@ -253,11 +258,11 @@
                     {% endif %}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-community">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
