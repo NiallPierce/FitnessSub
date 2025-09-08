@@ -617,6 +617,12 @@ This project uses GitHub's built-in project management tools for Agile developme
 4. Submit pull requests for review
 5. Deploy to production after approval
 
+## 🗺️ ER Diagram
+
+The following Mermaid ER diagram describes the core data model of the application.
+
+![ER Diagram](static/images/er-diagram/Mermaid%20Chart%20-%20Create%20complex,%20visual%20diagrams%20with%20text.%20A%20smarter%20way%20of%20creating%20diagrams.-2025-09-08-114924.svg)
+
 ## 🎨 UX Design Documentation
 
 ### Design Principles
