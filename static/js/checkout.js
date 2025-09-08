@@ -1,11 +1,12 @@
 /* jshint esversion: 8, module: true */
-/* global Stripe */
-"use strict";
+'use strict';
 
 // Checkout form handling
 export function validateShippingForm() {
     const form = document.getElementById('payment-form');
-    if (!form) return false;
+    if (!form) {
+        return false;
+    }
 
     const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;

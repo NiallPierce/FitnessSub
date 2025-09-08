@@ -6,41 +6,36 @@ app_name = 'community'
 urlpatterns = [
     path('', views.community_home, name='community_home'),
     path('challenges/', views.challenges, name='challenges'),
+    path('challenges/c25k/', views.c25k_challenge, name='c25k_challenge'),
     path(
-        'challenges/<int:challenge_id>/',
-        views.challenge_detail,
-        name='challenge_detail'
+        'challenges/c25k/start/',
+        views.start_c25k_challenge,
+        name='start_c25k_challenge'
     ),
     path(
-        'challenges/<int:challenge_id>/join/',
-        views.join_challenge,
-        name='join_challenge'
-    ),
-    path(
-        'challenges/c25k/create/',
-        views.create_c25k_challenge,
-        name='create_c25k'
-    ),
-    path(
-        'challenges/c25k/<int:challenge_id>/update/',
+        'challenges/c25k/update/',
         views.update_c25k_progress,
         name='update_c25k_progress'
     ),
     path('social/', views.social_feed, name='social_feed'),
     path('social/create/', views.create_post, name='create_post'),
-    path('social/<int:post_id>/edit/', views.edit_post, name='edit_post'),
-    path('social/<int:post_id>/delete/', views.delete_post, name='delete_post'),
+    path(
+        'social/<int:post_id>/edit/',
+        views.edit_post,
+        name='edit_post'
+    ),
+    path(
+        'social/<int:post_id>/delete/',
+        views.delete_post,
+        name='delete_post'
+    ),
     path(
         'social/<int:post_id>/',
         views.post_detail,
         name='post_detail'
     ),
-    path(
-        'social/<int:post_id>/comment/',
-        views.add_comment,
-        name='add_comment'
-    ),
     path('workouts/', views.group_workouts, name='group_workouts'),
+    path('workouts/create/', views.create_workout, name='create_workout'),
     path(
         'workouts/<int:workout_id>/',
         views.workout_detail,
@@ -66,7 +61,6 @@ urlpatterns = [
         views.delete_workout,
         name='delete_workout'
     ),
-    path('workouts/create/', views.create_workout, name='create_workout'),
     path(
         'profile/<str:username>/',
         views.user_profile,

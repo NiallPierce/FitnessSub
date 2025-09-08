@@ -56,10 +56,19 @@ def products(request):
 
         products = products.filter(search_filter)
 
-    category = request.GET.get('category', '')
-    if category:
-        category_obj = get_object_or_404(Category, slug=category)
-        products = products.filter(category=category_obj)
+    category_param = request.GET.get('category', '')
+    if category_param:
+        category_obj = (
+            Category.objects.filter(slug=category_param).first()
+            or (Category.objects.filter(id=category_param).first()
+                if str(category_param).isdigit() else None)
+            or Category.objects.filter(name__iexact=category_param).first()
+            or Category.objects.filter(
+                friendly_name__iexact=category_param
+            ).first()
+        )
+        if category_obj is not None:
+            products = products.filter(category=category_obj)
 
     rating = request.GET.get('rating', '')
     if rating:
@@ -89,7 +98,7 @@ def products(request):
         'page_obj': page_obj,
         'categories': categories,
         'search_query': search_query,
-        'selected_category': category,
+        'selected_category': category_param,
         'sort': sort,
         'is_paginated': paginator.num_pages > 1
     }
@@ -113,7 +122,9 @@ def product_detail(request, product_id):
             return redirect('account_login')
 
         # Prevent multiple reviews per user per product
-        existing = Review.objects.filter(product=product, user=request.user).exists()
+        existing = Review.objects.filter(
+            product=product, user=request.user
+        ).exists()
         if existing:
             messages.info(request, 'You have already reviewed this product.')
             return redirect('products:product_detail', product_id=product.id)
@@ -575,9 +586,15 @@ def cancel_subscription(request):
 def delete_review(request, review_id):
     """Confirm and delete a review. Only the author or superuser can delete."""
     review = get_object_or_404(Review, id=review_id)
-    if not (request.user == review.user or request.user.is_superuser):
-        messages.error(request, 'You do not have permission to delete this review.')
-        return redirect('products:product_detail', product_id=review.product.id)
+    if not (
+        request.user == review.user or request.user.is_superuser
+    ):
+        messages.error(
+            request, 'You do not have permission to delete this review.'
+        )
+        return redirect(
+            'products:product_detail', product_id=review.product.id
+        )
 
     if request.method == 'POST':
         product_id = review.product.id

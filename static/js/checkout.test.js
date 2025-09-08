@@ -111,7 +111,6 @@ describe('Checkout Form', () => {
         test('shows correct section when navigating', async () => {
             // Test navigation to payment section
             document.getElementById('next-to-payment').click();
-
             // Wait for promises to resolve
             await new Promise(resolve => setTimeout(resolve, 0));
 

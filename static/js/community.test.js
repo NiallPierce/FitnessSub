@@ -1,6 +1,6 @@
 // Enable strict mode for this file
 (function() {
-    "use strict";
+    'use strict';
 
     // Mock bootstrap
     global.bootstrap = {
@@ -111,14 +111,14 @@
                     json: () => Promise.resolve({ success: false, error: 'Test error' })
                 };
                 global.fetch.mockImplementationOnce(() => Promise.resolve(mockResponse));
-                
+
                 const form = document.getElementById('postForm');
                 form.dispatchEvent(new Event('submit'));
-                
+
                 // Wait for all promises to resolve
                 await new Promise(resolve => setTimeout(resolve, 0));
                 await new Promise(resolve => setTimeout(resolve, 0));
-                
+
                 expect(global.alert).toHaveBeenCalledWith('Error creating post: Test error');
             });
 
@@ -152,14 +152,14 @@
                     json: () => Promise.resolve({ success: false, error: 'Like error' })
                 };
                 global.fetch.mockImplementationOnce(() => Promise.resolve(mockResponse));
-                
+
                 const likeButton = document.querySelector('.like-post');
                 likeButton.click();
-                
+
                 // Wait for all promises to resolve
                 await new Promise(resolve => setTimeout(resolve, 0));
                 await new Promise(resolve => setTimeout(resolve, 0));
-                
+
                 expect(global.alert).toHaveBeenCalledWith('Error liking post: Like error');
             });
         });

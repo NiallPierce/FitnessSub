@@ -291,7 +291,9 @@ def workout_detail(request, workout_id):
         id=request.user.id
     ).exists()
 
-    remaining_capacity = workout.max_participants - workout.participants.count()
+    remaining_capacity = (
+        workout.max_participants - workout.participants.count()
+    )
     return render(
         request,
         'community/workout_detail.html',
@@ -323,25 +325,37 @@ def leave_workout(request, workout_id):
 
 @login_required
 def edit_workout(request, workout_id):
-    workout = get_object_or_404(GroupWorkout, id=workout_id, created_by=request.user)
+    workout = get_object_or_404(
+        GroupWorkout, id=workout_id, created_by=request.user
+    )
     if request.method == 'POST':
         workout.title = request.POST.get('title', workout.title)
-        workout.description = request.POST.get('description', workout.description)
+        workout.description = request.POST.get(
+            'description', workout.description
+        )
         dt_str = request.POST.get('date_time')
         if dt_str:
             parsed = parse_datetime(dt_str)
             if parsed is None:
                 messages.error(request, 'Invalid date/time format.')
-                return redirect('community:workout_detail', workout_id=workout.id)
+                return redirect(
+                    'community:workout_detail', workout_id=workout.id
+                )
             if timezone.is_naive(parsed):
-                parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+                parsed = timezone.make_aware(
+                    parsed, timezone.get_current_timezone()
+                )
             workout.date_time = parsed
         workout.duration = request.POST.get('duration', workout.duration)
-        workout.max_participants = request.POST.get('max_participants', workout.max_participants)
+        workout.max_participants = request.POST.get(
+            'max_participants', workout.max_participants
+        )
         if workout.workout_type == 'local':
             workout.location = request.POST.get('location', workout.location)
         else:
-            workout.meeting_link = request.POST.get('meeting_link', workout.meeting_link)
+            workout.meeting_link = request.POST.get(
+                'meeting_link', workout.meeting_link
+            )
         workout.save()
         messages.success(request, 'Workout updated successfully!')
         return redirect('community:workout_detail', workout_id=workout.id)
@@ -351,7 +365,9 @@ def edit_workout(request, workout_id):
 @login_required
 def delete_workout(request, workout_id):
     workout = get_object_or_404(GroupWorkout, id=workout_id)
-    if not (request.user == workout.created_by or request.user.is_superuser):
+    if not (
+        request.user == workout.created_by or request.user.is_superuser
+    ):
         messages.error(request, 'You do not have permission to delete this workout.')
         return redirect('community:workout_detail', workout_id=workout.id)
     if request.method == 'POST':
@@ -387,7 +403,9 @@ def create_workout(request):
                 messages.error(request, 'Invalid date/time format.')
                 return redirect('community:group_workouts')
             if timezone.is_naive(parsed):
-                parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+                parsed = timezone.make_aware(
+                    parsed, timezone.get_current_timezone()
+                )
             workout = GroupWorkout.objects.create(
                 title=title,
                 description=description,
@@ -564,8 +582,15 @@ def create_c25k_challenge(request):
 
 
 @login_required
-def update_c25k_progress(request, challenge_id):
-    challenge = get_object_or_404(Challenge, id=challenge_id)
+def update_c25k_progress(request):
+    challenge = Challenge.objects.filter(
+        title="Couch to 5K Challenge",
+        is_active=True
+    ).first()
+    
+    if not challenge:
+        messages.error(request, 'C25K challenge not found.')
+        return redirect('community:challenges')
     participation = get_object_or_404(
         ChallengeParticipation,
         user=request.user,
@@ -710,3 +735,55 @@ def add_comment(request, post_id):
         )
 
     return redirect('community:post_detail', post_id=post_id)
+
+
+@login_required
+def c25k_challenge(request):
+    """Display the C25K challenge details."""
+    challenge = Challenge.objects.filter(
+        title="Couch to 5K Challenge",
+        is_active=True
+    ).first()
+    
+    if not challenge:
+        messages.error(request, 'C25K challenge not found.')
+        return redirect('community:challenges')
+    
+    # Check if user is participating
+    participation = ChallengeParticipation.objects.filter(
+        user=request.user,
+        challenge=challenge
+    ).first()
+    
+    context = {
+        'challenge': challenge,
+        'participation': participation,
+    }
+    return render(request, 'community/c25k_challenge.html', context)
+
+
+@login_required
+def start_c25k_challenge(request):
+    """Start the C25K challenge for the user."""
+    challenge = Challenge.objects.filter(
+        title="Couch to 5K Challenge",
+        is_active=True
+    ).first()
+    
+    if not challenge:
+        messages.error(request, 'C25K challenge not found.')
+        return redirect('community:challenges')
+    
+    # Check if user is already participating
+    participation, created = ChallengeParticipation.objects.get_or_create(
+        user=request.user,
+        challenge=challenge,
+        defaults={'started_at': timezone.now()}
+    )
+    
+    if created:
+        messages.success(request, 'You have started the C25K challenge!')
+    else:
+        messages.info(request, 'You are already participating in this challenge.')
+    
+    return redirect('community:c25k_challenge')
