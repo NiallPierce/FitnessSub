@@ -189,7 +189,16 @@
                                     </div>
                                 </div>
                                 <p class="text-muted" itemprop="datePublished">{{ review.created_at|date:"F d, Y" }}</p>
-                                <p itemprop="reviewBody">{{ review.content }}</p>
+                                <p itemprop="reviewBody">{{ review.comment }}</p>
+                                {% if user.is_authenticated and (user.id == review.user_id or user.is_superuser) %}
+                                    <div class="mt-2">
+                                        <a href="{% url 'products:delete_review' review_id=review.id %}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Delete this review?');">
+                                            Delete Review
+                                        </a>
+                                    </div>
+                                {% endif %}
                             </div>
                         {% endfor %}
                     {% else %}

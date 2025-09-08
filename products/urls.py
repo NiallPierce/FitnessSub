@@ -63,4 +63,10 @@ urlpatterns = [
         views.debug_stripe_config,
         name='debug_stripe_config'
     ),
+    # Reviews
+    path(
+        'reviews/<int:review_id>/delete/',
+        views.delete_review,
+        name='delete_review'
+    ),
 ]

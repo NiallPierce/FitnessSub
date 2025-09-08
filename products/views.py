@@ -563,3 +563,24 @@ def cancel_subscription(request):
             messages.error(request, "No active subscription found.")
 
     return render(request, 'product/cancel_subscription.html')
+
+
+@login_required
+def delete_review(request, review_id):
+    """Confirm and delete a review. Only the author or superuser can delete."""
+    review = get_object_or_404(Review, id=review_id)
+    if not (request.user == review.user or request.user.is_superuser):
+        messages.error(request, 'You do not have permission to delete this review.')
+        return redirect('products:product_detail', product_id=review.product.id)
+
+    if request.method == 'POST':
+        product_id = review.product.id
+        review.delete()
+        messages.success(request, 'Review deleted successfully.')
+        return redirect('products:product_detail', product_id=product_id)
+
+    context = {
+        'review': review,
+        'product': review.product,
+    }
+    return render(request, 'product/delete_review_confirm.html', context)
