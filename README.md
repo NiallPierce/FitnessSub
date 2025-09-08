@@ -343,6 +343,57 @@ The tests cover:
 - Community features (posts, comments, likes)
 - Challenge participation
 
+### Manual Testing
+
+The following manual test scenarios were executed end-to-end in a staged environment (local and Heroku) alongside the automated test suite.
+
+- Authentication & Profiles
+  - Register new user: completes, profile auto-created, redirected, welcome message displayed
+  - Login/logout: sessions persist, messages display, redirects correct
+  - Profile update: personal and shipping info persist; profile picture upload resizes to 300x300
+
+- Products & Reviews
+  - Product listing: search, filter by category and rating, sort by price/name, pagination
+  - Product detail: renders data, related products load
+  - Reviews: authenticated user can post one review; second attempt blocked with info message; superuser can delete any review; author can delete own review
+
+- Cart & Checkout
+  - Add/update/remove items, totals recalc, cart persists in session
+  - Checkout form validation errors and success path; order and order items created
+  - Post-checkout: cart cleared, confirmation page and email sent
+
+- Payments (Stripe Test Mode)
+  - PaymentIntent created; status success marks order as paid and creates Payment record
+  - Webhook handler updates order/payment when session completes
+  - Failure scenarios (invalid card) show appropriate messages
+
+- Subscriptions
+  - Plans list and detail render; subscribe creates Stripe Checkout Session
+  - Success activates UserSubscription; cancel sets cancel_at_period_end and deactivates locally
+  - Update payment method attaches and sets default method
+
+- Community
+  - /community home loads (no 500); missing avatars use safe fallback
+  - Social feed: create post, add comments, author-only edit/delete visible and functional
+  - Challenges: auto C25K creation if none; join, progress update, completion awards achievement
+  - Group Workouts: list shows upcoming/past; create modal (Bootstrap 5) opens; create/edit/delete by author; superuser can delete; join/leave buttons visible and functional; start time saved from datetime input and displayed
+
+- Newsletter
+  - Signup sends confirmation email; token confirm within 24h activates; expired token shows error; welcome email sent on confirm
+
+- Admin
+  - Admin CRUD for products, categories, orders; search and filters operational
+
+- Responsiveness & Accessibility
+  - UI verified on mobile/tablet/desktop breakpoints
+  - Keyboard navigation, focus states, alt text present; color contrast checked on critical components
+
+- Security & Settings
+  - CSRF protection on forms; session and CSRF cookies marked secure in production
+  - Static and media served via S3 in production; WhiteNoise locally
+
+Defects found during manual testing were fixed in this release: community 500s (missing static load, invalid filters), Bootstrap modal triggers, review delete permissions, single-review constraint, and UX contrast for key action buttons.
+
 ### Linting
 The project uses ESLint for JavaScript code quality. Run the linter with:
 ```bash
