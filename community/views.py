@@ -368,7 +368,7 @@ def delete_workout(request, workout_id):
     if not (
         request.user == workout.created_by or request.user.is_superuser
     ):
-        messages.error(request, 'You do not have permission to delete this workout.')
+        messages.error(request, 'You do not have permission to delete this.')
         return redirect('community:workout_detail', workout_id=workout.id)
     if request.method == 'POST':
         workout.delete()
@@ -587,7 +587,7 @@ def update_c25k_progress(request):
         title="Couch to 5K Challenge",
         is_active=True
     ).first()
-    
+
     if not challenge:
         messages.error(request, 'C25K challenge not found.')
         return redirect('community:challenges')
@@ -744,17 +744,17 @@ def c25k_challenge(request):
         title="Couch to 5K Challenge",
         is_active=True
     ).first()
-    
+
     if not challenge:
         messages.error(request, 'C25K challenge not found.')
         return redirect('community:challenges')
-    
+
     # Check if user is participating
     participation = ChallengeParticipation.objects.filter(
         user=request.user,
         challenge=challenge
     ).first()
-    
+
     context = {
         'challenge': challenge,
         'participation': participation,
@@ -769,21 +769,21 @@ def start_c25k_challenge(request):
         title="Couch to 5K Challenge",
         is_active=True
     ).first()
-    
+
     if not challenge:
         messages.error(request, 'C25K challenge not found.')
         return redirect('community:challenges')
-    
+
     # Check if user is already participating
     participation, created = ChallengeParticipation.objects.get_or_create(
         user=request.user,
         challenge=challenge,
         defaults={'started_at': timezone.now()}
     )
-    
+
     if created:
         messages.success(request, 'You have started the C25K challenge!')
     else:
-        messages.info(request, 'You are already participating in this challenge.')
-    
+        messages.info(request, 'You are already participating in this.')
+
     return redirect('community:c25k_challenge')

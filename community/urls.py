@@ -6,15 +6,28 @@ app_name = 'community'
 urlpatterns = [
     path('', views.community_home, name='community_home'),
     path('challenges/', views.challenges, name='challenges'),
-    path('challenges/<int:challenge_id>/', views.challenge_detail, name='challenge_detail'),
+    path('challenges/<int:challenge_id>/',
+         views.challenge_detail, name='challenge_detail'),
+    path(
+        'challenges/<int:challenge_id>/join/',
+        views.join_challenge,
+        name='join_challenge'
+    ),
     path('challenges/c25k/', views.c25k_challenge, name='c25k_challenge'),
     path(
         'challenges/c25k/start/',
         views.start_c25k_challenge,
         name='start_c25k_challenge'
     ),
+
     path(
         'challenges/c25k/update/',
+        views.update_c25k_progress,
+        name='update_c25k_progress_simple'
+    ),
+
+    path(
+        'challenges/<int:challenge_id>/update/',
         views.update_c25k_progress,
         name='update_c25k_progress'
     ),

@@ -74,6 +74,20 @@ def products(request):
     if rating:
         products = products.filter(rating__gte=float(rating))
 
+    # Price range filtering
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    if min_price:
+        try:
+            products = products.filter(price__gte=float(min_price))
+        except (TypeError, ValueError):
+            pass
+    if max_price:
+        try:
+            products = products.filter(price__lte=float(max_price))
+        except (TypeError, ValueError):
+            pass
+
     sort = request.GET.get('sort', '')
     sort_options = {
         'price': 'price',
@@ -99,6 +113,8 @@ def products(request):
         'categories': categories,
         'search_query': search_query,
         'selected_category': category_param,
+        'min_price': min_price,
+        'max_price': max_price,
         'sort': sort,
         'is_paginated': paginator.num_pages > 1
     }
