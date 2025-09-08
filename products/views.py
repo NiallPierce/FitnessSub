@@ -112,6 +112,12 @@ def product_detail(request, product_id):
             messages.error(request, 'Please login to leave a review.')
             return redirect('account_login')
 
+        # Prevent multiple reviews per user per product
+        existing = Review.objects.filter(product=product, user=request.user).exists()
+        if existing:
+            messages.info(request, 'You have already reviewed this product.')
+            return redirect('products:product_detail', product_id=product.id)
+
         review_form = ReviewForm(data=request.POST)
         if review_form.is_valid():
             new_review = review_form.save(commit=False)

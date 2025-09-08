@@ -87,6 +87,12 @@ class Review(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'user'],
+                name='unique_review_per_user_product'
+            )
+        ]
 
     def __str__(self):
         return (
